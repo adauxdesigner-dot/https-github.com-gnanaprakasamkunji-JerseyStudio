@@ -1,0 +1,117 @@
+/**
+ * JerseyStudio Design Tokens
+ * Source of truth: docs/DESIGN_SYSTEM.md
+ */
+
+:root {
+  /* ==========================================================================
+     Colors - Light Theme (Default)
+     ========================================================================== */
+  
+  /* Surfaces & Backgrounds */
+  --color-bg-app: #F5F6F8;
+  --color-surface: #FFFFFF;
+  --color-surface-subtle: #F0F2F5;
+  --color-surface-muted: #E9ECEF;
+  --color-surface-elevated: #FFFFFF;
+
+  /* Typography Colors */
+  --color-text-primary: #171A21;
+  --color-text-secondary: #5D6675;
+  --color-text-muted: #8A94A6;
+  --color-text-inverted: #FFFFFF;
+
+  /* Borders & Dividers */
+  --color-border: #DCE1E8;
+  --color-border-subtle: #E9EDF2;
+  --color-border-hover: #B8C2D1;
+
+  /* Primary Action */
+  --color-primary: #3157D5;
+  --color-primary-hover: #2547B8;
+  --color-primary-subtle: #EBF0FF;
+  --color-primary-contrast: #FFFFFF;
+
+  /* Semantic Feedback */
+  --color-success: #16845B;
+  --color-success-hover: #126D4B;
+  --color-success-subtle: #E8F6F0;
+  --color-success-contrast: #FFFFFF;
+
+  --color-warning: #A86612;
+  --color-warning-hover: #8D540D;
+  --color-warning-subtle: #FDF4E7;
+  --color-warning-contrast: #FFFFFF;
+
+  --color-error: #C23838;
+  --color-error-hover: #A52B2B;
+  --color-error-subtle: #FDEEEE;
+  --color-error-contrast: #FFFFFF;
+
+  /* Focus Indicator */
+  --color-focus-ring: #7AA2FF;
+
+  /* ==========================================================================
+     Radii
+     ========================================================================== */
+  --radius-sm: 6px;   /* Compact controls (buttons, inputs, badges) */
+  --radius-md: 10px;  /* Cards, modals, floating panels */
+  --radius-lg: 14px;  /* Major surfaces, app shell containers */
+  --radius-full: 9999px;
+
+  /* ==========================================================================
+     Spacing Scale
+     ========================================================================== */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* ==========================================================================
+     Typography Tokens
+     ========================================================================== */
+  --font-family-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-family-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Font Sizes & Line Heights */
+  --font-size-caption: 12px;
+  --line-height-caption: 16px;
+
+  --font-size-label: 13px;
+  --line-height-label: 18px;
+
+  --font-size-body: 14px;
+  --line-height-body: 20px;
+
+  --font-size-h3: 16px;
+  --line-height-h3: 22px;
+
+  --font-size-h2: 18px;
+  --line-height-h2: 24px;
+
+  --font-size-h1: 22px;
+  --line-height-h1: 28px;
+
+  --font-size-display: 26px;
+  --line-height-display: 32px;
+
+  /* Font Weights */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Shadows (Restrained) */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-panel: 0 2px 8px -2px rgba(16, 24, 40, 0.06), 0 1px 4px -1px rgba(16, 24, 40, 0.04);
+  --shadow-dialog: 0 12px 32px -4px rgba(16, 24, 40, 0.12), 0 4px 12px -2px rgba(16, 24, 40, 0.08);
+
+  /* Transitions */
+  --transition-fast: 120ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-normal: 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
