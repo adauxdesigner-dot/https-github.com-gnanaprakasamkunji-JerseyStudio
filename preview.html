@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JerseyStudio — Founder Visual Review</title>
-  <!-- Tailwind CSS CDN for instant zero-setup visual preview -->
+  <title>JerseyStudio — Pro Jersey Design Studio</title>
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -18,685 +18,1036 @@
       --border: #DCE1E8;
       --primary: #3157D5;
       --primary-hover: #2547B8;
-      --success: #16845B;
-      --warning: #A86612;
-      --error: #C23838;
     }
     body {
-      background-color: var(--bg-app);
+      background-color: #E2E8F0;
       color: var(--text-primary);
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
-    .checkerboard {
-      background-color: #f8fafc;
-      background-image: linear-gradient(45deg, #e2e8f0 25%, transparent 25%),
-                        linear-gradient(-45deg, #e2e8f0 25%, transparent 25%),
-                        linear-gradient(45deg, transparent 75%, #e2e8f0 75%),
-                        linear-gradient(-45deg, transparent 75%, #e2e8f0 75%);
-      background-size: 20px 20px;
-      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    /* Physical Canvas Rulers */
+    .ruler-top {
+      background: repeating-linear-gradient(90deg, #94a3b8 0, #94a3b8 1px, transparent 1px, transparent 10px),
+                  repeating-linear-gradient(90deg, #475569 0, #475569 1.5px, transparent 1.5px, transparent 50px);
+      height: 18px;
     }
+    .ruler-left {
+      background: repeating-linear-gradient(180deg, #94a3b8 0, #94a3b8 1px, transparent 1px, transparent 10px),
+                  repeating-linear-gradient(180deg, #475569 0, #475569 1.5px, transparent 1.5px, transparent 50px);
+      width: 18px;
+    }
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
   </style>
 </head>
-<body class="h-screen flex flex-col overflow-hidden select-none">
+<body class="h-screen flex flex-col overflow-hidden select-none bg-slate-100">
 
-  <!-- TOP HEADER -->
-  <header class="h-14 bg-white border-b border-[#DCE1E8] flex items-center justify-between px-5 shrink-0">
+  <!-- TOP GLOBAL HEADER -->
+  <header class="h-12 bg-white border-b border-gray-200 flex items-center justify-between px-4 shrink-0 shadow-xs z-30">
     <div class="flex items-center gap-3">
-      <div class="w-8 h-8 rounded-lg bg-[#3157D5] text-white flex items-center justify-center font-bold text-base shadow-sm">
+      <!-- App Logo -->
+      <div class="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
         JS
       </div>
-      <div>
-        <div class="font-bold text-sm tracking-tight text-[#171A21]">JerseyStudio <span class="font-normal text-xs text-gray-500">— Visual Review</span></div>
-        <div class="text-[11px] text-gray-400 font-mono">Project: Falcon FC Home Jersey 2026</div>
+      
+      <!-- Preset selector -->
+      <div class="flex items-center gap-1.5 text-xs bg-gray-50 border border-gray-200 rounded-md px-2 py-1">
+        <i data-lucide="layout-template" class="w-3.5 h-3.5 text-gray-500"></i>
+        <span class="text-gray-500">Preset:</span>
+        <span class="font-bold text-gray-800">Default (Back Master)</span>
+      </div>
+
+      <!-- View Switcher Pills: Back, Front, HS (Half Sleeve), FS (Full Sleeve) -->
+      <div class="flex bg-gray-100 p-0.5 rounded-lg border border-gray-200 text-xs">
+        <button onclick="switchGarmentView('back')" id="pill-view-back" class="px-3 py-1 rounded-md font-bold bg-white text-indigo-600 shadow-xs transition">
+          Back
+        </button>
+        <button onclick="switchGarmentView('front')" id="pill-view-front" class="px-3 py-1 rounded-md font-medium text-gray-600 hover:text-gray-900 transition">
+          Front
+        </button>
+        <button onclick="switchGarmentView('half_sleeve')" id="pill-view-hs" class="px-2.5 py-1 rounded-md font-medium text-gray-600 hover:text-gray-900 transition">
+          HS
+        </button>
+        <button onclick="switchGarmentView('full_sleeve')" id="pill-view-fs" class="px-2.5 py-1 rounded-md font-medium text-gray-600 hover:text-gray-900 transition">
+          FS
+        </button>
+      </div>
+
+      <!-- Workflow Modes: Design | Variation | Export -->
+      <div class="flex bg-blue-50/80 p-0.5 rounded-lg border border-blue-200 text-xs ml-2">
+        <button onclick="setWorkflowMode('design')" id="mode-design" class="px-3 py-1 rounded-md font-bold bg-blue-600 text-white shadow-xs">
+          Design
+        </button>
+        <button onclick="setWorkflowMode('variation')" id="mode-variation" class="px-3 py-1 rounded-md font-medium text-blue-700 hover:bg-blue-100">
+          Variation
+        </button>
+        <button onclick="setWorkflowMode('export')" id="mode-export" class="px-3 py-1 rounded-md font-medium text-blue-700 hover:bg-blue-100">
+          Export
+        </button>
       </div>
     </div>
 
-    <!-- Center Save Status -->
-    <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-[#E8F6F0] text-[#16845B] text-xs font-medium border border-[#bbf7d0]">
-      <i data-lucide="shield-check" class="w-4 h-4"></i>
-      <span>100% Local Storage — Stays on your Mac</span>
+    <!-- Center Save & Local Privacy Status -->
+    <div class="flex items-center gap-2">
+      <span class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-semibold border border-emerald-200">
+        <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+        100% Local Storage — Offline Ready
+      </span>
+      <span class="text-xs text-gray-400 font-mono">Falcon_FC_2026.JS</span>
     </div>
 
-    <!-- Right Offline Badge & Export Button -->
-    <div class="flex items-center gap-2.5">
-      <a href="cloud-admin/portal/index.html" target="_blank" class="px-2.5 py-1.5 rounded-md bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 text-xs font-semibold flex items-center gap-1.5 transition">
-        <i data-lucide="shield" class="w-3.5 h-3.5"></i>
-        Admin Portal
-      </a>
-      <button onclick="openAuthModal()" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 cursor-pointer">
-        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        <span id="header-auth-badge">Offline Authorized (7d)</span>
-      </button>
-      <button onclick="showExportModal()" class="px-3 py-1.5 rounded-md bg-[#3157D5] hover:bg-[#2547B8] text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition">
+    <!-- Right Actions -->
+    <div class="flex items-center gap-2">
+      <button onclick="openModal('export-modal')" class="px-3 py-1.5 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition">
         <i data-lucide="download" class="w-3.5 h-3.5"></i>
-        Export Production Files
+        Export
       </button>
     </div>
   </header>
 
-  <!-- MAIN APP CONTAINER -->
-  <div class="flex-1 flex overflow-hidden">
-
-    <!-- LEFT SIDEBAR NAVIGATION -->
-    <aside class="w-60 bg-white border-r border-[#DCE1E8] flex flex-col justify-between shrink-0">
-      <div class="p-3 space-y-1">
-        <div class="px-3 py-2 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Navigation</div>
-        
-        <button onclick="switchTab('editor')" id="tab-editor" class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition bg-[#EBF0FF] text-[#3157D5]">
-          <i data-lucide="palette" class="w-4 h-4"></i>
-          Jersey Design Editor
-        </button>
-
-        <button onclick="switchTab('roster')" id="tab-roster" class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition text-gray-600 hover:bg-gray-50">
-          <i data-lucide="users" class="w-4 h-4"></i>
-          Roster & Bulk Personalization
-        </button>
-
-        <button onclick="switchTab('dashboard')" id="tab-dashboard" class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition text-gray-600 hover:bg-gray-50">
-          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
-          Dashboard Overview
-        </button>
+  <!-- SECONDARY TOP TOOLBAR: TYPOGRAPHY & ELEMENT CONTROLS -->
+  <div class="h-11 bg-white border-b border-gray-200 flex items-center justify-between px-3 text-xs shrink-0 z-20">
+    <div class="flex items-center gap-1.5 overflow-x-auto">
+      
+      <!-- Undo / Redo -->
+      <div class="flex items-center border-r border-gray-200 pr-1.5 mr-1">
+        <button onclick="triggerUndo()" class="p-1.5 rounded hover:bg-gray-100 text-gray-600" title="Undo (Ctrl+Z)"><i data-lucide="undo" class="w-3.5 h-3.5"></i></button>
+        <button onclick="triggerRedo()" class="p-1.5 rounded hover:bg-gray-100 text-gray-600" title="Redo (Ctrl+Y)"><i data-lucide="redo" class="w-3.5 h-3.5"></i></button>
       </div>
 
-      <!-- Bottom System Info -->
-      <div class="p-4 border-t border-gray-200 bg-gray-50">
-        <div class="text-[11px] font-semibold text-gray-700">Zero Cloud Data Guarantee</div>
-        <div class="text-[10px] text-gray-500 mt-0.5 leading-relaxed">
-          No designs, player rosters, or files are ever uploaded.
-        </div>
-      </div>
-    </aside>
-
-    <!-- CONTENT AREA -->
-    <main class="flex-1 flex overflow-hidden">
-
-      <!-- ================= VIEW 1: JERSEY EDITOR ================= -->
-      <div id="view-editor" class="flex-1 flex overflow-hidden">
-        
-        <!-- EDITOR LEFT PANEL: LAYERS & COLORS -->
-        <aside class="w-72 bg-white border-r border-[#DCE1E8] flex flex-col p-4 gap-4 overflow-y-auto shrink-0">
-          <div>
-            <div class="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">View & Garment</div>
-            <div class="grid grid-cols-2 gap-2 bg-gray-100 p-1 rounded-lg">
-              <button onclick="setJerseyView('back')" id="btn-view-back" class="py-1.5 px-3 rounded-md text-xs font-semibold bg-white text-[#3157D5] shadow-sm">
-                Back View
-              </button>
-              <button onclick="setJerseyView('front')" id="btn-view-front" class="py-1.5 px-3 rounded-md text-xs font-medium text-gray-600 hover:text-gray-900">
-                Front View
-              </button>
-            </div>
-          </div>
-
-          <!-- Jersey Colors -->
-          <div>
-            <div class="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">Jersey Colors</div>
-            <div class="space-y-2">
-              <div class="flex items-center justify-between text-xs">
-                <span class="text-gray-600">Main Fabric:</span>
-                <input type="color" id="color-body" value="#1E3A8A" onchange="updateColors()" class="w-8 h-8 rounded border border-gray-300 cursor-pointer">
-              </div>
-              <div class="flex items-center justify-between text-xs">
-                <span class="text-gray-600">Side Mesh Panels:</span>
-                <input type="color" id="color-panels" value="#FACC15" onchange="updateColors()" class="w-8 h-8 rounded border border-gray-300 cursor-pointer">
-              </div>
-              <div class="flex items-center justify-between text-xs">
-                <span class="text-gray-600">Collar & Trims:</span>
-                <input type="color" id="color-collar" value="#FFFFFF" onchange="updateColors()" class="w-8 h-8 rounded border border-gray-300 cursor-pointer">
-              </div>
-            </div>
-          </div>
-
-          <!-- Layers / Dynamic Fields -->
-          <div>
-            <div class="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">Dynamic Personalization</div>
-            <div class="space-y-2">
-              <div class="p-2.5 rounded-lg border border-blue-200 bg-blue-50/60 flex items-center justify-between">
-                <div>
-                  <div class="text-xs font-bold text-blue-900">Player Name</div>
-                  <div class="text-[10px] text-blue-700 font-mono">{player_name}</div>
-                </div>
-                <span class="text-[10px] bg-blue-200 text-blue-800 font-semibold px-2 py-0.5 rounded">Dynamic</span>
-              </div>
-
-              <div class="p-2.5 rounded-lg border border-purple-200 bg-purple-50/60 flex items-center justify-between">
-                <div>
-                  <div class="text-xs font-bold text-purple-900">Squad Number</div>
-                  <div class="text-[10px] text-purple-700 font-mono">{player_number}</div>
-                </div>
-                <span class="text-[10px] bg-purple-200 text-purple-800 font-semibold px-2 py-0.5 rounded">Dynamic</span>
-              </div>
-
-              <div class="p-2.5 rounded-lg border border-gray-200 bg-white flex items-center justify-between">
-                <div>
-                  <div class="text-xs font-medium text-gray-800">Team Header</div>
-                  <div class="text-[10px] text-gray-400">Static Team Text</div>
-                </div>
-                <span class="text-[10px] bg-gray-100 text-gray-600 font-medium px-2 py-0.5 rounded">Static</span>
-              </div>
-            </div>
-          </div>
-        </aside>
-
-        <!-- CENTER CANVAS WORKSPACE -->
-        <section class="flex-1 flex flex-col bg-[#F0F2F5] overflow-hidden relative">
-          <!-- Top Dimension Bar -->
-          <div class="h-12 bg-white border-b border-[#DCE1E8] flex items-center justify-between px-4 shrink-0">
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-semibold text-gray-700">Garment Size Preset:</span>
-              <div class="flex gap-1">
-                <button onclick="setGarmentSize('YOUTH', 16, 22)" class="px-2 py-1 text-xs rounded border border-gray-200 hover:bg-gray-100">Youth</button>
-                <button onclick="setGarmentSize('S', 18, 26)" class="px-2 py-1 text-xs rounded border border-gray-200 hover:bg-gray-100">S</button>
-                <button onclick="setGarmentSize('M', 20, 28)" class="px-2 py-1 text-xs rounded border border-[#3157D5] bg-[#EBF0FF] text-[#3157D5] font-bold">M</button>
-                <button onclick="setGarmentSize('L', 22, 30)" class="px-2 py-1 text-xs rounded border border-gray-200 hover:bg-gray-100">L</button>
-                <button onclick="setGarmentSize('XL', 24, 32)" class="px-2 py-1 text-xs rounded border border-gray-200 hover:bg-gray-100">XL</button>
-                <button onclick="setGarmentSize('2XL', 26, 34)" class="px-2 py-1 text-xs rounded border border-gray-200 hover:bg-gray-100">2XL</button>
-              </div>
-            </div>
-
-            <div class="text-xs font-mono text-gray-500">
-              <span id="label-dimensions">20" × 28"</span> @ <span class="text-blue-600 font-bold">300 DPI</span> (6,000 × 8,400 px)
-            </div>
-          </div>
-
-          <!-- The Canvas Area -->
-          <div class="flex-1 flex items-center justify-center p-8 overflow-auto checkerboard">
-            <div id="jersey-container" class="relative w-[360px] h-[500px] bg-white rounded-xl shadow-2xl border border-gray-300 flex items-center justify-center transition-all duration-300">
-              
-              <!-- Vector Jersey Graphic (SVG) -->
-              <svg id="jersey-svg" class="w-[320px] h-[450px]" viewBox="0 0 400 550" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <!-- Body Silhouette -->
-                <path id="svg-body" d="M120 40 L80 120 L30 180 L60 230 L100 180 L100 500 L300 500 L300 180 L340 230 L370 180 L320 120 L280 40 Z" fill="#1E3A8A" stroke="#0F172A" stroke-width="4"/>
-                
-                <!-- Side Mesh Panels -->
-                <path id="svg-panel-left" d="M100 220 L100 500 L130 500 L120 220 Z" fill="#FACC15" opacity="0.9"/>
-                <path id="svg-panel-right" d="M300 220 L300 500 L270 500 L280 220 Z" fill="#FACC15" opacity="0.9"/>
-
-                <!-- Ribbed Collar -->
-                <path id="svg-collar" d="M140 40 Q200 80 260 40 L280 40 Q200 110 120 40 Z" fill="#FFFFFF" stroke="#0F172A" stroke-width="2"/>
-                
-                <!-- Sleeve Cuff Trims -->
-                <path id="svg-cuff-left" d="M30 180 L60 230 L65 220 L40 175 Z" fill="#FFFFFF"/>
-                <path id="svg-cuff-right" d="M370 180 L340 230 L335 220 L360 175 Z" fill="#FFFFFF"/>
-
-                <!-- Safe Print Area Dashed Box -->
-                <rect x="130" y="120" width="140" height="280" rx="8" stroke="#38BDF8" stroke-width="2" stroke-dasharray="6 6" fill="rgba(56, 189, 248, 0.05)"/>
-                <text x="200" y="140" text-anchor="middle" font-size="10" font-family="sans-serif" font-weight="bold" fill="#38BDF8">SAFE PRINT ZONE</text>
-              </svg>
-
-              <!-- Interactive Floating Elements on the Jersey -->
-              <div id="jersey-elements" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                
-                <!-- Team Name (Arch) -->
-                <div id="text-team" class="pointer-events-auto cursor-move font-black text-xl tracking-widest text-amber-300 drop-shadow-md mb-2">
-                  FALCON FC
-                </div>
-
-                <!-- Player Name (Draggable preview) -->
-                <div id="text-player-name" class="pointer-events-auto cursor-move font-black text-2xl uppercase tracking-wider text-white drop-shadow-md mb-1 px-3 py-1 border border-dashed border-transparent hover:border-blue-400 rounded">
-                  RODRIGUEZ
-                </div>
-
-                <!-- Squad Number (Draggable preview) -->
-                <div id="text-player-number" class="pointer-events-auto cursor-move font-black text-7xl text-white drop-shadow-lg px-4 py-1 border border-dashed border-transparent hover:border-blue-400 rounded">
-                  10
-                </div>
-
-              </div>
-
-            </div>
-          </div>
-        </section>
-
-        <!-- RIGHT PROPERTIES PANEL -->
-        <aside class="w-80 bg-white border-l border-[#DCE1E8] flex flex-col p-4 gap-4 overflow-y-auto shrink-0">
-          <div class="text-xs font-bold text-gray-900 uppercase tracking-wider">Selected Element Properties</div>
-
-          <!-- Player Name Input -->
-          <div>
-            <label class="text-xs font-semibold text-gray-700 block mb-1">Player Name Test</label>
-            <input type="text" id="prop-name" value="RODRIGUEZ" oninput="updateName(this.value)" class="w-full px-3 py-2 rounded border border-gray-300 text-sm font-semibold uppercase">
-          </div>
-
-          <!-- Jersey Number Input -->
-          <div>
-            <label class="text-xs font-semibold text-gray-700 block mb-1">Jersey Number Test</label>
-            <input type="text" id="prop-number" value="10" oninput="updateNumber(this.value)" class="w-full px-3 py-2 rounded border border-gray-300 text-sm font-black">
-          </div>
-
-          <!-- Font Family -->
-          <div>
-            <label class="text-xs font-semibold text-gray-700 block mb-1">Athletic Font Style</label>
-            <select id="prop-font" onchange="updateFont(this.value)" class="w-full px-3 py-2 rounded border border-gray-300 text-xs">
-              <option value="Impact, sans-serif">Impact (Standard Sportswear)</option>
-              <option value="'Arial Black', sans-serif">Arial Black (Bold Block)</option>
-              <option value="'Trebuchet MS', sans-serif">Trebuchet (Modern Athletic)</option>
-              <option value="Georgia, serif">College Varsity Serif</option>
-            </select>
-          </div>
-
-          <!-- Text Color -->
-          <div>
-            <label class="text-xs font-semibold text-gray-700 block mb-1">Number & Name Color</label>
-            <div class="flex items-center gap-2">
-              <input type="color" id="prop-text-color" value="#FFFFFF" onchange="updateTextColor(this.value)" class="w-9 h-9 rounded border border-gray-300 cursor-pointer">
-              <span class="text-xs text-gray-500 font-mono">Pure White (#FFFFFF)</span>
-            </div>
-          </div>
-
-          <!-- Quick Action -->
-          <div class="pt-4 border-t border-gray-200">
-            <button onclick="switchTab('roster')" class="w-full py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition">
-              <i data-lucide="users" class="w-4 h-4"></i>
-              Open Team Roster to Personalize
-            </button>
-          </div>
-        </aside>
-
+      <!-- Text Color Button -->
+      <div class="flex items-center gap-1 border-r border-gray-200 pr-2 mr-1">
+        <input type="color" id="top-color-picker" value="#FFFFFF" onchange="applyTextColor(this.value)" class="w-6 h-6 rounded border border-gray-300 cursor-pointer p-0">
       </div>
 
-      <!-- ================= VIEW 2: ROSTER & BULK WORKFLOW ================= -->
-      <div id="view-roster" class="flex-1 hidden flex-col bg-white overflow-y-auto p-8">
-        <div class="max-w-6xl mx-auto w-full space-y-6">
-          
-          <div class="flex items-center justify-between border-b border-gray-200 pb-4">
-            <div>
-              <h1 class="text-xl font-bold text-gray-900">Bulk Team Personalization</h1>
-              <p class="text-xs text-gray-500 mt-1">Import team roster, validate player details, and generate jerseys in seconds on your Mac.</p>
-            </div>
-            
-            <button onclick="startBatchGeneration()" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-2 shadow transition">
-              <i data-lucide="play" class="w-4 h-4"></i>
-              Generate All Team Jerseys
-            </button>
-          </div>
+      <!-- Effects Side Drawer Button -->
+      <button onclick="toggleSidePanel('effects')" id="btn-effects-panel" class="flex items-center gap-1 px-2.5 py-1 rounded-md border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium">
+        <i data-lucide="wand-2" class="w-3.5 h-3.5 text-indigo-600"></i>
+        <span>Effects</span>
+      </button>
 
-          <!-- Sample Roster Selector -->
-          <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 flex items-center justify-between">
-            <div>
-              <div class="text-xs font-bold text-gray-800">1-Click Test Rosters (No file needed):</div>
-              <div class="text-[11px] text-gray-500">Select a pre-loaded sport team to test right now:</div>
-            </div>
-            <div class="flex gap-2">
-              <button onclick="loadSampleRoster('basketball')" class="px-3 py-1.5 rounded-md bg-white border border-gray-300 hover:border-blue-500 text-xs font-semibold shadow-sm">
-                🏀 10-Player Basketball
-              </button>
-              <button onclick="loadSampleRoster('soccer')" class="px-3 py-1.5 rounded-md bg-white border border-gray-300 hover:border-blue-500 text-xs font-semibold shadow-sm">
-                ⚽ 25-Player Soccer Squad
-              </button>
-              <button onclick="loadSampleRoster('stress')" class="px-3 py-1.5 rounded-md bg-white border border-gray-300 hover:border-blue-500 text-xs font-semibold shadow-sm text-purple-700">
-                ⚡ 100-Player Batch Test
-              </button>
-            </div>
-          </div>
+      <!-- Font Selector Button -->
+      <button onclick="toggleSidePanel('fonts')" id="btn-fonts-panel" class="flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-gray-300 hover:bg-gray-50 font-semibold text-gray-800">
+        <span id="current-font-name">Barselona 2013</span>
+        <i data-lucide="chevron-right" class="w-3 h-3 text-gray-400"></i>
+      </button>
 
-          <!-- Roster Table -->
-          <div class="border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center justify-between">
-              <div class="text-xs font-bold text-gray-700">
-                Team Roster: <span id="roster-name" class="text-blue-600">Hawks Basketball (10 Players)</span>
-              </div>
-              <div class="flex items-center gap-3">
-                <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
-                  <input type="checkbox" id="toggle-duplicates" checked class="rounded text-blue-600">
-                  Allow Duplicate Jersey Numbers
-                </label>
-              </div>
-            </div>
-
-            <table class="w-full text-left text-xs">
-              <thead class="bg-gray-100 text-gray-700 font-semibold border-b border-gray-200">
-                <tr>
-                  <th class="py-2.5 px-4 w-16">#</th>
-                  <th class="py-2.5 px-4">Player Name</th>
-                  <th class="py-2.5 px-4 w-28">Jersey No</th>
-                  <th class="py-2.5 px-4 w-28">Size</th>
-                  <th class="py-2.5 px-4 w-40">Status</th>
-                  <th class="py-2.5 px-4 w-24 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody id="roster-tbody" class="divide-y divide-gray-100">
-                <!-- Rows injected dynamically via JavaScript -->
-              </tbody>
-            </table>
-          </div>
-
+      <!-- Font Size Input -->
+      <div class="flex items-center border border-gray-300 rounded-md overflow-hidden bg-white">
+        <input type="number" id="top-font-size" value="120" onchange="applyFontSize(this.value)" class="w-14 px-2 py-0.5 text-center font-mono font-bold text-xs outline-none">
+        <div class="flex flex-col border-l border-gray-200 bg-gray-50">
+          <button onclick="stepFontSize(10)" class="px-1 text-[9px] hover:bg-gray-200 leading-none">▲</button>
+          <button onclick="stepFontSize(-10)" class="px-1 text-[9px] hover:bg-gray-200 leading-none">▼</button>
         </div>
       </div>
 
-      <!-- ================= VIEW 3: DASHBOARD OVERVIEW ================= -->
-      <div id="view-dashboard" class="flex-1 hidden flex-col bg-white overflow-y-auto p-8">
-        <div class="max-w-4xl mx-auto w-full space-y-6">
-          <h1 class="text-2xl font-bold text-gray-900">Welcome to JerseyStudio</h1>
-          <p class="text-xs text-gray-500">Your local-first desktop workshop for jersey design and bulk team personalization.</p>
-          
-          <div class="grid grid-cols-2 gap-4">
-            <div onclick="switchTab('editor')" class="p-6 rounded-xl border border-gray-200 hover:border-blue-500 cursor-pointer transition shadow-sm hover:shadow-md bg-white">
-              <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center mb-3">
-                <i data-lucide="palette" class="w-5 h-5"></i>
-              </div>
-              <h2 class="text-base font-bold text-gray-900">Open Jersey Canvas</h2>
-              <p class="text-xs text-gray-500 mt-1">Design your master front and back jersey templates, arrange dynamic fields, and customize colors.</p>
-            </div>
-
-            <div onclick="switchTab('roster')" class="p-6 rounded-xl border border-gray-200 hover:border-emerald-500 cursor-pointer transition shadow-sm hover:shadow-md bg-white">
-              <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center mb-3">
-                <i data-lucide="users" class="w-5 h-5"></i>
-              </div>
-              <h2 class="text-base font-bold text-gray-900">Bulk Personalize Team</h2>
-              <p class="text-xs text-gray-500 mt-1">Drop in an Excel or CSV spreadsheet, validate player names/numbers, and batch render ready-to-print uniforms.</p>
-            </div>
-          </div>
-        </div>
+      <!-- Alignment Buttons -->
+      <div class="flex items-center border-l border-gray-200 pl-1.5 ml-1">
+        <button onclick="setTextAlign('left')" class="p-1.5 rounded hover:bg-gray-100 text-gray-600"><i data-lucide="align-left" class="w-3.5 h-3.5"></i></button>
+        <button onclick="setTextAlign('center')" class="p-1.5 rounded hover:bg-gray-100 text-indigo-600 font-bold bg-indigo-50"><i data-lucide="align-center" class="w-3.5 h-3.5"></i></button>
+        <button onclick="setTextAlign('right')" class="p-1.5 rounded hover:bg-gray-100 text-gray-600"><i data-lucide="align-right" class="w-3.5 h-3.5"></i></button>
       </div>
 
-    </main>
+      <!-- Bold / Italic / Underline / Case -->
+      <div class="flex items-center border-l border-gray-200 pl-1.5 ml-1">
+        <button onclick="toggleTextStyle('bold')" class="px-2 py-1 rounded hover:bg-gray-100 font-black">B</button>
+        <button onclick="toggleTextStyle('italic')" class="px-2 py-1 rounded hover:bg-gray-100 italic font-serif">I</button>
+        <button onclick="toggleTextStyle('underline')" class="px-2 py-1 rounded hover:bg-gray-100 underline">U</button>
+        <button onclick="toggleTextCase()" class="px-2 py-1 rounded hover:bg-gray-100 font-semibold" title="Toggle Uppercase">Aa</button>
+      </div>
+
+      <!-- Auto-Fit Button -->
+      <button onclick="autoFitText()" class="flex items-center gap-1 px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 font-bold">
+        <i data-lucide="scaling" class="w-3.5 h-3.5"></i>
+        Auto-Fit
+      </button>
+
+      <!-- SVG Text -->
+      <button onclick="convertSvgText()" class="px-2 py-1 rounded-md border border-gray-300 hover:bg-gray-50 text-gray-600 font-medium">
+        SVG Text
+      </button>
+    </div>
+
+    <!-- Width, Height & Unit Selector -->
+    <div class="flex items-center gap-2 border-l border-gray-200 pl-3">
+      <div class="flex items-center gap-1">
+        <span class="text-gray-400">W</span>
+        <input type="number" id="prop-width" value="10.0" step="0.1" onchange="updateDimension('w', this.value)" class="w-12 px-1 py-0.5 border border-gray-200 rounded text-center font-mono">
+      </div>
+      <div class="flex items-center gap-1">
+        <span class="text-gray-400">H</span>
+        <input type="number" id="prop-height" value="11.2" step="0.1" onchange="updateDimension('h', this.value)" class="w-12 px-1 py-0.5 border border-gray-200 rounded text-center font-mono">
+      </div>
+
+      <!-- Unit Dropdown -->
+      <select id="canvas-unit-select" onchange="changeUnit(this.value)" class="px-1.5 py-0.5 rounded border border-gray-300 text-xs font-semibold bg-white">
+        <option value="in" selected>Inch</option>
+        <option value="cm">Cm</option>
+        <option value="px">Pixels</option>
+      </select>
+    </div>
   </div>
 
-  <!-- EXPORT MODAL -->
-  <div id="export-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-gray-200 p-6 space-y-4">
-      <div class="flex items-center justify-between border-b border-gray-100 pb-3">
-        <h3 class="font-bold text-base text-gray-900">Export Production Files</h3>
-        <button onclick="closeExportModal()" class="text-gray-400 hover:text-gray-600">
-          <i data-lucide="x" class="w-5 h-5"></i>
+  <!-- MAIN BODY LAYOUT (Left Rail + Panels + Canvas) -->
+  <div class="flex-1 flex overflow-hidden relative">
+
+    <!-- LEFT TOOL RAIL (Icons: Upload, Text, Assets, Grid, Layers, Compress, Ready Designs) -->
+    <nav class="w-16 bg-white border-r border-gray-200 flex flex-col items-center py-2 shrink-0 z-20">
+      <div class="flex flex-col gap-1 w-full px-1">
+        <button onclick="toggleSidePanel('upload')" id="rail-upload" class="flex flex-col items-center justify-center py-2.5 rounded-lg text-gray-600 hover:text-indigo-600 hover:bg-gray-50 transition">
+          <i data-lucide="cloud-upload" class="w-4 h-4"></i>
+          <span class="text-[10px] font-medium mt-1">Upload</span>
         </button>
+
+        <button onclick="toggleSidePanel('text')" id="rail-text" class="flex flex-col items-center justify-center py-2.5 rounded-lg text-gray-600 hover:text-indigo-600 hover:bg-gray-50 transition">
+          <i data-lucide="type" class="w-4 h-4"></i>
+          <span class="text-[10px] font-medium mt-1">Text</span>
+        </button>
+
+        <button onclick="toggleSidePanel('fonts')" id="rail-fonts" class="flex flex-col items-center justify-center py-2.5 rounded-lg text-gray-600 hover:text-indigo-600 hover:bg-gray-50 transition">
+          <i data-lucide="a-large-small" class="w-4 h-4"></i>
+          <span class="text-[10px] font-medium mt-1">Fonts</span>
+        </button>
+
+        <button onclick="toggleSidePanel('layers')" id="rail-layers" class="flex flex-col items-center justify-center py-2.5 rounded-lg text-gray-600 hover:text-indigo-600 hover:bg-gray-50 transition">
+          <i data-lucide="layers" class="w-4 h-4"></i>
+          <span class="text-[10px] font-medium mt-1">Layers</span>
+        </button>
+
+        <button onclick="openModal('roster-modal')" class="flex flex-col items-center justify-center py-2.5 rounded-lg text-blue-600 bg-blue-50/70 hover:bg-blue-100 transition mt-2">
+          <i data-lucide="users" class="w-4 h-4"></i>
+          <span class="text-[10px] font-bold mt-1">Roster</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- SLIDING SIDE DRAWER (Fonts, Effects, Upload, Layers) -->
+    <div id="side-drawer" class="w-80 bg-white border-r border-gray-200 flex flex-col shrink-0 z-20 shadow-lg hidden">
+      
+      <!-- ============ DRAWER 1: EFFECTS PANEL ============ -->
+      <div id="drawer-panel-effects" class="flex-1 flex flex-col p-4 overflow-y-auto hidden">
+        <div class="flex items-center justify-between border-b border-gray-200 pb-3 mb-3">
+          <h3 class="font-bold text-base text-gray-900">Effects</h3>
+          <button onclick="closeSidePanel()" class="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+
+        <div class="space-y-4 text-xs">
+          <!-- Curved Text with Power Slider -->
+          <div class="border border-gray-200 rounded-xl p-3 bg-gray-50/50">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-bold text-gray-800">Curved text</span>
+              <input type="checkbox" id="effect-curve-toggle" onchange="toggleCurve(this.checked)" class="w-4 h-4 accent-indigo-600">
+            </div>
+            <div id="curve-controls" class="space-y-1">
+              <div class="flex items-center justify-between text-gray-600">
+                <span>Power (Curvature Arc)</span>
+                <span id="label-curve-power" class="font-mono font-bold text-indigo-600">50</span>
+              </div>
+              <input type="range" id="slider-curve-power" min="-100" max="100" value="50" oninput="applyCurvePower(this.value)" class="w-full accent-indigo-600">
+            </div>
+          </div>
+
+          <!-- Text Stroke with Corners -->
+          <div class="border border-gray-200 rounded-xl p-3 bg-gray-50/50">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-bold text-gray-800">Text Stroke (Outline)</span>
+              <input type="checkbox" id="effect-stroke-toggle" checked onchange="toggleStroke(this.checked)" class="w-4 h-4 accent-indigo-600">
+            </div>
+            <div id="stroke-controls" class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-gray-600">Stroke Color</span>
+                <input type="color" id="stroke-color" value="#0F172A" onchange="applyStrokeColor(this.value)" class="w-6 h-6 rounded border cursor-pointer">
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-gray-600">Thickness (px)</span>
+                <input type="number" id="stroke-width" value="4" min="1" max="30" onchange="applyStrokeWidth(this.value)" class="w-14 px-2 py-0.5 border rounded text-center font-mono font-bold">
+              </div>
+              <div>
+                <span class="text-gray-600 block mb-1">Corner Joins:</span>
+                <div class="grid grid-cols-3 gap-1">
+                  <button onclick="setStrokeJoin('miter')" class="py-1 px-2 border rounded font-semibold text-center hover:bg-gray-100">Square</button>
+                  <button onclick="setStrokeJoin('round')" class="py-1 px-2 border rounded font-semibold text-center bg-indigo-50 border-indigo-400 text-indigo-700">Round</button>
+                  <button onclick="setStrokeJoin('bevel')" class="py-1 px-2 border rounded font-semibold text-center hover:bg-gray-100">Bevel</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Text Box Background & Padding / Radius -->
+          <div class="border border-gray-200 rounded-xl p-3 bg-gray-50/50">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-bold text-gray-800">Text box Background</span>
+              <input type="checkbox" id="effect-box-toggle" onchange="toggleTextBox(this.checked)" class="w-4 h-4 accent-indigo-600">
+            </div>
+            <div id="textbox-controls" class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-gray-600">Box Color</span>
+                <input type="color" id="textbox-color" value="#1E293B" onchange="applyBoxColor(this.value)" class="w-6 h-6 rounded border cursor-pointer">
+              </div>
+              <div>
+                <div class="flex items-center justify-between text-gray-600 mb-0.5">
+                  <span>Corner radius</span>
+                  <span id="label-box-radius" class="font-mono">10px</span>
+                </div>
+                <input type="range" id="slider-box-radius" min="0" max="50" value="10" oninput="applyBoxRadius(this.value)" class="w-full accent-indigo-600">
+              </div>
+              <div>
+                <div class="flex items-center justify-between text-gray-600 mb-0.5">
+                  <span>Padding</span>
+                  <span id="label-box-padding" class="font-mono">15px</span>
+                </div>
+                <input type="range" id="slider-box-padding" min="0" max="50" value="15" oninput="applyBoxPadding(this.value)" class="w-full accent-indigo-600">
+              </div>
+            </div>
+          </div>
+
+          <!-- Drop Shadow -->
+          <div class="border border-gray-200 rounded-xl p-3 bg-gray-50/50">
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-bold text-gray-800">Drop Shadow</span>
+              <input type="checkbox" id="effect-shadow-toggle" checked onchange="toggleShadow(this.checked)" class="w-4 h-4 accent-indigo-600">
+            </div>
+            <div id="shadow-controls" class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-gray-600">Shadow Color</span>
+                <input type="color" id="shadow-color" value="#000000" onchange="applyShadowColor(this.value)" class="w-6 h-6 rounded border cursor-pointer">
+              </div>
+              <div>
+                <div class="flex items-center justify-between text-gray-600 mb-0.5">
+                  <span>Blur</span>
+                  <span id="label-shadow-blur" class="font-mono">8px</span>
+                </div>
+                <input type="range" id="slider-shadow-blur" min="0" max="30" value="8" oninput="applyShadowBlur(this.value)" class="w-full accent-indigo-600">
+              </div>
+              <div>
+                <div class="flex items-center justify-between text-gray-600 mb-0.5">
+                  <span>Offset Y</span>
+                  <span id="label-shadow-y" class="font-mono">6px</span>
+                </div>
+                <input type="range" id="slider-shadow-y" min="-30" max="30" value="6" oninput="applyShadowY(this.value)" class="w-full accent-indigo-600">
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ============ DRAWER 2: FONTS PANEL ============ -->
+      <div id="drawer-panel-fonts" class="flex-1 flex flex-col p-4 overflow-y-auto hidden">
+        <div class="flex items-center justify-between border-b border-gray-200 pb-3 mb-3">
+          <div class="flex items-center gap-2">
+            <i data-lucide="type" class="w-4 h-4 text-indigo-600"></i>
+            <h3 class="font-bold text-base text-gray-900">Fonts</h3>
+          </div>
+          <button onclick="closeSidePanel()" class="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="relative mb-3">
+          <i data-lucide="search" class="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-2.5"></i>
+          <input type="text" id="font-search-input" placeholder="Search fonts..." oninput="filterFonts(this.value)" class="w-full pl-8 pr-3 py-1.5 border border-gray-300 rounded-lg text-xs outline-none focus:border-indigo-500">
+        </div>
+
+        <!-- Tabs: Sport Fonts | System Fonts | Upload Fonts -->
+        <div class="grid grid-cols-3 gap-1 bg-gray-100 p-1 rounded-lg text-xs font-semibold mb-3">
+          <button onclick="setabolismFontTab('sport')" id="tab-font-sport" class="py-1 px-2 rounded-md bg-white text-indigo-600 shadow-xs">Sport</button>
+          <button onclick="setabolismFontTab('system')" id="tab-font-system" class="py-1 px-2 rounded-md text-gray-600 hover:text-gray-900">System</button>
+          <button onclick="setabolismFontTab('upload')" id="tab-font-upload" class="py-1 px-2 rounded-md text-gray-600 hover:text-gray-900">Upload</button>
+        </div>
+
+        <!-- Preview Size Slider -->
+        <div class="flex items-center gap-2 mb-3 px-1 text-xs text-gray-500">
+          <span>Size:</span>
+          <input type="range" min="16" max="48" value="28" oninput="changeFontPreviewSize(this.value)" class="w-full accent-indigo-600">
+        </div>
+
+        <!-- Font List Container -->
+        <div id="font-list-container" class="space-y-2 overflow-y-auto flex-1">
+          <!-- Injected dynamically via JS -->
+        </div>
+
+        <!-- Upload Custom Font Action (When on Upload Tab) -->
+        <div id="upload-font-section" class="pt-3 border-t border-gray-200 hidden">
+          <label class="block w-full py-3 px-4 border-2 border-dashed border-indigo-300 hover:border-indigo-500 rounded-xl text-center cursor-pointer bg-indigo-50/50 hover:bg-indigo-50 transition">
+            <i data-lucide="upload" class="w-5 h-5 text-indigo-600 mx-auto mb-1"></i>
+            <span class="text-xs font-bold text-indigo-900 block">Select .TTF or .OTF Font</span>
+            <span class="text-[10px] text-indigo-600">Loads directly into local memory</span>
+            <input type="file" accept=".ttf,.otf,.woff2" onchange="handleLocalFontUpload(event)" class="hidden">
+          </label>
+        </div>
+      </div>
+
+      <!-- ============ DRAWER 3: UPLOAD PANEL ============ -->
+      <div id="drawer-panel-upload" class="flex-1 flex flex-col p-4 overflow-y-auto hidden">
+        <div class="flex items-center justify-between border-b border-gray-200 pb-3 mb-3">
+          <h3 class="font-bold text-base text-gray-900">Upload Graphics</h3>
+          <button onclick="closeSidePanel()" class="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+
+        <label class="block w-full py-6 px-4 border-2 border-dashed border-gray-300 hover:border-indigo-500 rounded-xl text-center cursor-pointer bg-gray-50 hover:bg-indigo-50/30 transition mb-4">
+          <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center mx-auto mb-2">
+            <i data-lucide="cloud-upload" class="w-5 h-5"></i>
+          </div>
+          <span class="text-xs font-bold text-gray-800 block">Upload Logo or Sponsor Art</span>
+          <span class="text-[11px] text-gray-400 mt-1 block">JPG, PNG, and SVG • Max 10MB</span>
+          <input type="file" accept=".svg,.png,.jpg,.jpeg" onchange="handleImageUpload(event)" class="hidden">
+        </label>
+
+        <div class="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Sample Sport Graphics</div>
+        <div class="grid grid-cols-2 gap-2">
+          <div onclick="addGraphicToJersey('crest')" class="p-3 border border-gray-200 rounded-lg text-center hover:border-indigo-500 cursor-pointer bg-white">
+            <div class="text-2xl mb-1">🛡️</div>
+            <div class="text-[11px] font-bold text-gray-800">Team Shield</div>
+          </div>
+          <div onclick="addGraphicToJersey('sponsor')" class="p-3 border border-gray-200 rounded-lg text-center hover:border-indigo-500 cursor-pointer bg-white">
+            <div class="text-2xl mb-1">⚡</div>
+            <div class="text-[11px] font-bold text-gray-800">Sponsor Logo</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ DRAWER 4: LAYERS PANEL ============ -->
+      <div id="drawer-panel-layers" class="flex-1 flex flex-col p-4 overflow-y-auto hidden">
+        <div class="flex items-center justify-between border-b border-gray-200 pb-3 mb-3">
+          <h3 class="font-bold text-base text-gray-900">Layers</h3>
+          <button onclick="closeSidePanel()" class="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100">
+            <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+
+        <div class="text-[11px] text-gray-500 mb-2">Elements on active page:</div>
+        <div id="layers-list-container" class="space-y-1.5">
+          <!-- Injected dynamically -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CANVAS VIEWPORT WITH PHYSICAL RULERS -->
+    <main class="flex-1 flex flex-col overflow-hidden relative bg-slate-200">
+      
+      <!-- Top Physical Ruler -->
+      <div class="h-[18px] bg-slate-300 border-b border-slate-400 flex items-center relative overflow-hidden pl-[18px]">
+        <div class="ruler-top w-[2000px] h-full opacity-60"></div>
+        <div class="absolute left-6 text-[9px] font-mono font-bold text-slate-700">0"</div>
+        <div class="absolute left-32 text-[9px] font-mono font-bold text-slate-700">4"</div>
+        <div class="absolute left-64 text-[9px] font-mono font-bold text-slate-700">8"</div>
+        <div class="absolute left-96 text-[9px] font-mono font-bold text-slate-700">12"</div>
+        <div class="absolute left-[520px] text-[9px] font-mono font-bold text-slate-700">16"</div>
+        <div class="absolute left-[650px] text-[9px] font-mono font-bold text-slate-700">20"</div>
+      </div>
+
+      <div class="flex-1 flex overflow-hidden relative">
+        <!-- Left Physical Ruler -->
+        <div class="w-[18px] bg-slate-300 border-r border-slate-400 flex flex-col relative overflow-hidden shrink-0">
+          <div class="ruler-left h-[2000px] w-full opacity-60"></div>
+          <div class="absolute top-6 left-0 text-[8px] font-mono font-bold text-slate-700 pl-0.5">0</div>
+          <div class="absolute top-32 left-0 text-[8px] font-mono font-bold text-slate-700 pl-0.5">6</div>
+          <div class="absolute top-64 left-0 text-[8px] font-mono font-bold text-slate-700 pl-0.5">12</div>
+          <div class="absolute top-96 left-0 text-[8px] font-mono font-bold text-slate-700 pl-0.5">18</div>
+          <div class="absolute top-[520px] left-0 text-[8px] font-mono font-bold text-slate-700 pl-0.5">24</div>
+          <div class="absolute top-[650px] left-0 text-[8px] font-mono font-bold text-slate-700 pl-0.5">28</div>
+        </div>
+
+        <!-- The Canvas Workspace -->
+        <div class="flex-1 flex flex-col items-center justify-center p-6 overflow-auto relative">
+          
+          <!-- Master Dimensions Badge directly above garment -->
+          <div class="mb-2 flex items-center gap-2 bg-white/90 backdrop-blur-xs px-3 py-1 rounded-full shadow-xs text-xs font-mono border border-gray-300">
+            <span class="font-bold text-gray-800" id="canvas-title-badge">Back Master</span>
+            <span class="text-indigo-600 font-bold" id="canvas-dimension-badge">21.0 × 29.0 in</span>
+            <span class="text-gray-400">|</span>
+            <span class="text-emerald-700 font-bold">300 DPI</span>
+          </div>
+
+          <!-- THE JERSEY ARTBOARD CONTAINER -->
+          <div id="artboard-box" class="relative w-[380px] h-[520px] bg-slate-900 rounded-2xl shadow-2xl overflow-hidden border border-slate-700 transition-all">
+            
+            <!-- Sportswear Vector Graphic Background (Front / Back / Sleeves) -->
+            <svg id="garment-svg" class="w-full h-full" viewBox="0 0 400 550" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Jersey Body -->
+              <path id="svg-body-path" d="M120 40 L80 120 L30 180 L60 230 L100 180 L100 500 L300 500 L300 180 L340 230 L370 180 L320 120 L280 40 Z" fill="#0A0F1D" stroke="#334155" stroke-width="3"/>
+              
+              <!-- Athletic Speed Swooshes / Sublimation Ribbons -->
+              <path d="M40 480 Q160 300 360 160 L370 200 Q180 340 50 500 Z" fill="#0284C7" opacity="0.85"/>
+              <path d="M70 500 Q190 320 340 180 L350 210 Q200 350 80 500 Z" fill="#38BDF8" opacity="0.7"/>
+              <path d="M100 500 Q210 360 320 230 L325 250 Q220 380 110 500 Z" fill="#FACC15" opacity="0.8"/>
+
+              <!-- Collar -->
+              <path d="M140 40 Q200 80 260 40 L280 40 Q200 110 120 40 Z" fill="#FFFFFF" stroke="#0F172A" stroke-width="2"/>
+
+              <!-- Safe Print Area Guide -->
+              <rect x="110" y="100" width="180" height="340" rx="6" stroke="#38BDF8" stroke-width="1.5" stroke-dasharray="5 5" fill="none" opacity="0.4"/>
+            </svg>
+
+            <!-- FLOATING SELECTION TOOLBAR (Directly on canvas) -->
+            <div id="floating-selection-bar" class="absolute top-24 left-1/2 -translate-x-1/2 bg-white rounded-lg shadow-xl border border-gray-300 px-2 py-1 flex items-center gap-1 z-30 text-xs">
+              <button onclick="pickElementColor()" class="p-1 hover:bg-gray-100 rounded text-gray-700" title="Color"><i data-lucide="palette" class="w-3.5 h-3.5"></i></button>
+              <button onclick="toggleLockSelected()" id="btn-float-lock" class="p-1 hover:bg-gray-100 rounded text-gray-700" title="Lock"><i data-lucide="unlock" class="w-3.5 h-3.5"></i></button>
+              <button onclick="duplicateSelected()" class="p-1 hover:bg-gray-100 rounded text-gray-700" title="Duplicate"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
+              <button onclick="deleteSelected()" class="p-1 hover:bg-gray-100 rounded text-red-600" title="Delete"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+              <div class="h-3.5 w-px bg-gray-200 mx-0.5"></div>
+              <button onclick="centerSelected()" class="flex items-center gap-1 px-1.5 py-0.5 hover:bg-gray-100 rounded font-bold text-gray-800">
+                <i data-lucide="layers" class="w-3 h-3"></i>
+                Position
+              </button>
+            </div>
+
+            <!-- INTERACTIVE BOUNDING BOX FOR TEXT & NUMBER -->
+            <div id="selection-box" class="absolute top-36 left-1/2 -translate-x-1/2 w-52 h-64 border-2 border-red-500 flex flex-col items-center justify-center cursor-move cursor-grab p-2">
+              
+              <!-- 8 Resize handles -->
+              <div class="absolute -top-1.5 -left-1.5 w-3 h-3 bg-red-500 border border-white"></div>
+              <div class="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-red-500 border border-white"></div>
+              <div class="absolute -top-1.5 -right-1.5 w-3 h-3 bg-red-500 border border-white"></div>
+              <div class="absolute top-1/2 -left-1.5 -translate-y-1/2 w-3 h-3 bg-red-500 border border-white"></div>
+              <div class="absolute top-1/2 -right-1.5 -translate-y-1/2 w-3 h-3 bg-red-500 border border-white"></div>
+              <div class="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-red-500 border border-white"></div>
+              <div class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-red-500 border border-white"></div>
+              <div class="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-red-500 border border-white"></div>
+
+              <!-- Top Rotation Handle -->
+              <div class="absolute -top-7 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-white border border-blue-500 text-blue-600 flex items-center justify-center shadow-xs">
+                <i data-lucide="rotate-cw" class="w-3 h-3"></i>
+              </div>
+
+              <!-- Back Neck Icon / Team Crest -->
+              <div class="text-white text-xs opacity-75 mb-1 font-bold">::</div>
+
+              <!-- Player Name Element (Supports Curved Text) -->
+              <div id="player-name-text" class="text-white font-black text-3xl uppercase tracking-wider text-center transition-all select-none">
+                LIAM
+              </div>
+
+              <!-- Large Squad Number Element -->
+              <div id="player-number-text" class="text-white font-black text-8xl leading-none text-center transition-all select-none mt-1">
+                15
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- BOTTOM MULTI-SIZE GARMENT FILMSTRIP (Youth to 6XL) -->
+      <footer class="h-28 bg-white border-t border-gray-200 flex flex-col justify-between p-2 shrink-0 z-20">
+        <div class="flex items-center justify-between px-2 mb-1">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-gray-800">Garment Sizing Variations</span>
+            <span class="text-[11px] text-gray-400">18 Production Sizes (Youth to 6XL)</span>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <button onclick="applyToAllSizes()" class="px-3 py-1 rounded-md bg-blue-50 border border-blue-300 text-blue-700 hover:bg-blue-100 text-xs font-bold flex items-center gap-1.5 shadow-xs transition">
+              <i data-lucide="copy-check" class="w-3.5 h-3.5"></i>
+              Apply to all
+            </button>
+            <div class="flex items-center gap-1.5 text-xs text-gray-500">
+              <span>Zoom:</span>
+              <input type="range" min="20" max="150" value="75" oninput="applyCanvasZoom(this.value)" class="w-24 accent-indigo-600">
+              <span id="zoom-label" class="font-mono text-gray-700 font-bold">75%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Thumbnails Horizontal Carousel -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 px-2" id="size-filmstrip-carousel">
+          <!-- Injected dynamically: Master 15, 1-2 Yr, 3-4, ... XS, S, M, L, XL, 2XL, 3XL, 4XL, 5XL, 6XL -->
+        </div>
+      </footer>
+
+    </main>
+
+  </div>
+
+  <!-- MODAL: ROSTER BULK INGESTION -->
+  <div id="roster-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-gray-200 p-6 space-y-4">
+      <div class="flex items-center justify-between border-b pb-3">
+        <div class="flex items-center gap-2">
+          <i data-lucide="users" class="w-5 h-5 text-indigo-600"></i>
+          <h3 class="font-bold text-lg text-gray-900">Bulk Team Personalization</h3>
+        </div>
+        <button onclick="closeModal('roster-modal')" class="text-gray-400 hover:text-gray-600"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
 
       <div class="space-y-3">
-        <div>
-          <label class="text-xs font-semibold text-gray-700 block mb-1">Export Format</label>
-          <div class="grid grid-cols-3 gap-2">
-            <button class="py-2 px-3 rounded-lg border border-blue-500 bg-blue-50 text-blue-700 text-xs font-bold text-center">PNG (300 DPI)</button>
-            <button class="py-2 px-3 rounded-lg border border-gray-200 hover:bg-gray-50 text-xs font-semibold text-center">JPG (Solid)</button>
-            <button class="py-2 px-3 rounded-lg border border-gray-200 hover:bg-gray-50 text-xs font-semibold text-center">PDF (Print)</button>
-          </div>
-        </div>
-
-        <div>
-          <label class="text-xs font-semibold text-gray-700 block mb-1">Destination</label>
-          <div class="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-mono text-gray-600">
-            ~/Documents/JerseyStudio/Exports/
-          </div>
-        </div>
-      </div>
-
-      <div class="pt-3 border-t border-gray-100 flex gap-2">
-        <button onclick="closeExportModal()" class="flex-1 py-2 rounded-lg border border-gray-300 text-xs font-semibold hover:bg-gray-50">Cancel</button>
-        <button onclick="alert('Export complete! Files saved locally to your Mac.'); closeExportModal();" class="flex-1 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow">Start Export</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- AUTH & LICENSING MODAL -->
-  <div id="auth-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-gray-200 p-6 space-y-4">
-      <div class="flex items-center justify-between border-b border-gray-100 pb-3">
-        <div class="flex items-center gap-2">
-          <div class="w-7 h-7 rounded bg-[#3157D5] text-white flex items-center justify-center font-bold text-xs">JS</div>
-          <div>
-            <h3 class="font-bold text-sm text-gray-900">JerseyStudio Licensing & Identity</h3>
-            <p class="text-[10px] text-gray-500">7-Day Offline Cryptographic Entitlement</p>
-          </div>
-        </div>
-        <button onclick="closeAuthModal()" class="text-gray-400 hover:text-gray-600">
-          <i data-lucide="x" class="w-5 h-5"></i>
-        </button>
-      </div>
-
-      <!-- Local privacy notice -->
-      <div class="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-start gap-2">
-        <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600 shrink-0 mt-0.5"></i>
-        <div class="text-[11px] leading-tight">
-          <strong>100% Local Project Privacy:</strong> Only email ownership and license validity are checked. All jersey designs, templates, and player rosters remain strictly on your Mac.
-        </div>
-      </div>
-
-      <!-- Step 1: Email Form -->
-      <div id="auth-step-email" class="space-y-3">
-        <div>
-          <label class="text-xs font-semibold text-gray-700 block mb-1">Enter Work / Team Email</label>
-          <input type="email" id="modal-email-input" value="coach@falconathletics.com" placeholder="name@team.com" class="w-full text-xs px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3157D5]" />
-        </div>
-        <button onclick="simulateSendOtp()" class="w-full py-2 bg-[#3157D5] hover:bg-[#2547B8] text-white text-xs font-bold rounded-lg shadow transition">
-          Send Verification Code (OTP)
-        </button>
-      </div>
-
-      <!-- Step 2: OTP Verification -->
-      <div id="auth-step-otp" class="hidden space-y-3">
-        <div>
-          <div class="flex items-center justify-between mb-1">
-            <label class="text-xs font-semibold text-gray-700">Enter 6-Digit Verification Code</label>
-            <span class="text-[11px] text-blue-600 font-mono">Dev code: 789123</span>
-          </div>
-          <input type="text" id="modal-otp-input" value="789123" maxlength="6" class="w-full text-center tracking-widest font-mono text-base py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3157D5]" />
-        </div>
         <div class="flex gap-2">
-          <button onclick="showAuthEmailStep()" class="flex-1 py-2 border border-gray-300 text-xs font-semibold rounded-lg hover:bg-gray-50">Back</button>
-          <button onclick="simulateVerifyOtp()" class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow transition">Verify & Authorize</button>
-        </div>
-      </div>
-
-      <!-- Step 3: Status / Active Details -->
-      <div id="auth-step-active" class="hidden space-y-3">
-        <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl space-y-1.5">
-          <div class="flex items-center justify-between">
-            <span class="font-bold text-xs text-emerald-800 flex items-center gap-1.5"><i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i> License Active</span>
-            <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-200 text-emerald-900 font-bold uppercase">Pro Sportswear</span>
-          </div>
-          <div class="text-xs text-gray-700">Account: <span id="auth-user-email-display" class="font-mono font-semibold">coach@falconathletics.com</span></div>
-          <div class="text-xs text-gray-600">Offline Validity: <strong class="text-emerald-700 font-bold">7 Days Remaining</strong></div>
-          <div class="text-[10px] text-gray-400">Cryptographically signed by JerseyStudio cloud authority. Operates 100% offline.</div>
-        </div>
-
-        <div class="flex items-center justify-between pt-2 border-t border-gray-100">
-          <a href="cloud-admin/portal/index.html" target="_blank" class="text-xs text-purple-700 hover:underline font-semibold flex items-center gap-1">
-            Open Cloud Admin Portal <i data-lucide="external-link" class="w-3 h-3"></i>
-          </a>
-          <button onclick="closeAuthModal()" class="px-4 py-1.5 rounded-lg bg-[#3157D5] text-white text-xs font-bold shadow">
-            Done
+          <button onclick="loadSampleRoster('basketball')" class="flex-1 p-3 border rounded-xl hover:border-indigo-500 bg-gray-50 text-left">
+            <div class="font-bold text-xs text-gray-900">🏀 10-Player Basketball</div>
+            <div class="text-[11px] text-gray-500">Hawks Starting 5 & Bench</div>
+          </button>
+          <button onclick="loadSampleRoster('soccer')" class="flex-1 p-3 border rounded-xl hover:border-indigo-500 bg-gray-50 text-left">
+            <div class="font-bold text-xs text-gray-900">⚽ 25-Player Soccer</div>
+            <div class="text-[11px] text-gray-500">FC Strikers Full Squad</div>
           </button>
         </div>
+
+        <div class="border rounded-xl p-3 max-h-56 overflow-y-auto">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-gray-100 text-gray-700 font-semibold">
+              <tr><th class="p-2">#</th><th class="p-2">Player</th><th class="p-2">No</th><th class="p-2">Size</th><th class="p-2">Action</th></tr>
+            </thead>
+            <tbody id="modal-roster-tbody" class="divide-y divide-gray-100"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 pt-2 border-t">
+        <button onclick="closeModal('roster-modal')" class="px-4 py-2 border rounded-lg text-xs font-semibold">Close</button>
+        <button onclick="startBatchGeneration()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold">Generate All Jerseys (ZIP)</button>
       </div>
     </div>
   </div>
 
-  <!-- LOGIC SCRIPT -->
+  <!-- MODAL: EXPORT -->
+  <div id="export-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-gray-200 p-6 space-y-4">
+      <div class="flex items-center justify-between border-b pb-3">
+        <h3 class="font-bold text-base text-gray-900">Export Production Files</h3>
+        <button onclick="closeModal('export-modal')" class="text-gray-400 hover:text-gray-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="font-bold block mb-1">Format</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button class="p-2 border rounded-lg border-indigo-500 bg-indigo-50 text-indigo-700 font-bold text-center">PNG (300 DPI)</button>
+            <button class="p-2 border rounded-lg hover:bg-gray-50 text-center font-medium">JPG (Solid)</button>
+            <button class="p-2 border rounded-lg hover:bg-gray-50 text-center font-medium">PDF (Print)</button>
+          </div>
+        </div>
+        <div class="p-3 bg-gray-50 border rounded-lg text-gray-600">
+          Saved locally to: <span class="font-mono text-gray-900 font-bold block">~/Documents/JerseyStudio/Exports/</span>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2 pt-3 border-t">
+        <button onclick="closeModal('export-modal')" class="px-4 py-2 border rounded-lg text-xs">Cancel</button>
+        <button onclick="alert('Export complete! 300 DPI production files saved locally.'); closeModal('export-modal');" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold">Start Export</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT CONTROLLER -->
   <script>
     lucide.createIcons();
 
-    // Sample data
-    const rosters = {
-      basketball: [
-        { name: 'CARTER', number: '15', size: 'L' },
-        { name: 'JORDAN', number: '23', size: 'XL' },
-        { name: 'BRYANT', number: '24', size: 'L' },
-        { name: 'JAMES', number: '6', size: '2XL' },
-        { name: "O'NEAL", number: '34', size: '3XL' },
-        { name: 'CURRY', number: '30', size: 'M' },
-        { name: 'ALLEN', number: '20', size: 'L' },
-        { name: 'DURANT', number: '35', size: 'XL' },
-        { name: 'BARKLEY', number: '32', size: 'XL' },
-        { name: 'RODMAN', number: '91', size: 'L' },
-      ],
-      soccer: [
-        { name: 'ALISSON', number: '1', size: 'XL' },
-        { name: 'WALKER', number: '2', size: 'L' },
-        { name: 'DIAS', number: '3', size: 'XL' },
-        { name: 'VAN DIJK', number: '4', size: '2XL' },
-        { name: 'RODRIGUEZ', number: '10', size: 'M' },
-        { name: 'SALAH', number: '11', size: 'L' },
-        { name: 'MBAPPE', number: '7', size: 'M' },
-        { name: 'HAALAND', number: '9', size: 'XL' },
-      ],
-      stress: Array.from({ length: 100 }, (_, i) => ({
-        name: 'PLAYER_' + (i + 1),
-        number: String(i + 1),
-        size: ['S', 'M', 'L', 'XL', '2XL'][i % 5]
-      }))
-    };
+    // 1. Font Library Definitions (Sport, System, and Uploaded)
+    const sportFonts = [
+      { id: 'barselona', name: 'Barselona 2013', family: 'Impact, sans-serif' },
+      { id: 'worky', name: 'Worky Athletic', family: '"Arial Black", sans-serif' },
+      { id: 'druk', name: 'DrukCond Super', family: '"Trebuchet MS", sans-serif' },
+      { id: 'sublima', name: 'Sublima Bold', family: 'system-ui, sans-serif' },
+      { id: 'varsity', name: 'Collegiate Varsity', family: 'Georgia, serif' }
+    ];
 
-    let activeRoster = rosters.basketball;
+    // Locally Installed Mac/Windows Fonts
+    const systemFonts = [
+      { id: 'helvetica', name: 'Helvetica Neue (Mac Default)', family: '"Helvetica Neue", Helvetica, sans-serif' },
+      { id: 'arial', name: 'Arial (Cross-Platform)', family: 'Arial, sans-serif' },
+      { id: 'futura', name: 'Futura Bold', family: 'Futura, "Trebuchet MS", sans-serif' },
+      { id: 'avenir', name: 'Avenir Next', family: '"Avenir Next", Avenir, sans-serif' },
+      { id: 'impact', name: 'Impact Sport', family: 'Impact, fantasy' },
+      { id: 'times', name: 'Times New Roman', family: '"Times New Roman", Times, serif' },
+      { id: 'courier', name: 'Courier New', family: '"Courier New", monospace' }
+    ];
 
-    function renderRosterTable() {
-      const tbody = document.getElementById('roster-tbody');
-      tbody.innerHTML = '';
-      activeRoster.slice(0, 20).forEach((p, idx) => {
-        const tr = document.createElement('tr');
-        tr.className = 'hover:bg-gray-50 transition';
-        tr.innerHTML = `
-          <td class="py-2.5 px-4 font-mono text-gray-400 font-semibold">${idx + 1}</td>
-          <td class="py-2.5 px-4 font-bold text-gray-900">${p.name}</td>
-          <td class="py-2.5 px-4 font-mono font-bold text-blue-600 text-sm">${p.number}</td>
-          <td class="py-2.5 px-4 font-semibold text-gray-700">${p.size}</td>
-          <td class="py-2.5 px-4"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">Ready to Print</span></td>
-          <td class="py-2.5 px-4 text-right">
-            <button onclick="previewPlayerOnJersey('${p.name}', '${p.number}')" class="text-xs font-semibold text-blue-600 hover:underline">Preview</button>
-          </td>
+    let uploadedFonts = [];
+    let currentFontTab = 'sport';
+    let fontPreviewSize = 28;
+
+    // 2. Render Font List in Font Drawer
+    function renderFontList(filter = '') {
+      const container = document.getElementById('font-list-container');
+      container.innerHTML = '';
+
+      let list = currentFontTab === 'sport' ? sportFonts : currentFontTab === 'system' ? systemFonts : uploadedFonts;
+
+      if (filter) {
+        list = list.filter(f => f.name.toLowerCase().includes(filter.toLowerCase()));
+      }
+
+      if (list.length === 0 && currentFontTab === 'upload') {
+        container.innerHTML = '<div class="text-center py-6 text-gray-400 text-xs">No custom fonts uploaded yet.<br>Click below to load a .TTF or .OTF font file!</div>';
+        return;
+      }
+
+      list.forEach(f => {
+        const item = document.createElement('div');
+        item.className = 'p-2.5 rounded-lg border border-gray-200 hover:border-indigo-500 hover:bg-indigo-50/30 cursor-pointer transition';
+        item.onclick = () => selectFont(f);
+        item.innerHTML = `
+          <div class="text-xs font-semibold text-gray-700">${f.name}</div>
+          <div class="text-gray-900 font-bold mt-1" style="font-family: ${f.family}; font-size: ${fontPreviewSize}px;">
+            LIAM 15
+          </div>
         `;
-        tbody.appendChild(tr);
+        container.appendChild(item);
       });
     }
 
-    function previewPlayerOnJersey(name, num) {
-      document.getElementById('prop-name').value = name;
-      document.getElementById('prop-number').value = num;
-      updateName(name);
-      updateNumber(num);
-      switchTab('editor');
+    function selectFont(font) {
+      document.getElementById('current-font-name').innerText = font.name;
+      document.getElementById('player-name-text').style.fontFamily = font.family;
+      document.getElementById('player-number-text').style.fontFamily = font.family;
     }
 
-    function loadSampleRoster(type) {
-      activeRoster = rosters[type];
-      const title = type === 'basketball' ? 'Hawks Basketball (10 Players)' : type === 'soccer' ? 'FC Strikers Soccer (25 Players)' : '100-Player Stress Batch';
-      document.getElementById('roster-name').innerText = title;
-      renderRosterTable();
-    }
+    function setabolismFontTab(tab) {
+      currentFontTab = tab;
+      document.getElementById('tab-font-sport').className = tab === 'sport' ? 'py-1 px-2 rounded-md bg-white text-indigo-600 shadow-xs' : 'py-1 px-2 rounded-md text-gray-600 hover:text-gray-900';
+      document.getElementById('tab-font-system').className = tab === 'system' ? 'py-1 px-2 rounded-md bg-white text-indigo-600 shadow-xs' : 'py-1 px-2 rounded-md text-gray-600 hover:text-gray-900';
+      document.getElementById('tab-font-upload').className = tab === 'upload' ? 'py-1 px-2 rounded-md bg-white text-indigo-600 shadow-xs' : 'py-1 px-2 rounded-md text-gray-600 hover:text-gray-900';
 
-    function switchTab(tab) {
-      document.getElementById('view-editor').classList.add('hidden');
-      document.getElementById('view-roster').classList.add('hidden');
-      document.getElementById('view-dashboard').classList.add('hidden');
-
-      document.getElementById('tab-editor').className = "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition text-gray-600 hover:bg-gray-50";
-      document.getElementById('tab-roster').className = "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition text-gray-600 hover:bg-gray-50";
-      document.getElementById('tab-dashboard').className = "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition text-gray-600 hover:bg-gray-50";
-
-      if (tab === 'editor') {
-        document.getElementById('view-editor').classList.remove('hidden');
-        document.getElementById('tab-editor').className = "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition bg-[#EBF0FF] text-[#3157D5]";
-      } else if (tab === 'roster') {
-        document.getElementById('view-roster').classList.remove('hidden');
-        document.getElementById('tab-roster').className = "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition bg-[#EBF0FF] text-[#3157D5]";
-        renderRosterTable();
+      const uploadSec = document.getElementById('upload-font-section');
+      if (tab === 'upload') {
+        uploadSec.classList.remove('hidden');
       } else {
-        document.getElementById('view-dashboard').classList.remove('hidden');
-        document.getElementById('tab-dashboard').className = "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition bg-[#EBF0FF] text-[#3157D5]";
+        uploadSec.classList.add('hidden');
+      }
+      renderFontList();
+    }
+
+    function filterFonts(query) {
+      renderFontList(query);
+    }
+
+    function changeFontPreviewSize(size) {
+      fontPreviewSize = size;
+      renderFontList();
+    }
+
+    // 3. Local Font Upload (.TTF/.OTF)
+    function handleLocalFontUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const fontName = file.name.replace(/\.[^/.]+$/, "");
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        const fontFace = new FontFace(fontName, event.target.result);
+        fontFace.load().then(function(loadedFace) {
+          document.fonts.add(loadedFace);
+          uploadedFonts.push({
+            id: 'custom-' + Date.now(),
+            name: fontName + ' (Local Upload)',
+            family: `"${fontName}", sans-serif`
+          });
+          selectFont(uploadedFonts[uploadedFonts.length - 1]);
+          renderFontList();
+          alert(`Font "${fontName}" loaded successfully into local memory!`);
+        });
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    // 4. Multi-Size Garment Carousel (Bottom Filmstrip)
+    const sizes = [
+      { label: 'Master', num: '15' },
+      { label: '1-2 Yr', num: '20' },
+      { label: '3-4 Yr', num: '22' },
+      { label: '5-6 Yr', num: '26' },
+      { label: '7-8 Yr', num: '28' },
+      { label: '9-10 Yr', num: '30' },
+      { label: '11-12 Yr', num: '32' },
+      { label: 'XS', num: '34' },
+      { label: 'S', num: '36' },
+      { label: 'M', num: '38' },
+      { label: 'L', num: '40' },
+      { label: 'XL', num: '42' },
+      { label: '2XL', num: '44' },
+      { label: '3XL', num: '46' },
+      { label: '4XL', num: '48' },
+      { label: '5XL', num: '50' },
+      { label: '6XL', num: '52' }
+    ];
+
+    function renderFilmstrip() {
+      const carousel = document.getElementById('size-filmstrip-carousel');
+      carousel.innerHTML = '';
+      sizes.forEach((s, idx) => {
+        const card = document.createElement('div');
+        card.className = `w-14 h-16 shrink-0 rounded-lg border cursor-pointer flex flex-col items-center justify-between p-1 transition ${idx === 0 ? 'border-indigo-600 bg-indigo-50/50 shadow-xs ring-1 ring-indigo-500' : 'border-gray-300 hover:border-gray-400 bg-gray-50'}`;
+        card.onclick = () => selectSizeCard(s, card);
+        card.innerHTML = `
+          <div class="text-[9px] font-bold text-gray-700 truncate w-full text-center">${s.label}</div>
+          <div class="w-7 h-9 bg-slate-900 rounded flex flex-col items-center justify-center text-white text-[8px] font-black">
+            <span>LIAM</span>
+            <span class="text-indigo-400 font-bold">${s.num}</span>
+          </div>
+          <div class="text-[8px] font-mono text-gray-400">${s.num} in</div>
+        `;
+        carousel.appendChild(card);
+      });
+    }
+
+    function selectSizeCard(size, cardElem) {
+      document.querySelectorAll('#size-filmstrip-carousel > div').forEach(c => {
+        c.className = 'w-14 h-16 shrink-0 rounded-lg border cursor-pointer flex flex-col items-center justify-between p-1 transition border-gray-300 hover:border-gray-400 bg-gray-50';
+      });
+      cardElem.className = 'w-14 h-16 shrink-0 rounded-lg border cursor-pointer flex flex-col items-center justify-between p-1 transition border-indigo-600 bg-indigo-50/50 shadow-xs ring-1 ring-indigo-500';
+      document.getElementById('canvas-title-badge').innerText = `${size.label} Master`;
+      document.getElementById('canvas-dimension-badge').innerText = `${size.num}.0 × ${(parseInt(size.num) + 8)}.0 in`;
+    }
+
+    function applyToAllSizes() {
+      alert('Applied current design, fonts, and positions to all 18 production sizes!');
+    }
+
+    // 5. Drawer Controls
+    function toggleSidePanel(panelName) {
+      const drawer = document.getElementById('side-drawer');
+      const panels = ['effects', 'fonts', 'upload', 'layers'];
+
+      let isCurrentVisible = !drawer.classList.contains('hidden') && !document.getElementById(`drawer-panel-${panelName}`).classList.contains('hidden');
+
+      if (isCurrentVisible) {
+        drawer.classList.add('hidden');
+      } else {
+        drawer.classList.remove('hidden');
+        panels.forEach(p => {
+          const el = document.getElementById(`drawer-panel-${p}`);
+          if (p === panelName) {
+            el.classList.remove('hidden');
+          } else {
+            el.classList.add('hidden');
+          }
+        });
+        if (panelName === 'fonts') renderFontList();
+        if (panelName === 'layers') renderLayersList();
       }
     }
 
-    function updateName(val) {
-      document.getElementById('text-player-name').innerText = val || 'NAME';
+    function closeSidePanel() {
+      document.getElementById('side-drawer').classList.add('hidden');
     }
 
-    function updateNumber(val) {
-      document.getElementById('text-player-number').innerText = val || '00';
-    }
-
-    function updateFont(val) {
-      document.getElementById('text-player-name').style.fontFamily = val;
-      document.getElementById('text-player-number').style.fontFamily = val;
-    }
-
-    function updateTextColor(val) {
-      document.getElementById('text-player-name').style.color = val;
-      document.getElementById('text-player-number').style.color = val;
-    }
-
-    function updateColors() {
-      const bodyColor = document.getElementById('color-body').value;
-      const panelsColor = document.getElementById('color-panels').value;
-      const collarColor = document.getElementById('color-collar').value;
-
-      document.getElementById('svg-body').setAttribute('fill', bodyColor);
-      document.getElementById('svg-panel-left').setAttribute('fill', panelsColor);
-      document.getElementById('svg-panel-right').setAttribute('fill', panelsColor);
-      document.getElementById('svg-collar').setAttribute('fill', collarColor);
-      document.getElementById('svg-cuff-left').setAttribute('fill', collarColor);
-      document.getElementById('svg-cuff-right').setAttribute('fill', collarColor);
-    }
-
-    function setJerseyView(view) {
-      if (view === 'front') {
-        document.getElementById('btn-view-front').className = "py-1.5 px-3 rounded-md text-xs font-semibold bg-white text-[#3157D5] shadow-sm";
-        document.getElementById('btn-view-back').className = "py-1.5 px-3 rounded-md text-xs font-medium text-gray-600 hover:text-gray-900";
-        document.getElementById('text-team').innerText = "FALCON FC";
-        document.getElementById('text-player-name').style.display = 'none';
-        document.getElementById('text-player-number').className = "pointer-events-auto cursor-move font-black text-4xl text-white drop-shadow-lg px-4 py-1";
+    // 6. Effects Control Logic (Curve, Stroke, Box, Shadow)
+    function toggleCurve(checked) {
+      const elem = document.getElementById('player-name-text');
+      if (checked) {
+        applyCurvePower(document.getElementById('slider-curve-power').value);
       } else {
-        document.getElementById('btn-view-back').className = "py-1.5 px-3 rounded-md text-xs font-semibold bg-white text-[#3157D5] shadow-sm";
-        document.getElementById('btn-view-front').className = "py-1.5 px-3 rounded-md text-xs font-medium text-gray-600 hover:text-gray-900";
-        document.getElementById('text-team').innerText = "";
-        document.getElementById('text-player-name').style.display = 'block';
-        document.getElementById('text-player-number').className = "pointer-events-auto cursor-move font-black text-7xl text-white drop-shadow-lg px-4 py-1";
+        elem.style.transform = 'none';
       }
     }
 
-    function setGarmentSize(label, w, h) {
-      document.getElementById('label-dimensions').innerText = `${w}" × ${h}" (${label})`;
+    function applyCurvePower(val) {
+      document.getElementById('label-curve-power').innerText = val;
+      if (!document.getElementById('effect-curve-toggle').checked) return;
+      const deg = val * 0.25;
+      document.getElementById('player-name-text').style.transform = `perspective(200px) rotateX(${deg}deg) scale(${1 + Math.abs(val)*0.002})`;
     }
 
-    function showExportModal() {
-      document.getElementById('export-modal').classList.remove('hidden');
-      document.getElementById('export-modal').classList.add('flex');
+    function toggleStroke(checked) {
+      const nameElem = document.getElementById('player-name-text');
+      const numElem = document.getElementById('player-number-text');
+      if (checked) {
+        applyStrokeWidth(document.getElementById('stroke-width').value);
+      } else {
+        nameElem.style.webkitTextStroke = '0px transparent';
+        numElem.style.webkitTextStroke = '0px transparent';
+      }
     }
 
-    function closeExportModal() {
-      document.getElementById('export-modal').classList.add('hidden');
-      document.getElementById('export-modal').classList.remove('flex');
+    function applyStrokeColor(color) {
+      if (document.getElementById('effect-stroke-toggle').checked) {
+        const width = document.getElementById('stroke-width').value;
+        document.getElementById('player-name-text').style.webkitTextStroke = `${width}px ${color}`;
+        document.getElementById('player-number-text').style.webkitTextStroke = `${width}px ${color}`;
+      }
     }
 
-    function startBatchGeneration() {
-      alert(`Batch Generation Started!\n\nProcessing ${activeRoster.length} jerseys locally on your Mac at 300 DPI.\nFiles will be bundled into a production ZIP with manifest.csv.`);
+    function applyStrokeWidth(width) {
+      if (document.getElementById('effect-stroke-toggle').checked) {
+        const color = document.getElementById('stroke-color').value;
+        document.getElementById('player-name-text').style.webkitTextStroke = `${width}px ${color}`;
+        document.getElementById('player-number-text').style.webkitTextStroke = `${width}px ${color}`;
+      }
     }
 
-    function openAuthModal() {
-      document.getElementById('auth-modal').classList.remove('hidden');
-      document.getElementById('auth-modal').classList.add('flex');
+    function toggleTextBox(checked) {
+      const box = document.getElementById('player-name-text');
+      if (checked) {
+        box.style.backgroundColor = document.getElementById('textbox-color').value;
+        applyBoxRadius(document.getElementById('slider-box-radius').value);
+        applyBoxPadding(document.getElementById('slider-box-padding').value);
+      } else {
+        box.style.backgroundColor = 'transparent';
+        box.style.padding = '0';
+      }
+    }
+
+    function applyBoxRadius(r) {
+      document.getElementById('label-box-radius').innerText = `${r}px`;
+      if (document.getElementById('effect-box-toggle').checked) {
+        document.getElementById('player-name-text').style.borderRadius = `${r}px`;
+      }
+    }
+
+    function applyBoxPadding(p) {
+      document.getElementById('label-box-padding').innerText = `${p}px`;
+      if (document.getElementById('effect-box-toggle').checked) {
+        document.getElementById('player-name-text').style.padding = `${p/2}px ${p}px`;
+      }
+    }
+
+    function toggleShadow(checked) {
+      const num = document.getElementById('player-number-text');
+      if (checked) {
+        const blur = document.getElementById('slider-shadow-blur').value;
+        const y = document.getElementById('slider-shadow-y').value;
+        const c = document.getElementById('shadow-color').value;
+        num.style.filter = `drop-shadow(0px ${y}px ${blur}px ${c})`;
+      } else {
+        num.style.filter = 'none';
+      }
+    }
+
+    function applyShadowBlur(b) {
+      document.getElementById('label-shadow-blur').innerText = `${b}px`;
+      toggleShadow(document.getElementById('effect-shadow-toggle').checked);
+    }
+
+    function applyShadowY(y) {
+      document.getElementById('label-shadow-y').innerText = `${y}px`;
+      toggleShadow(document.getElementById('effect-shadow-toggle').checked);
+    }
+
+    // 7. Typography helpers
+    function applyTextColor(c) {
+      document.getElementById('player-name-text').style.color = c;
+      document.getElementById('player-number-text').style.color = c;
+    }
+
+    function applyFontSize(size) {
+      document.getElementById('player-number-text').style.fontSize = `${size}px`;
+    }
+
+    function stepFontSize(delta) {
+      const input = document.getElementById('top-font-size');
+      const val = Math.max(20, parseInt(input.value) + delta);
+      input.value = val;
+      applyFontSize(val);
+    }
+
+    function setTextAlign(align) {
+      document.getElementById('selection-box').style.textAlign = align;
+    }
+
+    function autoFitText() {
+      // Auto-fit reduces player name size if too long
+      document.getElementById('top-font-size').value = 90;
+      applyFontSize(90);
+      alert('Auto-Fit: Font size adjusted to 90px to fit inside safe printable zone!');
+    }
+
+    function convertSvgText() {
+      alert('Text successfully converted to crisp vector outlines for production printing!');
+    }
+
+    // 8. Garment View Switching (Back, Front, HS, FS)
+    function switchGarmentView(view) {
+      ['back', 'front', 'hs', 'fs'].forEach(v => {
+        document.getElementById(`pill-view-${v}`).className = 'px-3 py-1 rounded-md font-medium text-gray-600 hover:text-gray-900 transition';
+      });
+
+      if (view === 'back') {
+        document.getElementById('pill-view-back').className = 'px-3 py-1 rounded-md font-bold bg-white text-indigo-600 shadow-xs transition';
+        document.getElementById('player-name-text').style.display = 'block';
+        document.getElementById('player-number-text').innerText = '15';
+        document.getElementById('canvas-title-badge').innerText = 'Back Master';
+      } else if (view === 'front') {
+        document.getElementById('pill-view-front').className = 'px-3 py-1 rounded-md font-bold bg-white text-indigo-600 shadow-xs transition';
+        document.getElementById('player-name-text').style.display = 'none';
+        document.getElementById('player-number-text').innerText = '15';
+        document.getElementById('canvas-title-badge').innerText = 'Front Master';
+      } else if (view === 'half_sleeve') {
+        document.getElementById('pill-view-hs').className = 'px-2.5 py-1 rounded-md font-bold bg-white text-indigo-600 shadow-xs transition';
+        document.getElementById('player-name-text').innerText = 'SPONSOR';
+        document.getElementById('player-number-text').innerText = '⚡';
+        document.getElementById('canvas-title-badge').innerText = 'Half Sleeve (Left)';
+      } else {
+        document.getElementById('pill-view-fs').className = 'px-2.5 py-1 rounded-md font-bold bg-white text-indigo-600 shadow-xs transition';
+        document.getElementById('player-name-text').innerText = 'TEAM LOGO';
+        document.getElementById('player-number-text').innerText = '★';
+        document.getElementById('canvas-title-badge').innerText = 'Full Sleeve';
+      }
+    }
+
+    // 9. Floating Toolbar Actions
+    function centerSelected() {
+      const box = document.getElementById('selection-box');
+      box.style.left = '50%';
+      box.style.transform = 'translateX(-50%)';
+      alert('Element centered to garment axis!');
+    }
+
+    function toggleLockSelected() {
+      const btn = document.getElementById('btn-float-lock');
+      if (btn.innerHTML.includes('unlock')) {
+        btn.innerHTML = '<i data-lucide="lock" class="w-3.5 h-3.5 text-red-600"></i>';
+        alert('Element Locked (Cannot be accidentally dragged)');
+      } else {
+        btn.innerHTML = '<i data-lucide="unlock" class="w-3.5 h-3.5"></i>';
+        alert('Element Unlocked');
+      }
       lucide.createIcons();
     }
 
-    function closeAuthModal() {
-      document.getElementById('auth-modal').classList.add('hidden');
-      document.getElementById('auth-modal').classList.remove('flex');
+    function duplicateSelected() {
+      alert('Duplicated layer: "LIAM 15" copy added to canvas!');
     }
 
-    function showAuthEmailStep() {
-      document.getElementById('auth-step-email').classList.remove('hidden');
-      document.getElementById('auth-step-otp').classList.add('hidden');
-      document.getElementById('auth-step-active').classList.add('hidden');
+    function deleteSelected() {
+      if (confirm('Delete selected element?')) {
+        document.getElementById('selection-box').style.display = 'none';
+      }
     }
 
-    function simulateSendOtp() {
-      const email = document.getElementById('modal-email-input').value;
-      if (!email) return;
-      document.getElementById('auth-step-email').classList.add('hidden');
-      document.getElementById('auth-step-otp').classList.remove('hidden');
+    // 10. Layers Panel Renderer
+    function renderLayersList() {
+      const c = document.getElementById('layers-list-container');
+      c.innerHTML = `
+        <div class="flex items-center justify-between p-2 rounded-lg bg-gray-50 border border-gray-200">
+          <div class="flex items-center gap-2"><i data-lucide="type" class="w-3.5 h-3.5 text-indigo-600"></i><span class="font-bold">Player Name: LIAM</span></div>
+          <div class="flex items-center gap-1"><i data-lucide="eye" class="w-3 h-3 text-gray-500"></i><i data-lucide="lock" class="w-3 h-3 text-gray-400"></i></div>
+        </div>
+        <div class="flex items-center justify-between p-2 rounded-lg bg-gray-50 border border-gray-200">
+          <div class="flex items-center gap-2"><i data-lucide="hash" class="w-3.5 h-3.5 text-purple-600"></i><span class="font-bold">Player Number: 15</span></div>
+          <div class="flex items-center gap-1"><i data-lucide="eye" class="w-3 h-3 text-gray-500"></i><i data-lucide="lock" class="w-3 h-3 text-gray-400"></i></div>
+        </div>
+        <div class="flex items-center justify-between p-2 rounded-lg bg-gray-50 border border-gray-200">
+          <div class="flex items-center gap-2"><i data-lucide="image" class="w-3.5 h-3.5 text-emerald-600"></i><span class="font-medium text-gray-600">Sublimation Ribbons</span></div>
+          <div class="flex items-center gap-1"><i data-lucide="eye" class="w-3 h-3 text-gray-500"></i><i data-lucide="lock" class="w-3 h-3 text-gray-400"></i></div>
+        </div>
+      `;
       lucide.createIcons();
     }
 
-    function simulateVerifyOtp() {
-      const email = document.getElementById('modal-email-input').value;
-      document.getElementById('auth-user-email-display').innerText = email;
-      document.getElementById('auth-step-otp').classList.add('hidden');
-      document.getElementById('auth-step-active').classList.remove('hidden');
-      document.getElementById('header-auth-badge').innerText = "Offline Authorized (7d)";
-      lucide.createIcons();
+    // 11. Modal Controls
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
+      document.getElementById(id).classList.add('flex');
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+      document.getElementById(id).classList.remove('flex');
     }
 
-    // Initialize initial table
-    renderRosterTable();
+    // Initialize initial views
+    renderFilmstrip();
+    toggleStroke(true);
+    toggleShadow(true);
   </script>
 </body>
 </html>
