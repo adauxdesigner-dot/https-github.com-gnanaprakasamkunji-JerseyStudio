@@ -5,7 +5,6 @@ import {
   Maximize2,
   RotateCw,
   Hand,
-  MousePointer,
   Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -17,6 +16,8 @@ import {
 } from './editorTypes';
 import { JerseyMockup } from './jerseyMockups';
 import { getDimensionsInInches } from './exportEngine';
+import { FloatingToolbar } from './FloatingToolbar';
+import { CanvasRulers } from './CanvasRulers';
 
 export interface CanvasWorkspaceProps {
   design: JerseyDesign;
@@ -24,14 +25,34 @@ export interface CanvasWorkspaceProps {
   onSelectElement: (id: string | null) => void;
   onUpdateElement: (id: string, updates: Partial<EditorElement>) => void;
   onCommitHistory: () => void;
+  onDeleteElement: (id: string) => void;
+  onDuplicateElement: (id: string) => void;
+  onAlignElement: (
+    id: string,
+    alignment: 'left' | 'center-h' | 'right' | 'top' | 'center-v' | 'bottom'
+  ) => void;
   zoom: number;
   onZoomChange: (zoom: number) => void;
   onFitToScreen: () => void;
+  rulerUnit: 'in' | 'cm';
+  onRulerUnitChange: (unit: 'in' | 'cm') => void;
 }
 
 const SCALE = 40; // 40 canvas pixels per physical inch
 
 type ResizeHandle = 'nw' | 'n' | 'ne' | 'e' | 'se' | 's' | 'sw' | 'w';
+
+// Helper to convert hex + opacity to rgba string
+function hexToRgba(hex: string, alpha: number): string {
+  let cleanHex = hex.replace('#', '');
+  if (cleanHex.length === 3) {
+    cleanHex = cleanHex.split('').map((c) => c + c).join('');
+  }
+  const r = parseInt(cleanHex.substring(0, 2), 16) || 0;
+  const g = parseInt(cleanHex.substring(2, 4), 16) || 0;
+  const b = parseInt(cleanHex.substring(4, 6), 16) || 0;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
 
 export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   design,
@@ -39,11 +60,17 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   onSelectElement,
   onUpdateElement,
   onCommitHistory,
+  onDeleteElement,
+  onDuplicateElement,
+  onAlignElement,
   zoom,
   onZoomChange,
   onFitToScreen,
+  rulerUnit,
+  onRulerUnitChange,
 }) => {
   const containerRef = React.useRef<HTMLDivElement>(null);
+  const [containerSize, setContainerSize] = React.useState({ width: 800, height: 600 });
   const [pan, setPan] = React.useState({ x: 0, y: 0 });
   const [isPanning, setIsPanning] = React.useState(false);
   const [panMode, setPanMode] = React.useState(false);
@@ -78,6 +105,21 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
   const canvasHeightPx = Math.round(heightInches * SCALE);
 
   const activeElement = design.elements.find((el) => el.id === activeElementId) || null;
+
+  // Track container dimensions for rulers
+  React.useEffect(() => {
+    const updateSize = () => {
+      if (containerRef.current) {
+        setContainerSize({
+          width: containerRef.current.clientWidth,
+          height: containerRef.current.clientHeight,
+        });
+      }
+    };
+    updateSize();
+    window.addEventListener('resize', updateSize);
+    return () => window.removeEventListener('resize', updateSize);
+  }, []);
 
   // Fit to screen on initial mount
   React.useEffect(() => {
@@ -138,16 +180,46 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     const centerScreenY =
       canvasRect.top + (pan.y + (activeElement.y + activeElement.height / 2) * SCALE * zoom);
 
-    const rad = Math.atan2(e.clientY - centerScreenY, e.clientX - centerScreenX);
+    const startAngle = Math.atan2(e.clientY - centerScreenY, e.clientX - centerScreenX);
+
     rotateStartRef.current = {
       centerX: centerScreenX,
       centerY: centerScreenY,
-      startAngle: (rad * 180) / Math.PI,
+      startAngle,
       initialRotation: activeElement.rotation || 0,
     };
   };
 
-  // Global Mouse Move and Mouse Up handlers
+  // Auto-Fit Text algorithm (scales font size to fit bounding box perfectly)
+  const handleAutoFitText = (id: string) => {
+    const el = design.elements.find((item) => item.id === id);
+    if (!el || el.type === 'shape' || el.type === 'image') return;
+
+    const targetWidthPx = el.width * SCALE;
+    const targetHeightPx = el.height * SCALE;
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const testFontSize = 100;
+    ctx.font = `${el.fontWeight || 'bold'} ${testFontSize}px "${el.fontFamily}", sans-serif`;
+    const metrics = ctx.measureText(el.text || 'SAMPLE');
+    const measuredW = metrics.width || 100;
+    const measuredH = (metrics.actualBoundingBoxAscent || 75) + (metrics.actualBoundingBoxDescent || 25);
+
+    const scaleW = (targetWidthPx * 0.92) / measuredW;
+    const scaleH = (targetHeightPx * 0.90) / measuredH;
+    const fitScale = Math.min(scaleW, scaleH);
+
+    const optimalFontSizePx = testFontSize * fitScale;
+    const optimalFontSizePt = Math.max(12, Math.round((optimalFontSizePx * 72) / SCALE));
+
+    onUpdateElement(id, { fontSize: optimalFontSizePt });
+    onCommitHistory();
+  };
+
+  // Global mouse move & up listeners
   React.useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       // 1. Panning
@@ -160,95 +232,87 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       }
 
       // 2. Dragging element
-      if (isDragging && activeElement) {
-        const deltaPxX = (e.clientX - dragStartRef.current.mouseX) / zoom;
-        const deltaPxY = (e.clientY - dragStartRef.current.mouseY) / zoom;
-        let newX = dragStartRef.current.elX + deltaPxX / SCALE;
-        let newY = dragStartRef.current.elY + deltaPxY / SCALE;
+      if (isDragging && activeElement && !activeElement.locked) {
+        const deltaX = (e.clientX - dragStartRef.current.mouseX) / (SCALE * zoom);
+        const deltaY = (e.clientY - dragStartRef.current.mouseY) / (SCALE * zoom);
 
-        // Snapping to horizontal/vertical center
-        const elCenterX = newX + activeElement.width / 2;
-        const canvasCenterX = widthInches / 2;
-        const snapThreshold = 0.35; // inches
+        let newX = Number((dragStartRef.current.elX + deltaX).toFixed(2));
+        let newY = Number((dragStartRef.current.elY + deltaY).toFixed(2));
 
-        if (Math.abs(elCenterX - canvasCenterX) < snapThreshold) {
-          newX = canvasCenterX - activeElement.width / 2;
-          setSnapGuideV(canvasCenterX * SCALE);
+        // Center snapping guide
+        const centerXInches = widthInches / 2;
+        const elCenter = newX + activeElement.width / 2;
+        if (Math.abs(elCenter - centerXInches) < 0.25) {
+          newX = centerXInches - activeElement.width / 2;
+          setSnapGuideV((widthInches * SCALE) / 2);
         } else {
           setSnapGuideV(null);
         }
 
+        const centerYInches = heightInches / 2;
         const elCenterY = newY + activeElement.height / 2;
-        const canvasCenterY = heightInches / 2;
-        if (Math.abs(elCenterY - canvasCenterY) < snapThreshold) {
-          newY = canvasCenterY - activeElement.height / 2;
-          setSnapGuideH(canvasCenterY * SCALE);
+        if (Math.abs(elCenterY - centerYInches) < 0.25) {
+          newY = centerYInches - activeElement.height / 2;
+          setSnapGuideH((heightInches * SCALE) / 2);
         } else {
           setSnapGuideH(null);
+        }
+
+        onUpdateElement(activeElement.id, { x: newX, y: newY });
+        return;
+      }
+
+      // 3. Resizing element
+      if (resizingHandle && activeElement && !activeElement.locked) {
+        const deltaX = (e.clientX - resizeStartRef.current.mouseX) / (SCALE * zoom);
+        const deltaY = (e.clientY - resizeStartRef.current.mouseY) / (SCALE * zoom);
+
+        const { elX, elY, elW, elH } = resizeStartRef.current;
+        let newX = elX;
+        let newY = elY;
+        let newW = elW;
+        let newH = elH;
+
+        if (resizingHandle.includes('e')) newW = Math.max(0.5, elW + deltaX);
+        if (resizingHandle.includes('s')) newH = Math.max(0.5, elH + deltaY);
+        if (resizingHandle.includes('w')) {
+          const w = Math.max(0.5, elW - deltaX);
+          newX = elX + (elW - w);
+          newW = w;
+        }
+        if (resizingHandle.includes('n')) {
+          const h = Math.max(0.5, elH - deltaY);
+          newY = elY + (elH - h);
+          newH = h;
         }
 
         onUpdateElement(activeElement.id, {
           x: Number(newX.toFixed(2)),
           y: Number(newY.toFixed(2)),
-        });
-        return;
-      }
-
-      // 3. Resizing element
-      if (resizingHandle && activeElement) {
-        const deltaPxX = (e.clientX - resizeStartRef.current.mouseX) / zoom;
-        const deltaPxY = (e.clientY - resizeStartRef.current.mouseY) / zoom;
-        const deltaInchesX = deltaPxX / SCALE;
-        const deltaInchesY = deltaPxY / SCALE;
-
-        let { elX, elY, elW, elH } = resizeStartRef.current;
-        const minSize = 0.5; // min 0.5 inches
-
-        if (resizingHandle.includes('e')) {
-          elW = Math.max(minSize, elW + deltaInchesX);
-        }
-        if (resizingHandle.includes('s')) {
-          elH = Math.max(minSize, elH + deltaInchesY);
-        }
-        if (resizingHandle.includes('w')) {
-          const newW = Math.max(minSize, elW - deltaInchesX);
-          elX += elW - newW;
-          elW = newW;
-        }
-        if (resizingHandle.includes('n')) {
-          const newH = Math.max(minSize, elH - deltaInchesY);
-          elY += elH - newH;
-          elH = newH;
-        }
-
-        onUpdateElement(activeElement.id, {
-          x: Number(elX.toFixed(2)),
-          y: Number(elY.toFixed(2)),
-          width: Number(elW.toFixed(2)),
-          height: Number(elH.toFixed(2)),
+          width: Number(newW.toFixed(2)),
+          height: Number(newH.toFixed(2)),
         });
         return;
       }
 
       // 4. Rotating element
-      if (isRotating && activeElement) {
-        const { centerX, centerY, startAngle, initialRotation } = rotateStartRef.current;
-        const currentRad = Math.atan2(e.clientY - centerY, e.clientX - centerX);
-        const currentAngle = (currentRad * 180) / Math.PI;
-        let deltaAngle = currentAngle - startAngle;
-        let newRotation = (initialRotation + deltaAngle) % 360;
-        if (newRotation < 0) newRotation += 360;
+      if (isRotating && activeElement && !activeElement.locked) {
+        const currentAngle = Math.atan2(
+          e.clientY - rotateStartRef.current.centerY,
+          e.clientX - rotateStartRef.current.centerX
+        );
+        let degrees =
+          rotateStartRef.current.initialRotation +
+          ((currentAngle - rotateStartRef.current.startAngle) * 180) / Math.PI;
 
-        // Snap near 0, 90, 180, 270
-        const snapTol = 4;
-        if (Math.abs(newRotation) < snapTol || Math.abs(newRotation - 360) < snapTol) newRotation = 0;
-        else if (Math.abs(newRotation - 90) < snapTol) newRotation = 90;
-        else if (Math.abs(newRotation - 180) < snapTol) newRotation = 180;
-        else if (Math.abs(newRotation - 270) < snapTol) newRotation = 270;
+        // Snap to 45 degree increments if shift is held
+        if (e.shiftKey) {
+          degrees = Math.round(degrees / 45) * 45;
+        }
 
-        onUpdateElement(activeElement.id, {
-          rotation: Math.round(newRotation),
-        });
+        // Normalize between 0 and 360
+        degrees = Math.round(((degrees % 360) + 360) % 360);
+        onUpdateElement(activeElement.id, { rotation: degrees });
       }
     };
 
@@ -279,54 +343,31 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
     zoom,
     widthInches,
     heightInches,
+    onUpdateElement,
+    onCommitHistory,
   ]);
 
-  // Keyboard navigation & element deletion
+  // Spacebar pan mode toggle
   React.useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === 'Space') {
+      if (e.code === 'Space' && !e.repeat && document.activeElement?.tagName !== 'INPUT') {
         isSpacePressedRef.current = true;
       }
-
-      if (!activeElement || (e.target as HTMLElement).tagName === 'INPUT') return;
-
-      const step = e.shiftKey ? 0.5 : 0.05; // inches
-
-      if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        onUpdateElement(activeElement.id, { x: Number((activeElement.x - step).toFixed(2)) });
-        onCommitHistory();
-      } else if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        onUpdateElement(activeElement.id, { x: Number((activeElement.x + step).toFixed(2)) });
-        onCommitHistory();
-      } else if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        onUpdateElement(activeElement.id, { y: Number((activeElement.y - step).toFixed(2)) });
-        onCommitHistory();
-      } else if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        onUpdateElement(activeElement.id, { y: Number((activeElement.y + step).toFixed(2)) });
-        onCommitHistory();
-      } else if (e.key === 'Escape') {
-        onSelectElement(null);
-      }
     };
-
     const handleKeyUp = (e: KeyboardEvent) => {
       if (e.code === 'Space') {
         isSpacePressedRef.current = false;
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     window.addEventListener('keyup', handleKeyUp);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [activeElement]);
+  }, []);
 
+  // Filter elements visible on active view
   const activeElements = design.elements
     .filter((el) => el.view === design.activeView || el.view === 'both')
     .sort((a, b) => a.zIndex - b.zIndex);
@@ -336,17 +377,30 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
       ref={containerRef}
       onMouseDown={handleMouseDownViewport}
       className={cn(
-        'relative w-full h-full overflow-hidden bg-[#E2E8F0]/50 select-none flex items-center justify-center',
-        panMode ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'
+        'relative flex-1 h-full overflow-hidden bg-surface-muted select-none flex items-center justify-center',
+        panMode || isSpacePressedRef.current ? 'cursor-grab active:cursor-grabbing' : 'cursor-default'
       )}
+      style={{
+        backgroundImage: `
+          radial-gradient(circle, rgba(148, 163, 184, 0.25) 1px, transparent 1px)
+        `,
+        backgroundSize: '24px 24px',
+      }}
     >
-      {/* Background Subtle Grid Pattern */}
-      <div
-        className="absolute inset-0 pointer-events-none opacity-40"
-        style={{
-          backgroundImage: `radial-gradient(circle, #94A3B8 1px, transparent 1px)`,
-          backgroundSize: '24px 24px',
-        }}
+      {/* ====================================================================
+          TOP & LEFT PHYSICAL RULERS (Feature 4)
+          ==================================================================== */}
+      <CanvasRulers
+        canvasWidthInches={widthInches}
+        canvasHeightInches={heightInches}
+        scale={SCALE}
+        zoom={zoom}
+        pan={pan}
+        containerWidth={containerSize.width}
+        containerHeight={containerSize.height}
+        activeElement={activeElement}
+        unit={rulerUnit}
+        onUnitChange={onRulerUnitChange}
       />
 
       {/* ====================================================================
@@ -359,7 +413,10 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
           height: `${canvasHeightPx}px`,
           transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
           transformOrigin: 'center center',
-          transition: isDragging || resizingHandle || isRotating || isPanning ? 'none' : 'transform 0.1s ease-out',
+          transition:
+            isDragging || resizingHandle || isRotating || isPanning
+              ? 'none'
+              : 'transform 0.1s ease-out',
         }}
         className="relative bg-surface rounded shadow-2xl border border-border/80 shrink-0"
       >
@@ -394,6 +451,57 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
 
           if (!el.visible) return null;
 
+          const isText = el.type === 'text' || el.type === 'dynamic_name' || el.type === 'dynamic_number';
+          const isImage = el.type === 'image';
+
+          // Shadow filter for element
+          const shadowStyle = el.shadowEnabled
+            ? `drop-shadow(${el.shadowOffsetX ?? 4}px ${el.shadowOffsetY ?? 4}px ${el.shadowBlur ?? 8}px ${hexToRgba(
+                el.shadowColor || '#000000',
+                el.shadowOpacity ?? 0.6
+              )})`
+            : undefined;
+
+          // Curved Arc Path math for SVG
+          let curvedSvgContent = null;
+          if (isText && el.curvedTextEnabled && (el.curvePower ?? 50) > 0) {
+            const power = el.curvePower ?? 50;
+            const dir = el.curveDirection ?? 'up';
+            const sagitta = (power / 100) * (heightPx * 0.45);
+            const startY = dir === 'up' ? heightPx * 0.75 : heightPx * 0.25;
+            const ctrlY = dir === 'up' ? heightPx * 0.75 - sagitta * 2 : heightPx * 0.25 + sagitta * 2;
+            const endY = startY;
+            const arcPathId = `arc-${el.id}`;
+            const arcD = `M 0,${startY} Q ${widthPx / 2},${ctrlY} ${widthPx},${endY}`;
+
+            curvedSvgContent = (
+              <svg
+                viewBox={`0 0 ${widthPx} ${heightPx}`}
+                className="w-full h-full overflow-visible pointer-events-none"
+                style={{ filter: shadowStyle }}
+              >
+                <defs>
+                  <path id={arcPathId} d={arcD} fill="none" />
+                </defs>
+                <text
+                  fill={el.fillColor}
+                  stroke={el.strokeEnabled ? el.strokeColor || '#000000' : 'none'}
+                  strokeWidth={el.strokeEnabled ? Math.max(1, ((el.strokeWidth || 1) * SCALE) / 72) : 0}
+                  strokeLinejoin={el.strokeJoin || 'round'}
+                  paintOrder="stroke fill"
+                  fontFamily={el.fontFamily}
+                  fontSize={`${(el.fontSize * SCALE) / 72}px`}
+                  fontWeight={el.fontWeight}
+                  letterSpacing={el.letterSpacing ? `${el.letterSpacing}px` : undefined}
+                >
+                  <textPath href={`#${arcPathId}`} startOffset="50%" textAnchor="middle">
+                    {el.text}
+                  </textPath>
+                </text>
+              </svg>
+            );
+          }
+
           return (
             <div
               key={el.id}
@@ -413,7 +521,22 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
                 isSelected && 'ring-2 ring-primary ring-offset-1 rounded-sm'
               )}
             >
-              {/* Element Content */}
+              {/* Text Box Background Layer */}
+              {isText && el.bgEnabled && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: `-${el.bgPadding ?? 12}px`,
+                    backgroundColor: el.bgColor || '#000000',
+                    opacity: el.bgOpacity ?? 0.85,
+                    borderRadius: `${el.bgCornerRadius ?? 8}px`,
+                    zIndex: -1,
+                    pointerEvents: 'none',
+                  }}
+                />
+              )}
+
+              {/* Element Content: Shape, Image, Curved Text, or Standard Text */}
               {el.type === 'shape' ? (
                 <div
                   style={{
@@ -421,27 +544,48 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
                     borderColor: el.strokeEnabled ? el.strokeColor : 'transparent',
                     borderWidth: el.strokeEnabled ? `${el.strokeWidth}px` : 0,
                     borderRadius: el.shapeType === 'circle' ? '9999px' : '4px',
+                    filter: shadowStyle,
                   }}
                   className="w-full h-full shadow-sm"
                 />
+              ) : isImage ? (
+                <img
+                  src={el.imageSrc}
+                  alt={el.name}
+                  className="w-full h-full object-contain pointer-events-none select-none"
+                  style={{ filter: shadowStyle }}
+                />
+              ) : curvedSvgContent ? (
+                curvedSvgContent
               ) : (
-                <div
-                  style={{
-                    color: el.fillColor,
-                    fontFamily: el.fontFamily,
-                    fontSize: `${(el.fontSize * SCALE) / 72}px`,
-                    fontWeight: el.fontWeight,
-                    letterSpacing: `${el.letterSpacing || 0}px`,
-                    textAlign: el.textAlign,
-                    textTransform: el.textTransform || 'none',
-                    WebkitTextStroke: el.strokeEnabled && el.strokeColor && el.strokeWidth
-                      ? `${(el.strokeWidth * SCALE) / 72}px ${el.strokeColor}`
-                      : undefined,
-                  }}
-                  className="w-full h-full flex items-center justify-center font-bold tracking-wider leading-none"
+                /* Standard Text with SVG paint-order for athletic varsity outline */
+                <svg
+                  viewBox={`0 0 ${widthPx} ${heightPx}`}
+                  className="w-full h-full overflow-visible pointer-events-none"
+                  style={{ filter: shadowStyle }}
                 >
-                  {el.text}
-                </div>
+                  <text
+                    x={el.textAlign === 'left' ? 0 : el.textAlign === 'right' ? widthPx : widthPx / 2}
+                    y={heightPx / 2}
+                    textAnchor={
+                      el.textAlign === 'left' ? 'start' : el.textAlign === 'right' ? 'end' : 'middle'
+                    }
+                    dominantBaseline="central"
+                    fill={el.fillColor}
+                    stroke={el.strokeEnabled ? el.strokeColor || '#000000' : 'none'}
+                    strokeWidth={
+                      el.strokeEnabled ? Math.max(1, ((el.strokeWidth || 1) * SCALE) / 72) : 0
+                    }
+                    strokeLinejoin={el.strokeJoin || 'round'}
+                    paintOrder="stroke fill"
+                    fontFamily={el.fontFamily}
+                    fontSize={`${(el.fontSize * SCALE) / 72}px`}
+                    fontWeight={el.fontWeight}
+                    letterSpacing={el.letterSpacing ? `${el.letterSpacing}px` : undefined}
+                  >
+                    {el.text}
+                  </text>
+                </svg>
               )}
 
               {/* Dynamic Field Identifier Badge */}
@@ -463,69 +607,69 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
                   {/* Rotation Stem Handle */}
                   <div
                     onMouseDown={handleRotateMouseDown}
-                    className="absolute -top-7 left-1/2 -translate-x-1/2 w-4 h-4 bg-surface border-2 border-primary rounded-full cursor-grab active:cursor-grabbing shadow flex items-center justify-center hover:scale-125 transition-transform"
-                    title="Rotate element"
+                    className="absolute -top-7 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full bg-surface border-2 border-primary cursor-grab flex items-center justify-center shadow-md hover:scale-125 transition-transform z-30"
+                    title="Rotate element (drag to rotate, hold Shift for 45°)"
                   >
                     <RotateCw className="w-2.5 h-2.5 text-primary" />
                   </div>
-                  <div className="absolute -top-5 left-1/2 -translate-x-1/2 w-[1px] h-3 bg-primary pointer-events-none" />
+                  <div className="absolute -top-5 left-1/2 -translate-x-1/2 w-[1.5px] h-3 bg-primary pointer-events-none" />
 
-                  {/* 8 Resize Handles */}
-                  <div
-                    onMouseDown={(e) => handleResizeMouseDown(e, 'nw')}
-                    className="absolute -top-1.5 -left-1.5 w-3 h-3 bg-surface border-2 border-primary rounded-sm cursor-nw-resize hover:scale-125 shadow"
-                  />
-                  <div
-                    onMouseDown={(e) => handleResizeMouseDown(e, 'n')}
-                    className="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-surface border-2 border-primary rounded-sm cursor-n-resize hover:scale-125 shadow"
-                  />
-                  <div
-                    onMouseDown={(e) => handleResizeMouseDown(e, 'ne')}
-                    className="absolute -top-1.5 -right-1.5 w-3 h-3 bg-surface border-2 border-primary rounded-sm cursor-ne-resize hover:scale-125 shadow"
-                  />
-                  <div
-                    onMouseDown={(e) => handleResizeMouseDown(e, 'e')}
-                    className="absolute top-1/2 -right-1.5 -translate-y-1/2 w-3 h-3 bg-surface border-2 border-primary rounded-sm cursor-e-resize hover:scale-125 shadow"
-                  />
-                  <div
-                    onMouseDown={(e) => handleResizeMouseDown(e, 'se')}
-                    className="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-surface border-2 border-primary rounded-sm cursor-se-resize hover:scale-125 shadow"
-                  />
-                  <div
-                    onMouseDown={(e) => handleResizeMouseDown(e, 's')}
-                    className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-surface border-2 border-primary rounded-sm cursor-s-resize hover:scale-125 shadow"
-                  />
-                  <div
-                    onMouseDown={(e) => handleResizeMouseDown(e, 'sw')}
-                    className="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-surface border-2 border-primary rounded-sm cursor-sw-resize hover:scale-125 shadow"
-                  />
-                  <div
-                    onMouseDown={(e) => handleResizeMouseDown(e, 'w')}
-                    className="absolute top-1/2 -left-1.5 -translate-y-1/2 w-3 h-3 bg-surface border-2 border-primary rounded-sm cursor-w-resize hover:scale-125 shadow"
-                  />
+                  {/* Corner & Edge Resize Handles */}
+                  {(['nw', 'ne', 'se', 'sw'] as ResizeHandle[]).map((handle) => (
+                    <div
+                      key={handle}
+                      onMouseDown={(e) => handleResizeMouseDown(e, handle)}
+                      className={cn(
+                        'absolute w-2.5 h-2.5 bg-surface border-2 border-primary rounded-xs z-20 shadow-xs',
+                        handle === 'nw' && '-top-1.5 -left-1.5 cursor-nwse-resize',
+                        handle === 'ne' && '-top-1.5 -right-1.5 cursor-nesw-resize',
+                        handle === 'se' && '-bottom-1.5 -right-1.5 cursor-nwse-resize',
+                        handle === 'sw' && '-bottom-1.5 -left-1.5 cursor-nesw-resize'
+                      )}
+                    />
+                  ))}
+                  {(['n', 'e', 's', 'w'] as ResizeHandle[]).map((handle) => (
+                    <div
+                      key={handle}
+                      onMouseDown={(e) => handleResizeMouseDown(e, handle)}
+                      className={cn(
+                        'absolute w-2 h-2 bg-surface border border-primary rounded-xs z-20 shadow-xs',
+                        handle === 'n' && '-top-1 left-1/2 -translate-x-1/2 cursor-ns-resize',
+                        handle === 'e' && 'top-1/2 -right-1 -translate-y-1/2 cursor-ew-resize',
+                        handle === 's' && '-bottom-1 left-1/2 -translate-x-1/2 cursor-ns-resize',
+                        handle === 'w' && 'top-1/2 -left-1 -translate-y-1/2 cursor-ew-resize'
+                      )}
+                    />
+                  ))}
                 </>
               )}
             </div>
           );
         })}
+
+        {/* ====================================================================
+            FLOATING SELECTION TOOLBAR (Feature 3)
+            ==================================================================== */}
+        {activeElement && (
+          <FloatingToolbar
+            element={activeElement}
+            canvasScale={SCALE}
+            zoom={zoom}
+            pan={pan}
+            onUpdateElement={onUpdateElement}
+            onDuplicateElement={onDuplicateElement}
+            onDeleteElement={onDeleteElement}
+            onAlignElement={onAlignElement}
+            onAutoFitText={handleAutoFitText}
+          />
+        )}
       </div>
 
       {/* ====================================================================
-          FLOATING BOTTOM-RIGHT ZOOM & PAN HUD
+          CANVAS VIEWPORT OVERLAY CONTROLS (Bottom Right)
           ==================================================================== */}
-      <div className="absolute bottom-4 right-4 bg-surface/95 backdrop-blur border border-border rounded-lg shadow-lg p-1.5 flex items-center gap-1.5 z-30">
-        <Tooltip content="Select Mode">
-          <Button
-            size="sm"
-            variant={!panMode ? 'primary' : 'ghost'}
-            className="w-8 h-8 p-0"
-            onClick={() => setPanMode(false)}
-          >
-            <MousePointer className="w-4 h-4" />
-          </Button>
-        </Tooltip>
-
-        <Tooltip content="Pan Workspace (Spacebar + drag)">
+      <div className="absolute bottom-4 right-4 z-20 flex items-center gap-1.5 bg-surface/90 backdrop-blur-md p-1.5 rounded-lg border border-border shadow-lg">
+        <Tooltip content="Hand tool: pan canvas (Spacebar)">
           <Button
             size="sm"
             variant={panMode ? 'primary' : 'ghost'}
@@ -543,13 +687,13 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
             size="sm"
             variant="ghost"
             className="w-8 h-8 p-0"
-            onClick={() => onZoomChange(Math.max(0.2, Number((zoom - 0.15).toFixed(2))))}
+            onClick={() => onZoomChange(Math.max(0.2, zoom - 0.1))}
           >
             <ZoomOut className="w-4 h-4" />
           </Button>
         </Tooltip>
 
-        <span className="text-xs font-mono font-medium px-1.5 text-text-secondary select-none min-w-[42px] text-center">
+        <span className="font-mono text-xs font-semibold px-1 text-text-primary min-w-10 text-center">
           {Math.round(zoom * 100)}%
         </span>
 
@@ -558,19 +702,16 @@ export const CanvasWorkspace: React.FC<CanvasWorkspaceProps> = ({
             size="sm"
             variant="ghost"
             className="w-8 h-8 p-0"
-            onClick={() => onZoomChange(Math.min(3.0, Number((zoom + 0.15).toFixed(2))))}
+            onClick={() => onZoomChange(Math.min(3, zoom + 0.1))}
           >
             <ZoomIn className="w-4 h-4" />
           </Button>
         </Tooltip>
 
-        <Tooltip content="Fit to Screen">
-          <Button
-            size="sm"
-            variant="ghost"
-            className="w-8 h-8 p-0"
-            onClick={onFitToScreen}
-          >
+        <div className="w-[1px] h-4 bg-border mx-0.5" />
+
+        <Tooltip content="Fit to screen">
+          <Button size="sm" variant="ghost" className="w-8 h-8 p-0" onClick={onFitToScreen}>
             <Maximize2 className="w-4 h-4" />
           </Button>
         </Tooltip>

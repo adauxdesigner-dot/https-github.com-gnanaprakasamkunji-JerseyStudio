@@ -15,6 +15,9 @@ import {
   ChevronUp,
   ChevronDown,
   Plus,
+  Compass,
+  Image as ImageIcon,
+  Upload,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/Badge';
@@ -38,6 +41,7 @@ export interface LayersAndToolsPanelProps {
   onReorderElement: (id: string, direction: 'up' | 'down') => void;
   mockupConfig: JerseyMockupConfig;
   onUpdateMockupConfig: (updates: Partial<JerseyMockupConfig>) => void;
+  onOpenAssetUploader?: () => void;
 }
 
 type LeftPanelTab = 'add' | 'layers' | 'mockup';
@@ -67,6 +71,7 @@ export const LayersAndToolsPanel: React.FC<LayersAndToolsPanelProps> = ({
   onReorderElement,
   mockupConfig,
   onUpdateMockupConfig,
+  onOpenAssetUploader,
 }) => {
   const [activeTab, setActiveTab] = React.useState<LeftPanelTab>('add');
 
@@ -215,6 +220,30 @@ export const LayersAndToolsPanel: React.FC<LayersAndToolsPanelProps> = ({
 
           <div className="h-[1px] bg-border" />
 
+          {/* Logos, Crests & Sponsor Ingestion */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-xs font-bold text-text-primary uppercase tracking-wider">
+              <span>Sponsor Logos & Crests</span>
+              <Badge variant="primary" size="sm" className="text-[9px]">Local Ingest</Badge>
+            </div>
+            <p className="text-[11px] text-text-secondary leading-tight">
+              Ingest vector club crests and official sponsor marks (PNG, SVG, JPG).
+            </p>
+
+            {onOpenAssetUploader && (
+              <button
+                type="button"
+                onClick={onOpenAssetUploader}
+                className="w-full flex items-center justify-center gap-2 p-2.5 rounded-md border-2 border-dashed border-primary/40 bg-primary-subtle/20 hover:bg-primary-subtle/40 hover:border-primary text-primary font-bold text-xs transition-all shadow-xs"
+              >
+                <Upload className="w-4 h-4" />
+                + Ingest Sponsor Logo / Crest
+              </button>
+            )}
+          </div>
+
+          <div className="h-[1px] bg-border" />
+
           {/* Static Design Elements */}
           <div className="space-y-2">
             <div className="text-xs font-bold text-text-primary uppercase tracking-wider">
@@ -228,7 +257,7 @@ export const LayersAndToolsPanel: React.FC<LayersAndToolsPanelProps> = ({
                   onAddElement('text', {
                     name: 'Team Name Text',
                     text: 'FALCON FC',
-                    fontFamily: 'Inter',
+                    fontFamily: 'Impact',
                     fontSize: 36,
                     fillColor: '#FFFFFF',
                     strokeEnabled: false,
@@ -245,6 +274,40 @@ export const LayersAndToolsPanel: React.FC<LayersAndToolsPanelProps> = ({
                 </div>
                 <div className="text-xs font-semibold text-text-primary group-hover:text-primary">
                   Add Static Text / Team Name
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  onAddElement('text', {
+                    name: 'Curved Arch Text',
+                    text: 'CHAMPIONS',
+                    fontFamily: 'Impact',
+                    fontSize: 34,
+                    fillColor: '#FFC72C',
+                    strokeEnabled: true,
+                    strokeColor: '#000000',
+                    strokeWidth: 3,
+                    curvedTextEnabled: true,
+                    curvePower: 50,
+                    curveDirection: 'up',
+                    width: 14,
+                    height: 3.5,
+                    x: 3,
+                    y: 6.5,
+                  })
+                }
+                className="flex items-center gap-3 p-2.5 rounded-md border border-border bg-surface hover:bg-surface-subtle text-left transition-all group"
+              >
+                <div className="w-7 h-7 rounded bg-surface-subtle border border-border flex items-center justify-center shrink-0 text-primary">
+                  <Compass className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <div className="text-xs font-semibold text-text-primary group-hover:text-primary">
+                    Add Curved / Arc Text
+                  </div>
+                  <div className="text-[10px] text-text-muted">Rainbow arch lettering</div>
                 </div>
               </button>
 
@@ -310,7 +373,7 @@ export const LayersAndToolsPanel: React.FC<LayersAndToolsPanelProps> = ({
       {activeTab === 'layers' && (
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="p-2 border-b border-border bg-surface-subtle/40 flex items-center justify-between text-xs text-text-muted">
-            <span>{visibleViewElements.length} elements on {activeView}</span>
+            <span>{visibleViewElements.length} elements on {activeView.replace('_', ' ')}</span>
           </div>
 
           <div className="flex-1 overflow-y-auto p-2 space-y-1">
@@ -335,6 +398,8 @@ export const LayersAndToolsPanel: React.FC<LayersAndToolsPanelProps> = ({
                     <div className="flex items-center gap-2 overflow-hidden mr-2">
                       {el.type === 'shape' ? (
                         <Square className="w-3.5 h-3.5 shrink-0 text-text-muted" />
+                      ) : el.type === 'image' ? (
+                        <ImageIcon className="w-3.5 h-3.5 shrink-0 text-primary" />
                       ) : (
                         <Type className="w-3.5 h-3.5 shrink-0 text-text-muted" />
                       )}

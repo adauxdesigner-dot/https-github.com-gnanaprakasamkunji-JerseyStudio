@@ -4,6 +4,9 @@ import {
   Undo2,
   Redo2,
   Shirt,
+  Maximize,
+  Scissors,
+  Layers,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
@@ -25,6 +28,8 @@ export interface CanvasDimensionBarProps {
   canRedo: boolean;
   onUndo: () => void;
   onRedo: () => void;
+  onAutoFitSelectedText?: () => void;
+  hasSelectedText?: boolean;
 }
 
 export const CanvasDimensionBar: React.FC<CanvasDimensionBarProps> = ({
@@ -36,6 +41,8 @@ export const CanvasDimensionBar: React.FC<CanvasDimensionBarProps> = ({
   canRedo,
   onUndo,
   onRedo,
+  onAutoFitSelectedText,
+  hasSelectedText = false,
 }) => {
   const [isResizeDialogOpen, setIsResizeDialogOpen] = React.useState(false);
 
@@ -67,8 +74,8 @@ export const CanvasDimensionBar: React.FC<CanvasDimensionBarProps> = ({
 
   // Determine current preset name if matching
   const matchingPreset = CANVAS_PRESETS.find((p) => {
-    let targetW = p.widthInInches;
-    let targetH = p.heightInInches;
+    const targetW = p.widthInInches;
+    const targetH = p.heightInInches;
     if (dimensions.unit === 'in') {
       return Math.abs(dimensions.width - targetW) < 0.1 && Math.abs(dimensions.height - targetH) < 0.1;
     }
@@ -78,36 +85,69 @@ export const CanvasDimensionBar: React.FC<CanvasDimensionBarProps> = ({
   return (
     <div className="h-12 bg-surface border-b border-border px-4 flex items-center justify-between shrink-0 select-none shadow-xs z-10">
       {/* ====================================================================
-          LEFT: Garment View Switcher & Undo/Redo
+          LEFT: Garment View Switcher: Back, Front, Half Sleeve (HS), Full Sleeve (FS)
           ==================================================================== */}
       <div className="flex items-center gap-3">
-        {/* Front / Back Toggle Segmented Control */}
+        {/* 4-Way View Switcher Segmented Control */}
         <div className="flex items-center bg-surface-subtle p-0.5 rounded-md border border-border">
-          <button
-            type="button"
-            onClick={() => onViewChange('front')}
-            className={cn(
-              'px-3 py-1 rounded text-xs font-semibold flex items-center gap-1.5 transition-all',
-              activeView === 'front'
-                ? 'bg-surface text-primary shadow-xs'
-                : 'text-text-secondary hover:text-text-primary'
-            )}
-          >
-            <Shirt className="w-3.5 h-3.5" />
-            Front View
-          </button>
           <button
             type="button"
             onClick={() => onViewChange('back')}
             className={cn(
-              'px-3 py-1 rounded text-xs font-semibold flex items-center gap-1.5 transition-all',
+              'px-2.5 py-1 rounded text-xs font-semibold flex items-center gap-1.5 transition-all',
               activeView === 'back'
-                ? 'bg-surface text-primary shadow-xs'
+                ? 'bg-surface text-primary shadow-xs font-bold'
                 : 'text-text-secondary hover:text-text-primary'
             )}
+            title="Back View: Player name and squad number layout"
           >
             <Shirt className="w-3.5 h-3.5 rotate-180" />
-            Back View
+            Back
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onViewChange('front')}
+            className={cn(
+              'px-2.5 py-1 rounded text-xs font-semibold flex items-center gap-1.5 transition-all',
+              activeView === 'front'
+                ? 'bg-surface text-primary shadow-xs font-bold'
+                : 'text-text-secondary hover:text-text-primary'
+            )}
+            title="Front View: Team crest, sponsor bar, chest logo"
+          >
+            <Shirt className="w-3.5 h-3.5" />
+            Front
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onViewChange('half_sleeve')}
+            className={cn(
+              'px-2.5 py-1 rounded text-xs font-semibold flex items-center gap-1.5 transition-all',
+              activeView === 'half_sleeve'
+                ? 'bg-surface text-primary shadow-xs font-bold'
+                : 'text-text-secondary hover:text-text-primary'
+            )}
+            title="Half Sleeve (HS): Short sleeve tournament badge & sleeve sponsors"
+          >
+            <Scissors className="w-3.5 h-3.5" />
+            Half Sleeve (HS)
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onViewChange('full_sleeve')}
+            className={cn(
+              'px-2.5 py-1 rounded text-xs font-semibold flex items-center gap-1.5 transition-all',
+              activeView === 'full_sleeve'
+                ? 'bg-surface text-primary shadow-xs font-bold'
+                : 'text-text-secondary hover:text-text-primary'
+            )}
+            title="Full Sleeve (FS): Long sleeve sublimation panel & cuff stripes"
+          >
+            <Layers className="w-3.5 h-3.5" />
+            Full Sleeve (FS)
           </button>
         </div>
 
@@ -136,6 +176,23 @@ export const CanvasDimensionBar: React.FC<CanvasDimensionBarProps> = ({
             <Redo2 className="w-4 h-4" />
           </Button>
         </div>
+
+        {/* Top "Auto-Fit" text scaling button (Feature 4) */}
+        {hasSelectedText && onAutoFitSelectedText && (
+          <>
+            <div className="w-[1px] h-4 bg-border" />
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={onAutoFitSelectedText}
+              className="h-8 px-2.5 text-xs gap-1.5 font-bold border-primary/40 text-primary hover:bg-primary-subtle"
+              title="Automatically scale text font size to fit element bounding box"
+            >
+              <Maximize className="w-3.5 h-3.5" />
+              Auto-Fit Text
+            </Button>
+          </>
+        )}
       </div>
 
       {/* ====================================================================

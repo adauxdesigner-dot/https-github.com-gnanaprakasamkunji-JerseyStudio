@@ -56,6 +56,96 @@ export function resolveElementText(
   return element.text;
 }
 
+// Helper to convert hex + opacity to rgba string
+function hexToRgba(hex: string, alpha: number): string {
+  let cleanHex = hex.replace('#', '');
+  if (cleanHex.length === 3) {
+    cleanHex = cleanHex.split('').map((c) => c + c).join('');
+  }
+  const r = parseInt(cleanHex.substring(0, 2), 16) || 0;
+  const g = parseInt(cleanHex.substring(2, 4), 16) || 0;
+  const b = parseInt(cleanHex.substring(4, 6), 16) || 0;
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function drawRoundedRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number
+) {
+  const r = Math.min(radius, width / 2, height / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + width - r, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+  ctx.lineTo(x + width, y + height - r);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+  ctx.lineTo(x + r, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('Failed to load image asset for canvas export'));
+    img.src = src;
+  });
+}
+
+function drawCurvedText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  centerX: number,
+  centerY: number,
+  width: number,
+  height: number,
+  curvePower: number,
+  curveDirection: 'up' | 'down',
+  isStroke: boolean
+) {
+  const chars = text.split('');
+  if (chars.length === 0) return;
+
+  const totalChars = chars.length;
+  const s = (curvePower / 100) * (height * 0.45);
+  const dir = curveDirection === 'up' ? -1 : 1;
+
+  const totalTextWidth = ctx.measureText(text).width;
+  const startX = centerX - totalTextWidth / 2;
+
+  let currentX = startX;
+  for (let i = 0; i < totalChars; i++) {
+    const char = chars[i];
+    const charWidth = ctx.measureText(char).width;
+    const charMidX = currentX + charWidth / 2;
+
+    const t = Math.max(-1, Math.min(1, (charMidX - centerX) / (width / 2)));
+    const arcY = centerY + dir * s * (1 - t * t);
+    const slope = (dir * s * (-2 * t)) / (width / 2);
+    const angle = Math.atan(slope);
+
+    ctx.save();
+    ctx.translate(charMidX, arcY);
+    ctx.rotate(angle);
+    if (isStroke) {
+      ctx.strokeText(char, 0, 0);
+    } else {
+      ctx.fillText(char, 0, 0);
+    }
+    ctx.restore();
+
+    currentX += charWidth;
+  }
+}
+
 /**
  * Renders jersey vector mockup paths onto an HTML5 Canvas 2D Context.
  */
@@ -72,6 +162,56 @@ function drawMockupToCanvas(
 
   ctx.save();
   ctx.scale(sx, sy);
+
+  if (view === 'half_sleeve') {
+    // Half Sleeve Mockup
+    ctx.fillStyle = primaryColor;
+    ctx.beginPath();
+    ctx.moveTo(240, 180);
+    ctx.bezierCurveTo(380, 120, 620, 120, 760, 180);
+    ctx.lineTo(820, 720);
+    ctx.bezierCurveTo(650, 750, 350, 750, 180, 720);
+    ctx.closePath();
+    ctx.fill();
+
+    // Cuff band
+    ctx.fillStyle = trimColor;
+    ctx.beginPath();
+    ctx.moveTo(180, 720);
+    ctx.bezierCurveTo(350, 750, 650, 750, 820, 720);
+    ctx.lineTo(824, 760);
+    ctx.bezierCurveTo(650, 790, 350, 790, 176, 760);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.restore();
+    return;
+  }
+
+  if (view === 'full_sleeve') {
+    // Full Sleeve Mockup
+    ctx.fillStyle = primaryColor;
+    ctx.beginPath();
+    ctx.moveTo(260, 140);
+    ctx.bezierCurveTo(380, 80, 620, 80, 740, 140);
+    ctx.lineTo(660, 1220);
+    ctx.bezierCurveTo(550, 1235, 450, 1235, 340, 1220);
+    ctx.closePath();
+    ctx.fill();
+
+    // Wrist cuff
+    ctx.fillStyle = trimColor;
+    ctx.beginPath();
+    ctx.moveTo(340, 1220);
+    ctx.bezierCurveTo(450, 1235, 550, 1235, 660, 1220);
+    ctx.lineTo(656, 1270);
+    ctx.bezierCurveTo(550, 1285, 450, 1285, 344, 1270);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.restore();
+    return;
+  }
 
   // Left sleeve
   ctx.fillStyle = primaryColor;
@@ -251,7 +391,36 @@ export async function renderJerseyToCanvas(
       ctx.translate(-centerX, -centerY);
     }
 
-    if (el.type === 'shape') {
+    // Drop Shadow
+    if (el.shadowEnabled) {
+      ctx.shadowColor = hexToRgba(el.shadowColor || '#000000', el.shadowOpacity ?? 0.6);
+      ctx.shadowBlur = ((el.shadowBlur ?? 8) * dpi) / 72;
+      ctx.shadowOffsetX = ((el.shadowOffsetX ?? 4) * dpi) / 72;
+      ctx.shadowOffsetY = ((el.shadowOffsetY ?? 4) * dpi) / 72;
+    }
+
+    // Text Box Background
+    if ((el.type === 'text' || el.type === 'dynamic_name' || el.type === 'dynamic_number') && el.bgEnabled) {
+      const pad = ((el.bgPadding ?? 12) * dpi) / 72;
+      const radius = ((el.bgCornerRadius ?? 8) * dpi) / 72;
+      ctx.save();
+      ctx.globalAlpha = (el.opacity ?? 1) * (el.bgOpacity ?? 0.85);
+      ctx.fillStyle = el.bgColor || '#000000';
+      drawRoundedRect(ctx, elX - pad, elY - pad, elW + pad * 2, elH + pad * 2, radius);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    if (el.type === 'image' && el.imageSrc) {
+      // Local image / logo layer rendering
+      try {
+        const img = await loadImage(el.imageSrc);
+        ctx.drawImage(img, elX, elY, elW, elH);
+      } catch {
+        ctx.fillStyle = '#E2E8F0';
+        ctx.fillRect(elX, elY, elW, elH);
+      }
+    } else if (el.type === 'shape') {
       // Shape rendering
       ctx.fillStyle = el.fillColor;
       if (el.shapeType === 'circle') {
@@ -287,32 +456,49 @@ export async function renderJerseyToCanvas(
 
       ctx.font = `${fontWeight} ${fontSizePx}px "${fontFamily}", sans-serif`;
       ctx.textBaseline = 'middle';
+      ctx.lineJoin = el.strokeJoin || 'round';
 
-      // Alignment handling
-      let drawX = centerX;
-      if (el.textAlign === 'left') {
-        ctx.textAlign = 'left';
-        drawX = elX;
-      } else if (el.textAlign === 'right') {
-        ctx.textAlign = 'right';
-        drawX = elX + elW;
+      // Curved Arc Text rendering vs Standard straight text
+      if (el.curvedTextEnabled && (el.curvePower ?? 50) > 0) {
+        const power = el.curvePower ?? 50;
+        const dir = el.curveDirection ?? 'up';
+
+        // Stroke pass on curve
+        if (el.strokeEnabled && el.strokeColor && el.strokeWidth) {
+          ctx.strokeStyle = el.strokeColor;
+          ctx.lineWidth = Math.max(1, (el.strokeWidth * dpi) / 72);
+          drawCurvedText(ctx, displayText, centerX, centerY, elW, elH, power, dir, true);
+        }
+
+        // Fill pass on curve
+        ctx.fillStyle = el.fillColor || '#FFFFFF';
+        drawCurvedText(ctx, displayText, centerX, centerY, elW, elH, power, dir, false);
       } else {
-        ctx.textAlign = 'center';
-        drawX = centerX;
-      }
+        // Alignment handling
+        let drawX = centerX;
+        if (el.textAlign === 'left') {
+          ctx.textAlign = 'left';
+          drawX = elX;
+        } else if (el.textAlign === 'right') {
+          ctx.textAlign = 'right';
+          drawX = elX + elW;
+        } else {
+          ctx.textAlign = 'center';
+          drawX = centerX;
+        }
 
-      // Stroke pass (rendered behind fill for crisp sportswear typography)
-      if (el.strokeEnabled && el.strokeColor && el.strokeWidth) {
-        ctx.strokeStyle = el.strokeColor;
-        ctx.lineWidth = Math.max(1, (el.strokeWidth * dpi) / 72);
-        ctx.lineJoin = 'round';
-        ctx.miterLimit = 2;
-        ctx.strokeText(displayText, drawX, centerY);
-      }
+        // Stroke pass (rendered behind fill for crisp sportswear typography)
+        if (el.strokeEnabled && el.strokeColor && el.strokeWidth) {
+          ctx.strokeStyle = el.strokeColor;
+          ctx.lineWidth = Math.max(1, (el.strokeWidth * dpi) / 72);
+          ctx.miterLimit = 2;
+          ctx.strokeText(displayText, drawX, centerY);
+        }
 
-      // Fill pass
-      ctx.fillStyle = el.fillColor || '#FFFFFF';
-      ctx.fillText(displayText, drawX, centerY);
+        // Fill pass
+        ctx.fillStyle = el.fillColor || '#FFFFFF';
+        ctx.fillText(displayText, drawX, centerY);
+      }
     }
 
     ctx.restore();

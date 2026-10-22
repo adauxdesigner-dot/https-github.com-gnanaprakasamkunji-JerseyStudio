@@ -10,6 +10,10 @@ import {
   ArrowDown,
   CheckCircle2,
   AlertTriangle,
+  Type,
+  Compass,
+  Square,
+  Layers,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
@@ -35,17 +39,9 @@ export interface PropertiesPanelProps {
     id: string,
     alignment: 'left' | 'center-h' | 'right' | 'top' | 'center-v' | 'bottom'
   ) => void;
+  onOpenFontManager?: () => void;
+  onAutoFitText?: (id: string) => void;
 }
-
-const ATHLETIC_FONTS = [
-  { value: 'Impact', label: 'Impact (Varsity Bold)' },
-  { value: 'Inter', label: 'Inter (Clean Sans)' },
-  { value: 'Oswald', label: 'Oswald (Athletic Block)' },
-  { value: 'Bebas Neue', label: 'Bebas Neue (Jersey Condensed)' },
-  { value: 'Montserrat', label: 'Montserrat (Modern Sport)' },
-  { value: 'Arial', label: 'Arial (Classic Sans)' },
-  { value: 'Courier New', label: 'Courier New (Technical Monospace)' },
-];
 
 const QUICK_SWATCHES = [
   '#FFFFFF',
@@ -66,6 +62,8 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
   onDeleteElement,
   onDuplicateElement,
   onAlignElement,
+  onOpenFontManager,
+  onAutoFitText,
 }) => {
   const { widthInches, heightInches } = getDimensionsInInches(design.dimensions);
 
@@ -82,7 +80,7 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
             Canvas Document
           </h3>
           <p className="text-xs text-text-secondary">
-            Select an element on the canvas to configure typography, colors, and positioning.
+            Select an element on the canvas to configure typography, effects, colors, and positioning.
           </p>
         </div>
 
@@ -98,67 +96,54 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
           <div className="flex items-center justify-between text-xs">
             <span className="text-text-secondary">Current View</span>
             <Badge variant="primary" size="sm" className="uppercase font-mono">
-              {design.activeView}
+              {design.activeView.replace('_', ' ')}
             </Badge>
           </div>
 
           <div className="flex items-center justify-between text-xs">
-            <span className="text-text-secondary">Print Resolution</span>
+            <span className="text-text-secondary">Sublimation DPI</span>
             <span className="font-mono font-semibold text-text-primary">
               {design.dimensions.dpi} DPI
             </span>
           </div>
 
           <div className="flex items-center justify-between text-xs">
-            <span className="text-text-secondary">Pixel Dimensions</span>
-            <span className="font-mono text-text-primary text-[11px]">
-              {Math.round(widthInches * design.dimensions.dpi)} ×{' '}
-              {Math.round(heightInches * design.dimensions.dpi)} px
-            </span>
+            <span className="text-text-secondary">Active Layers</span>
+            <span className="font-semibold text-text-primary">{totalElements} elements</span>
           </div>
 
           <div className="flex items-center justify-between text-xs">
-            <span className="text-text-secondary">Layers</span>
-            <span className="font-mono text-text-primary">
-              {totalElements} total ({dynamicElements} dynamic)
-            </span>
+            <span className="text-text-secondary">Dynamic Personalization</span>
+            <span className="font-semibold text-primary">{dynamicElements} fields</span>
           </div>
         </div>
 
-        {/* Dye Sublimation Production Checklist */}
-        <div className="space-y-3">
-          <h4 className="text-xs font-bold text-text-primary uppercase tracking-wider">
+        {/* Sublimation Readiness Audit */}
+        <div className="space-y-2">
+          <span className="text-[11px] font-bold text-text-primary uppercase tracking-wider">
             Production Readiness
-          </h4>
-
-          <div className="space-y-2">
-            <div className="flex items-start gap-2.5 p-2.5 rounded-md border border-border bg-surface">
-              {isPrintReadyDpi ? (
-                <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-0.5" />
-              ) : (
-                <AlertTriangle className="w-4 h-4 text-warning shrink-0 mt-0.5" />
-              )}
-              <div>
-                <div className="text-xs font-semibold text-text-primary">
-                  {isPrintReadyDpi ? '300 DPI Dye Sublimation' : 'Resolution Under 300 DPI'}
-                </div>
-                <div className="text-[11px] text-text-secondary leading-tight">
-                  {isPrintReadyDpi
-                    ? 'Artwork rendered at native high resolution for dye sublimation printers.'
-                    : 'Consider setting canvas DPI to 300 before final printing export.'}
-                </div>
+          </span>
+          <div
+            className={cn(
+              'p-3 rounded-md border text-xs flex items-start gap-2.5',
+              isPrintReadyDpi
+                ? 'bg-success-subtle/40 border-success/30 text-success'
+                : 'bg-warning-subtle/40 border-warning/30 text-warning'
+            )}
+          >
+            {isPrintReadyDpi ? (
+              <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" />
+            ) : (
+              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+            )}
+            <div>
+              <div className="font-bold">
+                {isPrintReadyDpi ? '300 DPI Dye Sublimation Standard' : 'Low Resolution Warning'}
               </div>
-            </div>
-
-            <div className="flex items-start gap-2.5 p-2.5 rounded-md border border-border bg-surface">
-              <CheckCircle2 className="w-4 h-4 text-success shrink-0 mt-0.5" />
-              <div>
-                <div className="text-xs font-semibold text-text-primary">
-                  Local-First Offline Storage
-                </div>
-                <div className="text-[11px] text-text-secondary leading-tight">
-                  All rendering occurs 100% locally on your machine with zero cloud leaks.
-                </div>
+              <div className="text-[11px] text-text-secondary mt-0.5">
+                {isPrintReadyDpi
+                  ? 'Canvas matches dye sublimation print bed specifications for vector crispness.'
+                  : 'Recommended DPI for sportswear production is 300 DPI.'}
               </div>
             </div>
           </div>
@@ -167,58 +152,48 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
     );
   }
 
-  // Active Element Selected -> Display Full Properties Inspector
-  const isTextElement = activeElement.type !== 'shape';
+  const isTextElement =
+    activeElement.type === 'text' ||
+    activeElement.type === 'dynamic_name' ||
+    activeElement.type === 'dynamic_number';
+
+  const isImageElement = activeElement.type === 'image';
 
   return (
-    <aside className="w-80 bg-surface border-l border-border flex flex-col shrink-0 select-none shadow-xs overflow-y-auto">
-      {/* ====================================================================
-          HEADER: ELEMENT IDENTITY & ACTIONS
-          ==================================================================== */}
-      <div className="p-3.5 border-b border-border flex items-center justify-between bg-surface-subtle/50">
-        <div className="overflow-hidden mr-2">
-          <div className="text-xs font-bold text-text-primary truncate">
+    <aside className="w-80 bg-surface border-l border-border flex flex-col shrink-0 select-none shadow-xs overflow-hidden">
+      {/* Element Header */}
+      <div className="p-3 border-b border-border bg-surface-subtle/60 flex items-center justify-between shrink-0">
+        <div className="flex items-center gap-2 truncate">
+          <span className="w-2.5 h-2.5 rounded-full bg-primary shrink-0" />
+          <h3 className="text-xs font-bold text-text-primary uppercase tracking-wider truncate">
             {activeElement.name}
-          </div>
-          <div className="flex items-center gap-1.5 mt-0.5">
-            {activeElement.bindingKey ? (
-              <Badge variant="primary" size="sm" className="text-[10px] py-0 px-1 font-mono">
-                Dynamic: {activeElement.bindingKey}
-              </Badge>
-            ) : (
-              <span className="text-[10px] text-text-muted capitalize">
-                {activeElement.type} element
-              </span>
-            )}
-          </div>
+          </h3>
         </div>
-
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-1">
           <Button
             size="sm"
             variant="ghost"
             className="w-7 h-7 p-0"
             onClick={() => onDuplicateElement(activeElement.id)}
-            title="Duplicate Element"
+            title="Duplicate Layer"
           >
             <Copy className="w-3.5 h-3.5" />
           </Button>
           <Button
             size="sm"
             variant="ghost"
-            className="w-7 h-7 p-0 hover:text-error"
+            className="w-7 h-7 p-0 text-danger hover:text-danger hover:bg-danger-subtle"
             onClick={() => onDeleteElement(activeElement.id)}
-            title="Delete Element"
+            title="Delete Layer"
           >
             <Trash2 className="w-3.5 h-3.5" />
           </Button>
         </div>
       </div>
 
-      <div className="p-4 space-y-5">
-        {/* ====================================================================
-            QUICK ALIGNMENT TOOLBAR
-            ==================================================================== */}
+      {/* Scrollable Properties Body */}
+      <div className="p-4 overflow-y-auto space-y-5 flex-1 text-xs">
+        {/* Alignment Toolbar */}
         <div className="space-y-1.5">
           <label className="text-[11px] font-bold text-text-primary uppercase tracking-wider block">
             Canvas Alignment
@@ -276,13 +251,13 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
         </div>
 
         {/* ====================================================================
-            TEXT CONTENT & BINDINGS (For Text Elements)
+            TEXT TYPOGRAPHY (For Text Elements)
             ==================================================================== */}
         {isTextElement && (
-          <div className="space-y-3">
+          <div className="space-y-3.5">
             <div className="space-y-1">
               <label className="text-[11px] font-bold text-text-primary uppercase tracking-wider block">
-                Text / Preview Value
+                Text / Preview Content
               </label>
               <Input
                 value={activeElement.text}
@@ -306,7 +281,12 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                   const key = val === 'none' ? undefined : (val as DynamicBindingKey);
                   onUpdateElement(activeElement.id, {
                     bindingKey: key,
-                    type: key === 'player_name' ? 'dynamic_name' : key === 'player_number' ? 'dynamic_number' : 'text',
+                    type:
+                      key === 'player_name'
+                        ? 'dynamic_name'
+                        : key === 'player_number'
+                        ? 'dynamic_number'
+                        : 'text',
                   });
                   onCommitHistory();
                 }}
@@ -318,27 +298,60 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
               />
             </div>
 
-            {/* Font Family */}
+            {/* Font Family Row + Font Manager Trigger Button */}
             <div className="space-y-1">
-              <label className="text-[11px] font-bold text-text-primary uppercase tracking-wider block">
-                Font Family
-              </label>
-              <Select
-                value={activeElement.fontFamily}
-                onChange={(e) => {
-                  onUpdateElement(activeElement.id, { fontFamily: e.target.value });
-                  onCommitHistory();
-                }}
-                options={ATHLETIC_FONTS}
-              />
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-bold text-text-primary uppercase tracking-wider">
+                  Font Family
+                </label>
+                {onOpenFontManager && (
+                  <button
+                    type="button"
+                    onClick={onOpenFontManager}
+                    className="text-[11px] text-primary hover:underline font-semibold flex items-center gap-1"
+                  >
+                    <Type className="w-3 h-3" />
+                    Font Manager
+                  </button>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  readOnly
+                  value={activeElement.fontFamily}
+                  onClick={onOpenFontManager}
+                  className="flex-1 h-8 rounded border border-border bg-surface px-2.5 text-xs font-semibold cursor-pointer text-text-primary hover:border-primary transition-colors"
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={onOpenFontManager}
+                  className="h-8 px-2 text-xs"
+                >
+                  Browse
+                </Button>
+              </div>
             </div>
 
-            {/* Font Size & Weight */}
+            {/* Font Size & Auto-Fit */}
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
-                <label className="text-[11px] font-bold text-text-primary uppercase tracking-wider block">
-                  Font Size (pt)
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-bold text-text-primary uppercase tracking-wider block">
+                    Font Size
+                  </label>
+                  {onAutoFitText && (
+                    <button
+                      type="button"
+                      onClick={() => onAutoFitText(activeElement.id)}
+                      className="text-[10px] text-primary hover:underline font-bold"
+                      title="Scale font size to fit bounding box perfectly"
+                    >
+                      Auto-Fit
+                    </button>
+                  )}
+                </div>
                 <Input
                   type="number"
                   min={8}
@@ -354,9 +367,9 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 
               <div className="space-y-1">
                 <label className="text-[11px] font-bold text-text-primary uppercase tracking-wider block">
-                  Text Alignment
+                  Alignment
                 </label>
-                <div className="flex bg-surface-subtle p-0.5 rounded border border-border">
+                <div className="flex bg-surface-subtle p-0.5 rounded border border-border h-8">
                   {(['left', 'center', 'right'] as const).map((align) => (
                     <button
                       key={align}
@@ -366,7 +379,7 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                         onCommitHistory();
                       }}
                       className={cn(
-                        'flex-1 py-1 text-xs rounded transition-all capitalize',
+                        'flex-1 py-0.5 text-xs rounded transition-all capitalize',
                         activeElement.textAlign === align
                           ? 'bg-surface text-primary font-bold shadow-xs'
                           : 'text-text-secondary hover:text-text-primary'
@@ -379,7 +392,7 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
               </div>
             </div>
 
-            {/* Text Transform & Letter Spacing */}
+            {/* Casing & Letter Spacing */}
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
                 <label className="text-[11px] font-bold text-text-primary uppercase tracking-wider block">
@@ -403,12 +416,12 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
 
               <div className="space-y-1">
                 <label className="text-[11px] font-bold text-text-primary uppercase tracking-wider block">
-                  Letter Spacing
+                  Spacing
                 </label>
                 <Input
                   type="number"
-                  min={0}
-                  max={20}
+                  min={-5}
+                  max={40}
                   value={activeElement.letterSpacing || 0}
                   onChange={(e) => {
                     onUpdateElement(activeElement.id, {
@@ -422,67 +435,154 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
           </div>
         )}
 
+        {/* IMAGE ELEMENT PROPERTIES */}
+        {isImageElement && (
+          <div className="p-3 bg-surface-subtle rounded-md border border-border space-y-2">
+            <span className="text-[11px] font-bold text-text-primary uppercase tracking-wider block">
+              Logo / Graphic Asset
+            </span>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded bg-surface border border-border flex items-center justify-center p-1 overflow-hidden shrink-0">
+                <img
+                  src={activeElement.imageSrc}
+                  alt={activeElement.name}
+                  className="max-h-full max-w-full object-contain"
+                />
+              </div>
+              <div className="overflow-hidden">
+                <div className="font-semibold text-text-primary truncate">{activeElement.name}</div>
+                <div className="text-[10px] text-text-muted truncate font-mono">
+                  {activeElement.imageFileName || 'Imported Graphic'}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="h-[1px] bg-border" />
 
         {/* ====================================================================
-            FILL COLOR & SWATCHES
+            EFFECT 1: CURVED / ARC TEXT (Feature 1)
             ==================================================================== */}
-        <div className="space-y-2">
-          <label className="text-[11px] font-bold text-text-primary uppercase tracking-wider block">
-            Fill Color
-          </label>
-          <div className="flex items-center gap-2">
-            <input
-              type="color"
-              value={activeElement.fillColor}
-              onChange={(e) => {
-                onUpdateElement(activeElement.id, { fillColor: e.target.value });
-              }}
-              onBlur={onCommitHistory}
-              className="w-8 h-8 rounded border border-border cursor-pointer p-0.5"
-            />
-            <span className="font-mono text-xs uppercase">{activeElement.fillColor}</span>
-          </div>
-
-          {/* Quick Swatches */}
-          <div className="grid grid-cols-8 gap-1 pt-1">
-            {QUICK_SWATCHES.map((hex) => (
-              <button
-                key={hex}
-                type="button"
-                onClick={() => {
-                  onUpdateElement(activeElement.id, { fillColor: hex });
+        {isTextElement && (
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Compass className="w-3.5 h-3.5 text-primary" />
+                <label className="text-[11px] font-bold text-text-primary uppercase tracking-wider">
+                  Curved / Arc Text
+                </label>
+              </div>
+              <Switch
+                checked={activeElement.curvedTextEnabled ?? false}
+                onChange={(checked: boolean) => {
+                  onUpdateElement(activeElement.id, {
+                    curvedTextEnabled: checked,
+                    curvePower: activeElement.curvePower ?? 50,
+                    curveDirection: activeElement.curveDirection ?? 'up',
+                  });
                   onCommitHistory();
                 }}
-                style={{ backgroundColor: hex }}
-                className={cn(
-                  'w-6 h-6 rounded border border-border/80 transition-transform hover:scale-110 shadow-xs',
-                  activeElement.fillColor.toLowerCase() === hex.toLowerCase() && 'ring-2 ring-primary ring-offset-1'
-                )}
               />
-            ))}
+            </div>
+
+            {activeElement.curvedTextEnabled && (
+              <div className="space-y-3 p-3 rounded-md bg-surface-subtle border border-border">
+                {/* Arc Direction */}
+                <div className="space-y-1">
+                  <span className="text-[10px] text-text-muted uppercase font-bold">Arc Curve Direction</span>
+                  <div className="flex bg-surface p-0.5 rounded border border-border">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onUpdateElement(activeElement.id, { curveDirection: 'up' });
+                        onCommitHistory();
+                      }}
+                      className={cn(
+                        'flex-1 py-1 text-xs rounded transition-all font-semibold',
+                        activeElement.curveDirection !== 'down'
+                          ? 'bg-primary text-white shadow-xs'
+                          : 'text-text-secondary hover:text-text-primary'
+                      )}
+                    >
+                      Arch Up (Rainbow)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onUpdateElement(activeElement.id, { curveDirection: 'down' });
+                        onCommitHistory();
+                      }}
+                      className={cn(
+                        'flex-1 py-1 text-xs rounded transition-all font-semibold',
+                        activeElement.curveDirection === 'down'
+                          ? 'bg-primary text-white shadow-xs'
+                          : 'text-text-secondary hover:text-text-primary'
+                      )}
+                    >
+                      Arch Down (Smile)
+                    </button>
+                  </div>
+                </div>
+
+                {/* Curvature Power Slider (0 to 100) */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs text-text-secondary">
+                    <span className="font-semibold text-text-primary">Curvature Power</span>
+                    <span className="font-mono font-bold text-primary">
+                      {activeElement.curvePower ?? 50}%
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    step={1}
+                    value={activeElement.curvePower ?? 50}
+                    onChange={(e) => {
+                      onUpdateElement(activeElement.id, {
+                        curvePower: Number(e.target.value),
+                      });
+                    }}
+                    onMouseUp={onCommitHistory}
+                    className="w-full accent-primary"
+                  />
+                  <div className="flex justify-between text-[10px] text-text-muted">
+                    <span>Flat (0%)</span>
+                    <span>Gentle (50%)</span>
+                    <span>Max Arch (100%)</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
-        </div>
+        )}
 
         {/* ====================================================================
-            STROKE & OUTLINE
+            EFFECT 2: TEXT STROKE & CORNER JOINS (Feature 1)
             ==================================================================== */}
         <div className="space-y-2.5">
           <div className="flex items-center justify-between">
             <label className="text-[11px] font-bold text-text-primary uppercase tracking-wider">
-              Border / Stroke
+              Outline / Stroke
             </label>
             <Switch
               checked={activeElement.strokeEnabled ?? false}
               onChange={(checked: boolean) => {
-                onUpdateElement(activeElement.id, { strokeEnabled: checked });
+                onUpdateElement(activeElement.id, {
+                  strokeEnabled: checked,
+                  strokeWidth: activeElement.strokeWidth ?? 3,
+                  strokeColor: activeElement.strokeColor ?? '#000000',
+                  strokeJoin: activeElement.strokeJoin ?? 'round',
+                });
                 onCommitHistory();
               }}
             />
           </div>
 
           {activeElement.strokeEnabled && (
-            <div className="space-y-2 pt-1">
+            <div className="space-y-3 p-3 rounded-md bg-surface-subtle border border-border">
+              {/* Stroke Color */}
               <div className="flex items-center gap-2">
                 <input
                   type="color"
@@ -493,20 +593,23 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                   onBlur={onCommitHistory}
                   className="w-8 h-8 rounded border border-border cursor-pointer p-0.5"
                 />
-                <span className="font-mono text-xs uppercase">
+                <span className="font-mono text-xs uppercase font-semibold">
                   {activeElement.strokeColor || '#000000'}
                 </span>
               </div>
 
+              {/* Stroke Thickness Spinner / Slider */}
               <div className="space-y-1">
                 <div className="flex justify-between text-xs text-text-secondary">
-                  <span>Stroke Width</span>
-                  <span className="font-mono">{activeElement.strokeWidth || 1} pt</span>
+                  <span>Stroke Thickness</span>
+                  <span className="font-mono font-bold text-text-primary">
+                    {activeElement.strokeWidth || 1} pt
+                  </span>
                 </div>
                 <input
                   type="range"
                   min={1}
-                  max={16}
+                  max={24}
                   value={activeElement.strokeWidth || 1}
                   onChange={(e) => {
                     onUpdateElement(activeElement.id, {
@@ -514,12 +617,341 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                     });
                   }}
                   onMouseUp={onCommitHistory}
-                  className="w-full"
+                  className="w-full accent-primary"
                 />
+              </div>
+
+              {/* Stroke Corner Joins: Miter, Bevel, Round */}
+              <div className="space-y-1">
+                <span className="text-[10px] text-text-muted uppercase font-bold">Corner Joins</span>
+                <div className="flex bg-surface p-0.5 rounded border border-border">
+                  {(['miter', 'bevel', 'round'] as const).map((join) => {
+                    const isSelected = (activeElement.strokeJoin || 'round') === join;
+                    return (
+                      <button
+                        key={join}
+                        type="button"
+                        onClick={() => {
+                          onUpdateElement(activeElement.id, { strokeJoin: join });
+                          onCommitHistory();
+                        }}
+                        className={cn(
+                          'flex-1 py-1 text-xs rounded transition-all capitalize font-medium',
+                          isSelected
+                            ? 'bg-primary text-white font-bold shadow-xs'
+                            : 'text-text-secondary hover:text-text-primary'
+                        )}
+                      >
+                        {join}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           )}
         </div>
+
+        {/* ====================================================================
+            EFFECT 3: TEXT BOX BACKGROUND (Feature 1)
+            ==================================================================== */}
+        {isTextElement && (
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5">
+                <Square className="w-3.5 h-3.5 text-primary" />
+                <label className="text-[11px] font-bold text-text-primary uppercase tracking-wider">
+                  Text Box Background
+                </label>
+              </div>
+              <Switch
+                checked={activeElement.bgEnabled ?? false}
+                onChange={(checked: boolean) => {
+                  onUpdateElement(activeElement.id, {
+                    bgEnabled: checked,
+                    bgColor: activeElement.bgColor ?? '#000000',
+                    bgOpacity: activeElement.bgOpacity ?? 0.85,
+                    bgCornerRadius: activeElement.bgCornerRadius ?? 8,
+                    bgPadding: activeElement.bgPadding ?? 12,
+                  });
+                  onCommitHistory();
+                }}
+              />
+            </div>
+
+            {activeElement.bgEnabled && (
+              <div className="space-y-3 p-3 rounded-md bg-surface-subtle border border-border">
+                {/* Background Color & Opacity */}
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="color"
+                      value={activeElement.bgColor || '#000000'}
+                      onChange={(e) => {
+                        onUpdateElement(activeElement.id, { bgColor: e.target.value });
+                      }}
+                      onBlur={onCommitHistory}
+                      className="w-8 h-8 rounded border border-border cursor-pointer p-0.5"
+                    />
+                    <span className="font-mono text-xs uppercase font-semibold">
+                      {activeElement.bgColor || '#000000'}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-[10px] text-text-muted">Opacity</span>
+                    <span className="font-mono font-bold block text-text-primary">
+                      {Math.round((activeElement.bgOpacity ?? 0.85) * 100)}%
+                    </span>
+                  </div>
+                </div>
+
+                {/* Opacity Slider */}
+                <div className="space-y-1">
+                  <input
+                    type="range"
+                    min={0}
+                    max={100}
+                    value={Math.round((activeElement.bgOpacity ?? 0.85) * 100)}
+                    onChange={(e) => {
+                      onUpdateElement(activeElement.id, {
+                        bgOpacity: Number(e.target.value) / 100,
+                      });
+                    }}
+                    onMouseUp={onCommitHistory}
+                    className="w-full accent-primary"
+                  />
+                </div>
+
+                {/* Corner Radius (0 - 50) */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs text-text-secondary">
+                    <span>Corner Radius (0 - 50px)</span>
+                    <span className="font-mono font-bold text-text-primary">
+                      {activeElement.bgCornerRadius ?? 8}px
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={50}
+                    value={activeElement.bgCornerRadius ?? 8}
+                    onChange={(e) => {
+                      onUpdateElement(activeElement.id, {
+                        bgCornerRadius: Number(e.target.value),
+                      });
+                    }}
+                    onMouseUp={onCommitHistory}
+                    className="w-full accent-primary"
+                  />
+                </div>
+
+                {/* Padding (0 - 50) */}
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs text-text-secondary">
+                    <span>Background Padding (0 - 50px)</span>
+                    <span className="font-mono font-bold text-text-primary">
+                      {activeElement.bgPadding ?? 12}px
+                    </span>
+                  </div>
+                  <input
+                    type="range"
+                    min={0}
+                    max={50}
+                    value={activeElement.bgPadding ?? 12}
+                    onChange={(e) => {
+                      onUpdateElement(activeElement.id, {
+                        bgPadding: Number(e.target.value),
+                      });
+                    }}
+                    onMouseUp={onCommitHistory}
+                    className="w-full accent-primary"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ====================================================================
+            EFFECT 4: DROP SHADOW (Feature 1)
+            ==================================================================== */}
+        <div className="space-y-2.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5">
+              <Layers className="w-3.5 h-3.5 text-primary" />
+              <label className="text-[11px] font-bold text-text-primary uppercase tracking-wider">
+                Drop Shadow
+              </label>
+            </div>
+            <Switch
+              checked={activeElement.shadowEnabled ?? false}
+              onChange={(checked: boolean) => {
+                onUpdateElement(activeElement.id, {
+                  shadowEnabled: checked,
+                  shadowColor: activeElement.shadowColor ?? '#000000',
+                  shadowBlur: activeElement.shadowBlur ?? 8,
+                  shadowOffsetX: activeElement.shadowOffsetX ?? 4,
+                  shadowOffsetY: activeElement.shadowOffsetY ?? 4,
+                  shadowOpacity: activeElement.shadowOpacity ?? 0.6,
+                });
+                onCommitHistory();
+              }}
+            />
+          </div>
+
+          {activeElement.shadowEnabled && (
+            <div className="space-y-3 p-3 rounded-md bg-surface-subtle border border-border">
+              {/* Shadow Color & Opacity */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    value={activeElement.shadowColor || '#000000'}
+                    onChange={(e) => {
+                      onUpdateElement(activeElement.id, { shadowColor: e.target.value });
+                    }}
+                    onBlur={onCommitHistory}
+                    className="w-8 h-8 rounded border border-border cursor-pointer p-0.5"
+                  />
+                  <span className="font-mono text-xs uppercase font-semibold">
+                    {activeElement.shadowColor || '#000000'}
+                  </span>
+                </div>
+                <div className="text-right">
+                  <span className="text-[10px] text-text-muted">Opacity</span>
+                  <span className="font-mono font-bold block text-text-primary">
+                    {Math.round((activeElement.shadowOpacity ?? 0.6) * 100)}%
+                  </span>
+                </div>
+              </div>
+
+              {/* Shadow Opacity Slider */}
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={Math.round((activeElement.shadowOpacity ?? 0.6) * 100)}
+                onChange={(e) => {
+                  onUpdateElement(activeElement.id, {
+                    shadowOpacity: Number(e.target.value) / 100,
+                  });
+                }}
+                onMouseUp={onCommitHistory}
+                className="w-full accent-primary"
+              />
+
+              {/* Shadow Blur Slider (0 to 50) */}
+              <div className="space-y-1">
+                <div className="flex justify-between text-xs text-text-secondary">
+                  <span>Blur Radius</span>
+                  <span className="font-mono font-bold text-text-primary">
+                    {activeElement.shadowBlur ?? 8}px
+                  </span>
+                </div>
+                <input
+                  type="range"
+                  min={0}
+                  max={50}
+                  value={activeElement.shadowBlur ?? 8}
+                  onChange={(e) => {
+                    onUpdateElement(activeElement.id, {
+                      shadowBlur: Number(e.target.value),
+                    });
+                  }}
+                  onMouseUp={onCommitHistory}
+                  className="w-full accent-primary"
+                />
+              </div>
+
+              {/* Shadow Offset X & Y (-50 to +50) */}
+              <div className="grid grid-cols-2 gap-2">
+                <div className="space-y-1">
+                  <div className="flex justify-between text-[11px] text-text-secondary">
+                    <span>Offset X</span>
+                    <span className="font-mono font-bold">{activeElement.shadowOffsetX ?? 4}px</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={-50}
+                    max={50}
+                    value={activeElement.shadowOffsetX ?? 4}
+                    onChange={(e) => {
+                      onUpdateElement(activeElement.id, {
+                        shadowOffsetX: Number(e.target.value),
+                      });
+                    }}
+                    onMouseUp={onCommitHistory}
+                    className="w-full accent-primary"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex justify-between text-[11px] text-text-secondary">
+                    <span>Offset Y</span>
+                    <span className="font-mono font-bold">{activeElement.shadowOffsetY ?? 4}px</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={-50}
+                    max={50}
+                    value={activeElement.shadowOffsetY ?? 4}
+                    onChange={(e) => {
+                      onUpdateElement(activeElement.id, {
+                        shadowOffsetY: Number(e.target.value),
+                      });
+                    }}
+                    onMouseUp={onCommitHistory}
+                    className="w-full accent-primary"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="h-[1px] bg-border" />
+
+        {/* ====================================================================
+            FILL COLOR & SWATCHES
+            ==================================================================== */}
+        {!isImageElement && (
+          <div className="space-y-2">
+            <label className="text-[11px] font-bold text-text-primary uppercase tracking-wider block">
+              Fill Color
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={activeElement.fillColor}
+                onChange={(e) => {
+                  onUpdateElement(activeElement.id, { fillColor: e.target.value });
+                }}
+                onBlur={onCommitHistory}
+                className="w-8 h-8 rounded border border-border cursor-pointer p-0.5"
+              />
+              <span className="font-mono text-xs uppercase font-semibold">{activeElement.fillColor}</span>
+            </div>
+
+            {/* Quick Swatches */}
+            <div className="grid grid-cols-8 gap-1 pt-1">
+              {QUICK_SWATCHES.map((hex) => (
+                <button
+                  key={hex}
+                  type="button"
+                  onClick={() => {
+                    onUpdateElement(activeElement.id, { fillColor: hex });
+                    onCommitHistory();
+                  }}
+                  style={{ backgroundColor: hex }}
+                  className={cn(
+                    'w-6 h-6 rounded border border-border/80 transition-transform hover:scale-110 shadow-xs',
+                    activeElement.fillColor.toLowerCase() === hex.toLowerCase() &&
+                      'ring-2 ring-primary ring-offset-1'
+                  )}
+                />
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="h-[1px] bg-border" />
 
@@ -582,23 +1014,45 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
           </div>
         </div>
 
-        {/* Rotation */}
-        <div className="space-y-1">
-          <div className="flex justify-between text-xs text-text-secondary">
-            <span>Rotation</span>
-            <span className="font-mono">{activeElement.rotation || 0}°</span>
+        {/* Rotation & Opacity */}
+        <div className="space-y-3">
+          <div className="space-y-1">
+            <div className="flex justify-between text-xs text-text-secondary">
+              <span>Rotation</span>
+              <span className="font-mono font-bold">{activeElement.rotation || 0}°</span>
+            </div>
+            <input
+              type="range"
+              min={0}
+              max={360}
+              value={activeElement.rotation || 0}
+              onChange={(e) => {
+                onUpdateElement(activeElement.id, { rotation: Number(e.target.value) });
+              }}
+              onMouseUp={onCommitHistory}
+              className="w-full accent-primary"
+            />
           </div>
-          <input
-            type="range"
-            min={0}
-            max={360}
-            value={activeElement.rotation || 0}
-            onChange={(e) => {
-              onUpdateElement(activeElement.id, { rotation: Number(e.target.value) });
-            }}
-            onMouseUp={onCommitHistory}
-            className="w-full"
-          />
+
+          <div className="space-y-1">
+            <div className="flex justify-between text-xs text-text-secondary">
+              <span>Overall Layer Opacity</span>
+              <span className="font-mono font-bold">
+                {Math.round((activeElement.opacity ?? 1) * 100)}%
+              </span>
+            </div>
+            <input
+              type="range"
+              min={10}
+              max={100}
+              value={Math.round((activeElement.opacity ?? 1) * 100)}
+              onChange={(e) => {
+                onUpdateElement(activeElement.id, { opacity: Number(e.target.value) / 100 });
+              }}
+              onMouseUp={onCommitHistory}
+              className="w-full accent-primary"
+            />
+          </div>
         </div>
       </div>
     </aside>

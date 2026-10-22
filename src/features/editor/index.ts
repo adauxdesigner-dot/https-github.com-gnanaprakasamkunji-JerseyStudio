@@ -7,3 +7,8 @@ export * from './LayersAndToolsPanel';
 export * from './PropertiesPanel';
 export * from './ExportModal';
 export * from './EditorView';
+export * from './FontManagerModal';
+export * from './FloatingToolbar';
+export * from './CanvasRulers';
+export * from './MultiSizeFilmstrip';
+export * from './AssetUploaderModal';

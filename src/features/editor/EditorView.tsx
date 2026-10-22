@@ -2,6 +2,8 @@ import * as React from 'react';
 import {
   Download,
   HardDrive,
+  Type,
+  Upload,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
@@ -13,12 +15,17 @@ import {
   HistoryState,
   CanvasLayerType,
   JerseyMockupConfig,
+  CustomFontItem,
+  GarmentSizeItem,
 } from './editorTypes';
 import { CanvasWorkspace } from './CanvasWorkspace';
 import { CanvasDimensionBar } from './CanvasDimensionBar';
 import { LayersAndToolsPanel } from './LayersAndToolsPanel';
 import { PropertiesPanel } from './PropertiesPanel';
 import { ExportModal } from './ExportModal';
+import { FontManagerModal } from './FontManagerModal';
+import { AssetUploaderModal, LocalAsset } from './AssetUploaderModal';
+import { MultiSizeFilmstrip } from './MultiSizeFilmstrip';
 import { getDimensionsInInches } from './exportEngine';
 
 const INITIAL_MOCKUP: JerseyMockupConfig = {
@@ -27,32 +34,36 @@ const INITIAL_MOCKUP: JerseyMockupConfig = {
   trimColor: '#FFFFFF',    // White
   accentColor: '#134074',  // Subtle secondary navy
   showSeams: true,
-  showGuides: false,
+  showGuides: true,
 };
 
 const INITIAL_ELEMENTS: EditorElement[] = [
   // BACK VIEW ELEMENTS
   {
     id: 'elem-name',
-    name: 'Player Name',
+    name: 'Player Name (Curved Arc)',
     type: 'dynamic_name',
     view: 'back',
     text: 'RODRIGUEZ',
     bindingKey: 'player_name',
     fontFamily: 'Impact',
-    fontSize: 52,
+    fontSize: 50,
     fontWeight: 'bold',
     fillColor: '#FFFFFF',
     strokeColor: '#000000',
     strokeWidth: 3,
     strokeEnabled: true,
+    strokeJoin: 'round',
+    curvedTextEnabled: true,
+    curvePower: 35,
+    curveDirection: 'up',
     letterSpacing: 2,
     textAlign: 'center',
     textTransform: 'uppercase',
     x: 4,
-    y: 7.5,
+    y: 7.2,
     width: 12,
-    height: 2.2,
+    height: 2.8,
     rotation: 0,
     opacity: 1,
     locked: false,
@@ -73,11 +84,18 @@ const INITIAL_ELEMENTS: EditorElement[] = [
     strokeColor: '#000000',
     strokeWidth: 5,
     strokeEnabled: true,
+    strokeJoin: 'miter',
+    shadowEnabled: true,
+    shadowColor: '#000000',
+    shadowBlur: 10,
+    shadowOffsetX: 4,
+    shadowOffsetY: 6,
+    shadowOpacity: 0.5,
     letterSpacing: 0,
     textAlign: 'center',
     textTransform: 'uppercase',
     x: 5,
-    y: 10.5,
+    y: 11,
     width: 10,
     height: 7.5,
     rotation: 0,
@@ -160,6 +178,61 @@ const INITIAL_ELEMENTS: EditorElement[] = [
     visible: true,
     zIndex: 25,
   },
+
+  // HALF SLEEVE (HS) ELEMENTS
+  {
+    id: 'elem-hs-badge',
+    name: 'Tournament Sleeve Badge',
+    type: 'shape',
+    shapeType: 'circle',
+    view: 'half_sleeve',
+    text: '',
+    fontFamily: 'Inter',
+    fontSize: 14,
+    fontWeight: 'normal',
+    fillColor: '#FFC72C',
+    strokeColor: '#FFFFFF',
+    strokeWidth: 2,
+    strokeEnabled: true,
+    textAlign: 'center',
+    x: 8.5,
+    y: 11,
+    width: 3,
+    height: 3,
+    rotation: 0,
+    opacity: 1,
+    locked: false,
+    visible: true,
+    zIndex: 10,
+  },
+
+  // FULL SLEEVE (FS) ELEMENTS
+  {
+    id: 'elem-fs-text',
+    name: 'Sleeve Stripe Text',
+    type: 'text',
+    view: 'full_sleeve',
+    text: 'ATHLETICS',
+    fontFamily: 'Impact',
+    fontSize: 22,
+    fontWeight: 'bold',
+    fillColor: '#FFFFFF',
+    strokeEnabled: true,
+    strokeColor: '#000000',
+    strokeWidth: 2,
+    letterSpacing: 4,
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    x: 7,
+    y: 13,
+    width: 6,
+    height: 2,
+    rotation: 90,
+    opacity: 1,
+    locked: false,
+    visible: true,
+    zIndex: 10,
+  },
 ];
 
 export const EditorView: React.FC = () => {
@@ -173,21 +246,25 @@ export const EditorView: React.FC = () => {
       unit: 'in',
       dpi: 300,
     },
-    activeView: 'back', // default to back view where names and numbers live
+    activeView: 'back', // default to back view
     mockup: INITIAL_MOCKUP,
     elements: INITIAL_ELEMENTS,
   });
 
-  // Active Selection
-  const [activeElementId, setActiveElementId] = React.useState<string | null>('elem-num');
+  const [activeElementId, setActiveElementId] = React.useState<string | null>('elem-name');
+  const [zoom, setZoom] = React.useState(0.65);
+  const [rulerUnit, setRulerUnit] = React.useState<'in' | 'cm'>('in');
+  const [currentSizeId, setCurrentSizeId] = React.useState('adult-l');
 
-  // Zoom & Viewport state
-  const [zoom, setZoom] = React.useState<number>(0.65);
-
-  // Export Modal state
+  // Modal Dialog States
   const [isExportModalOpen, setIsExportModalOpen] = React.useState(false);
+  const [isFontManagerOpen, setIsFontManagerOpen] = React.useState(false);
+  const [isAssetUploaderOpen, setIsAssetUploaderOpen] = React.useState(false);
 
-  // Undo / Redo History Stack
+  // Custom User Fonts in Memory
+  const [customFonts, setCustomFonts] = React.useState<CustomFontItem[]>([]);
+
+  // History Stack for local undo/redo
   const [history, setHistory] = React.useState<HistoryState[]>([
     {
       elements: INITIAL_ELEMENTS,
@@ -196,31 +273,30 @@ export const EditorView: React.FC = () => {
       activeView: 'back',
     },
   ]);
-  const [historyIndex, setHistoryIndex] = React.useState<number>(0);
+  const [historyIndex, setHistoryIndex] = React.useState(0);
 
-  // Commit state to history stack
-  const commitHistory = React.useCallback(() => {
+  // Record history snapshot
+  const commitHistory = () => {
     setHistory((prev) => {
-      const sliced = prev.slice(0, historyIndex + 1);
-      return [
-        ...sliced,
-        {
-          elements: JSON.parse(JSON.stringify(design.elements)),
-          mockup: { ...design.mockup },
-          dimensions: { ...design.dimensions },
-          activeView: design.activeView,
-        },
-      ];
+      const upToCurrent = prev.slice(0, historyIndex + 1);
+      const nextState: HistoryState = {
+        elements: JSON.parse(JSON.stringify(design.elements)),
+        mockup: { ...design.mockup },
+        dimensions: { ...design.dimensions },
+        activeView: design.activeView,
+      };
+      const newHistory = [...upToCurrent, nextState];
+      if (newHistory.length > 30) newHistory.shift();
+      return newHistory;
     });
-    setHistoryIndex((prev) => prev + 1);
-  }, [design, historyIndex]);
+    setHistoryIndex((prev) => Math.min(prev + 1, 29));
+  };
 
-  // Undo action
-  const handleUndo = React.useCallback(() => {
+  // Undo Handler
+  const handleUndo = () => {
     if (historyIndex > 0) {
-      const nextIndex = historyIndex - 1;
-      const targetState = history[nextIndex];
-      setHistoryIndex(nextIndex);
+      const prevIndex = historyIndex - 1;
+      const targetState = history[prevIndex];
       setDesign((prev) => ({
         ...prev,
         elements: JSON.parse(JSON.stringify(targetState.elements)),
@@ -228,15 +304,15 @@ export const EditorView: React.FC = () => {
         dimensions: { ...targetState.dimensions },
         activeView: targetState.activeView,
       }));
+      setHistoryIndex(prevIndex);
     }
-  }, [history, historyIndex]);
+  };
 
-  // Redo action
-  const handleRedo = React.useCallback(() => {
+  // Redo Handler
+  const handleRedo = () => {
     if (historyIndex < history.length - 1) {
       const nextIndex = historyIndex + 1;
       const targetState = history[nextIndex];
-      setHistoryIndex(nextIndex);
       setDesign((prev) => ({
         ...prev,
         elements: JSON.parse(JSON.stringify(targetState.elements)),
@@ -244,39 +320,29 @@ export const EditorView: React.FC = () => {
         dimensions: { ...targetState.dimensions },
         activeView: targetState.activeView,
       }));
+      setHistoryIndex(nextIndex);
     }
-  }, [history, historyIndex]);
+  };
 
-  // Keyboard shortcuts for Undo/Redo
-  React.useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
-        if (e.shiftKey) {
-          handleRedo();
-        } else {
-          handleUndo();
-        }
-      } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'y') {
-        handleRedo();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleUndo, handleRedo]);
-
-  // Dimensions change
+  // Handle Dimension Change
   const handleDimensionsChange = (newDimensions: CanvasDimensions) => {
-    setDesign((prev) => ({ ...prev, dimensions: newDimensions }));
+    setDesign((prev) => ({
+      ...prev,
+      dimensions: newDimensions,
+    }));
     commitHistory();
   };
 
-  // Garment view change
+  // Handle View Change (Back, Front, Half Sleeve, Full Sleeve)
   const handleViewChange = (newView: GarmentView) => {
-    setDesign((prev) => ({ ...prev, activeView: newView }));
+    setDesign((prev) => ({
+      ...prev,
+      activeView: newView,
+    }));
     setActiveElementId(null);
   };
 
-  // Element updates
+  // Update Element Properties
   const handleUpdateElement = (id: string, updates: Partial<EditorElement>) => {
     setDesign((prev) => ({
       ...prev,
@@ -284,33 +350,78 @@ export const EditorView: React.FC = () => {
     }));
   };
 
-  // Add Element
+  // Add Element to Active View
   const handleAddElement = (type: CanvasLayerType, defaultPreset?: Partial<EditorElement>) => {
-    const newId = `elem-${Date.now()}`;
+    const newId = `elem-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
     const maxZ = design.elements.reduce((max, el) => Math.max(max, el.zIndex), 0);
+
     const newElement: EditorElement = {
       id: newId,
-      name: defaultPreset?.name || (type === 'shape' ? 'Shape Element' : 'Text Layer'),
+      name: defaultPreset?.name || (type === 'shape' ? 'Shape Element' : 'Text Element'),
       type,
       view: design.activeView,
-      text: defaultPreset?.text || 'CUSTOM TEXT',
+      text: defaultPreset?.text || (type === 'dynamic_number' ? '10' : 'TEAM'),
       bindingKey: defaultPreset?.bindingKey,
-      fontFamily: defaultPreset?.fontFamily || 'Inter',
-      fontSize: defaultPreset?.fontSize || 36,
+      fontFamily: defaultPreset?.fontFamily || 'Impact',
+      fontSize: defaultPreset?.fontSize || (type === 'dynamic_number' ? 120 : 36),
       fontWeight: defaultPreset?.fontWeight || 'bold',
       fillColor: defaultPreset?.fillColor || '#FFFFFF',
       strokeColor: defaultPreset?.strokeColor || '#000000',
       strokeWidth: defaultPreset?.strokeWidth || 2,
       strokeEnabled: defaultPreset?.strokeEnabled ?? false,
-      letterSpacing: defaultPreset?.letterSpacing || 0,
+      strokeJoin: defaultPreset?.strokeJoin || 'round',
+      curvedTextEnabled: defaultPreset?.curvedTextEnabled ?? false,
+      curvePower: defaultPreset?.curvePower ?? 50,
+      curveDirection: defaultPreset?.curveDirection ?? 'up',
       textAlign: defaultPreset?.textAlign || 'center',
-      textTransform: defaultPreset?.textTransform || 'none',
+      textTransform: defaultPreset?.textTransform || 'uppercase',
       shapeType: defaultPreset?.shapeType || 'rectangle',
-      x: defaultPreset?.x || 5,
-      y: defaultPreset?.y || 8,
-      width: defaultPreset?.width || 10,
-      height: defaultPreset?.height || 3,
-      rotation: defaultPreset?.rotation || 0,
+      x: defaultPreset?.x ?? 5,
+      y: defaultPreset?.y ?? 8,
+      width: defaultPreset?.width ?? 10,
+      height: defaultPreset?.height ?? 3,
+      rotation: 0,
+      opacity: 1,
+      locked: false,
+      visible: true,
+      zIndex: maxZ + 10,
+    };
+
+    setDesign((prev) => ({
+      ...prev,
+      elements: [...prev.elements, newElement],
+    }));
+    setActiveElementId(newId);
+    commitHistory();
+  };
+
+  // Add Ingested Image / Logo Element
+  const handleAddImageAsset = (
+    asset: LocalAsset,
+    targetDimensions: { width: number; height: number; x: number; y: number }
+  ) => {
+    const newId = `elem-img-${Date.now()}`;
+    const maxZ = design.elements.reduce((max, el) => Math.max(max, el.zIndex), 0);
+
+    const newElement: EditorElement = {
+      id: newId,
+      name: asset.name,
+      type: 'image',
+      view: design.activeView,
+      imageSrc: asset.dataUrl,
+      imageFileName: asset.fileName,
+      imageMimeType: asset.format,
+      text: '',
+      fontFamily: 'Inter',
+      fontSize: 14,
+      fontWeight: 'normal',
+      fillColor: '#FFFFFF',
+      textAlign: 'center',
+      x: targetDimensions.x,
+      y: targetDimensions.y,
+      width: targetDimensions.width,
+      height: targetDimensions.height,
+      rotation: 0,
       opacity: 1,
       locked: false,
       visible: true,
@@ -342,8 +453,9 @@ export const EditorView: React.FC = () => {
     const target = design.elements.find((el) => el.id === id);
     if (!target) return;
 
-    const copyId = `elem-${Date.now()}`;
+    const copyId = `elem-copy-${Date.now()}`;
     const maxZ = design.elements.reduce((max, el) => Math.max(max, el.zIndex), 0);
+
     const duplicate: EditorElement = {
       ...JSON.parse(JSON.stringify(target)),
       id: copyId,
@@ -397,6 +509,73 @@ export const EditorView: React.FC = () => {
     commitHistory();
   };
 
+  // Auto-Fit font size to bounding box
+  const handleAutoFitText = (id: string) => {
+    const el = design.elements.find((item) => item.id === id);
+    if (!el || el.type === 'shape' || el.type === 'image') return;
+
+    const targetWidthPx = el.width * 40;
+    const targetHeightPx = el.height * 40;
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const testFontSize = 100;
+    ctx.font = `${el.fontWeight || 'bold'} ${testFontSize}px "${el.fontFamily}", sans-serif`;
+    const metrics = ctx.measureText(el.text || 'SAMPLE');
+    const measuredW = metrics.width || 100;
+    const measuredH =
+      (metrics.actualBoundingBoxAscent || 75) + (metrics.actualBoundingBoxDescent || 25);
+
+    const scaleW = (targetWidthPx * 0.92) / measuredW;
+    const scaleH = (targetHeightPx * 0.90) / measuredH;
+    const fitScale = Math.min(scaleW, scaleH);
+
+    const optimalFontSizePx = testFontSize * fitScale;
+    const optimalFontSizePt = Math.max(12, Math.round((optimalFontSizePx * 72) / 40));
+
+    handleUpdateElement(id, { fontSize: optimalFontSizePt });
+    commitHistory();
+  };
+
+  // Multi-Size Selection: Proportional Garment Scaling
+  const handleSelectSize = (size: GarmentSizeItem) => {
+    const prevW = design.dimensions.width;
+    const prevH = design.dimensions.height;
+    const ratioW = size.widthInches / prevW;
+    const ratioH = size.heightInches / prevH;
+
+    // Proportionally scale positions and dimensions of all artwork elements
+    const scaledElements = design.elements.map((el) => ({
+      ...el,
+      x: Number((el.x * ratioW).toFixed(2)),
+      y: Number((el.y * ratioH).toFixed(2)),
+      width: Number((el.width * ratioW).toFixed(2)),
+      height: Number((el.height * ratioH).toFixed(2)),
+      fontSize: Math.round(el.fontSize * Math.min(ratioW, ratioH)),
+    }));
+
+    setDesign((prev) => ({
+      ...prev,
+      dimensions: {
+        ...prev.dimensions,
+        width: size.widthInches,
+        height: size.heightInches,
+        unit: 'in',
+      },
+      elements: scaledElements,
+    }));
+    setCurrentSizeId(size.id);
+    commitHistory();
+  };
+
+  // Bulk Apply to All confirmation
+  const handleApplyToAll = () => {
+    // In a multi-size workflow, this locks layout proportions across all size tiers
+    commitHistory();
+  };
+
   // Update Mockup Configuration
   const handleUpdateMockupConfig = (updates: Partial<JerseyMockupConfig>) => {
     setDesign((prev) => ({
@@ -412,6 +591,11 @@ export const EditorView: React.FC = () => {
   };
 
   const activeElement = design.elements.find((el) => el.id === activeElementId) || null;
+  const isSelectedText =
+    activeElement &&
+    (activeElement.type === 'text' ||
+      activeElement.type === 'dynamic_name' ||
+      activeElement.type === 'dynamic_number');
 
   return (
     <div className="flex flex-col h-full w-full overflow-hidden bg-bg-app">
@@ -430,6 +614,29 @@ export const EditorView: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Quick Font Manager Trigger */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsFontManagerOpen(true)}
+            leftIcon={<Type className="w-3.5 h-3.5 text-primary" />}
+            className="text-xs font-semibold"
+          >
+            Fonts
+          </Button>
+
+          {/* Quick Asset Ingest Trigger */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsAssetUploaderOpen(true)}
+            leftIcon={<Upload className="w-3.5 h-3.5 text-primary" />}
+            className="text-xs font-semibold"
+          >
+            Logos & Crests
+          </Button>
+
+          {/* Export Artwork */}
           <Button
             variant="primary"
             size="sm"
@@ -445,7 +652,7 @@ export const EditorView: React.FC = () => {
           MAIN 3-PANEL EDITOR WORKSPACE
           ==================================================================== */}
       <div className="flex flex-1 overflow-hidden">
-        {/* PANEL 1 (LEFT): Add Tools, Layers, Mockup Styling */}
+        {/* PANEL 1 (LEFT): Add Tools, Layers, Mockup Styling, Sponsor Uploader */}
         <LayersAndToolsPanel
           activeView={design.activeView}
           elements={design.elements}
@@ -458,10 +665,12 @@ export const EditorView: React.FC = () => {
           onReorderElement={handleReorderElement}
           mockupConfig={design.mockup}
           onUpdateMockupConfig={handleUpdateMockupConfig}
+          onOpenAssetUploader={() => setIsAssetUploaderOpen(true)}
         />
 
-        {/* PANEL 2 (CENTER): Canvas Dimension Bar + Interactive Canvas */}
+        {/* PANEL 2 (CENTER): Canvas Dimension Bar + Rulers + Interactive Canvas + Bottom Filmstrip */}
         <div className="flex-1 flex flex-col overflow-hidden relative">
+          {/* Top Bar with 4 Views & Auto-Fit Text */}
           <CanvasDimensionBar
             dimensions={design.dimensions}
             onDimensionsChange={handleDimensionsChange}
@@ -471,8 +680,11 @@ export const EditorView: React.FC = () => {
             canRedo={historyIndex < history.length - 1}
             onUndo={handleUndo}
             onRedo={handleRedo}
+            onAutoFitSelectedText={() => activeElementId && handleAutoFitText(activeElementId)}
+            hasSelectedText={!!isSelectedText}
           />
 
+          {/* Canvas Viewport with Top & Left Physical Rulers and Floating Toolbar */}
           <div className="flex-1 relative overflow-hidden">
             <CanvasWorkspace
               design={design}
@@ -480,14 +692,29 @@ export const EditorView: React.FC = () => {
               onSelectElement={setActiveElementId}
               onUpdateElement={handleUpdateElement}
               onCommitHistory={commitHistory}
+              onDeleteElement={handleDeleteElement}
+              onDuplicateElement={handleDuplicateElement}
+              onAlignElement={handleAlignElement}
               zoom={zoom}
               onZoomChange={setZoom}
               onFitToScreen={handleFitToScreen}
+              rulerUnit={rulerUnit}
+              onRulerUnitChange={setRulerUnit}
             />
           </div>
+
+          {/* Bottom Multi-Size Garment Filmstrip (Youth 1-2 Yr to 11-12 Yr, Adult XS to 6XL) */}
+          <MultiSizeFilmstrip
+            currentSizeId={currentSizeId}
+            onSelectSize={handleSelectSize}
+            onApplyToAll={handleApplyToAll}
+            mockupConfig={design.mockup}
+            activeView={design.activeView}
+            elementCount={design.elements.length}
+          />
         </div>
 
-        {/* PANEL 3 (RIGHT): Typography & Element Properties Inspector */}
+        {/* PANEL 3 (RIGHT): Advanced Text Effects & Properties Inspector */}
         <PropertiesPanel
           design={design}
           activeElement={activeElement}
@@ -496,10 +723,39 @@ export const EditorView: React.FC = () => {
           onDeleteElement={handleDeleteElement}
           onDuplicateElement={handleDuplicateElement}
           onAlignElement={handleAlignElement}
+          onOpenFontManager={() => setIsFontManagerOpen(true)}
+          onAutoFitText={handleAutoFitText}
         />
       </div>
 
-      {/* High-Resolution Local Export Modal */}
+      {/* ====================================================================
+          MODALS & OVERLAYS
+          ==================================================================== */}
+      {/* 1. Font Manager Modal (Sports Fonts, System Fonts, Upload Fonts) */}
+      <FontManagerModal
+        isOpen={isFontManagerOpen}
+        onClose={() => setIsFontManagerOpen(false)}
+        currentFontFamily={activeElement?.fontFamily || 'Impact'}
+        onSelectFont={(fontFamily) => {
+          if (activeElementId) {
+            handleUpdateElement(activeElementId, { fontFamily });
+            commitHistory();
+          }
+        }}
+        customFonts={customFonts}
+        onAddCustomFont={(newFont) => setCustomFonts((prev) => [newFont, ...prev])}
+        onRemoveCustomFont={(id) => setCustomFonts((prev) => prev.filter((f) => f.id !== id))}
+      />
+
+      {/* 2. Sponsor Logos & Crests Local Uploader Modal */}
+      <AssetUploaderModal
+        isOpen={isAssetUploaderOpen}
+        onClose={() => setIsAssetUploaderOpen(false)}
+        activeView={design.activeView}
+        onAddImageAsset={handleAddImageAsset}
+      />
+
+      {/* 3. High-Resolution Sublimation Print Export Modal */}
       <ExportModal
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}

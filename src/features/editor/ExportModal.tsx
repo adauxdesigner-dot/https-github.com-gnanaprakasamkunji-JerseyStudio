@@ -219,6 +219,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({
               options={[
                 { value: 'back', label: 'Back View (Names & Numbers)' },
                 { value: 'front', label: 'Front View (Crest & Sponsor)' },
+                { value: 'half_sleeve', label: 'Half Sleeve (HS - Tournament Badge)' },
+                { value: 'full_sleeve', label: 'Full Sleeve (FS - Long Sleeve Panel)' },
               ]}
             />
           </div>
