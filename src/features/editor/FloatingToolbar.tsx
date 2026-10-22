@@ -93,7 +93,7 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
             setShowAlignMenu(false);
           }}
           className="flex items-center gap-1 px-1.5 py-1 rounded hover:bg-surface-subtle transition-colors"
-          title="Quick Color"
+          title="Ink / Vinyl Color"
         >
           <div
             className="w-4 h-4 rounded-full border border-border shadow-xs"
@@ -213,16 +213,16 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
         )}
       </div>
 
-      {/* Auto-Fit Button (for Text) */}
+      {/* Fit to Boundary Button (for Text) */}
       {isTextElement && onAutoFitText && (
         <button
           type="button"
           onClick={() => onAutoFitText(element.id)}
-          className="px-2 py-1 rounded bg-primary-subtle text-primary hover:bg-primary hover:text-white font-semibold text-[11px] transition-colors flex items-center gap-1"
-          title="Auto-Fit font size to bounding box"
+          className="px-2 py-1 rounded bg-primary-subtle text-primary hover:bg-primary hover:text-white font-bold text-[11px] transition-colors flex items-center gap-1"
+          title="Fit to Boundary: Scale typography to fit safely inside boundary"
         >
           <Maximize className="w-3 h-3" />
-          Auto-Fit
+          Fit
         </button>
       )}
 
@@ -236,7 +236,7 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
             ? 'bg-warning-subtle text-warning hover:bg-warning hover:text-white'
             : 'text-text-secondary hover:bg-surface-subtle hover:text-text-primary'
         )}
-        title={element.locked ? 'Unlock Element' : 'Lock Element'}
+        title={element.locked ? 'Unlock Layer' : 'Lock Layer'}
       >
         {element.locked ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
       </button>
@@ -246,7 +246,7 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
         type="button"
         onClick={() => onDuplicateElement(element.id)}
         className="p-1.5 rounded text-text-secondary hover:bg-surface-subtle hover:text-text-primary transition-colors"
-        title="Duplicate Element (Ctrl+D)"
+        title="Duplicate Layer (⌘D / Ctrl+D)"
       >
         <Copy className="w-3.5 h-3.5" />
       </button>
@@ -256,7 +256,7 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
         type="button"
         onClick={() => onDeleteElement(element.id)}
         className="p-1.5 rounded text-text-secondary hover:bg-danger-subtle hover:text-danger transition-colors"
-        title="Delete Element (Backspace)"
+        title="Delete Layer (Delete / Backspace)"
       >
         <Trash2 className="w-3.5 h-3.5" />
       </button>

@@ -199,28 +199,28 @@ export const MultiSizeFilmstrip: React.FC<MultiSizeFilmstripProps> = ({
         <ChevronRight className="w-4 h-4" />
       </button>
 
-      {/* Bulk Apply to All Button */}
+      {/* Bulk Sync All Sizes Button */}
       <div className="flex flex-col items-center justify-center pl-3 border-l border-border shrink-0">
         <Button
           size="sm"
           variant="primary"
           onClick={handleApplyToAllClick}
-          className="gap-1.5 text-xs font-bold shadow-xs whitespace-nowrap"
-          title="Propagate current layout, artwork, and typography proportionally to all sizes"
+          className="gap-1.5 text-xs font-bold shadow-xs whitespace-nowrap bg-emerald-600 hover:bg-emerald-700 text-white"
+          title="Scale and synchronize current artwork and typography proportionally across all garment grades"
         >
           <CopyCheck className="w-3.5 h-3.5" />
-          Apply to All
+          Sync All Sizes
         </Button>
         <span className="text-[10px] text-text-muted mt-1 font-mono">
           Sync {elementCount} elements
         </span>
       </div>
 
-      {/* Apply to All Toast confirmation */}
+      {/* Sync All Toast confirmation */}
       {showAppliedToast && (
-        <div className="absolute top-2 right-6 bg-primary text-white text-xs px-3 py-1.5 rounded-md shadow-lg flex items-center gap-1.5 animate-in fade-in slide-in-from-bottom-2">
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Synchronized artwork across all {GARMENT_SIZE_PRESETS.length} garment sizes!</span>
+        <div className="absolute top-2 right-6 bg-emerald-600 text-white text-xs px-3.5 py-2 rounded-lg shadow-xl flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2">
+          <Sparkles className="w-4 h-4 text-emerald-200" />
+          <span className="font-semibold">Artwork scaled and synchronized across all {GARMENT_SIZE_PRESETS.length} garment size grades!</span>
         </div>
       )}
     </div>

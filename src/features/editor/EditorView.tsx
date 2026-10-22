@@ -606,9 +606,9 @@ export const EditorView: React.FC = () => {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <span className="font-bold text-sm text-text-primary">{design.name}</span>
-            <Badge variant="success" size="sm" className="flex items-center gap-1 font-mono">
+            <Badge variant="success" size="sm" className="flex items-center gap-1 font-mono text-[10px]">
               <HardDrive className="w-3 h-3" />
-              100% Offline
+              Encrypted on Device (100% Offline)
             </Badge>
           </div>
         </div>
@@ -621,6 +621,7 @@ export const EditorView: React.FC = () => {
             onClick={() => setIsFontManagerOpen(true)}
             leftIcon={<Type className="w-3.5 h-3.5 text-primary" />}
             className="text-xs font-semibold"
+            title="Sports & System Font Studio"
           >
             Fonts
           </Button>
@@ -632,18 +633,21 @@ export const EditorView: React.FC = () => {
             onClick={() => setIsAssetUploaderOpen(true)}
             leftIcon={<Upload className="w-3.5 h-3.5 text-primary" />}
             className="text-xs font-semibold"
+            title="Upload Sponsor Logos & Club Crests"
           >
             Logos & Crests
           </Button>
 
-          {/* Export Artwork */}
+          {/* Export Production Files */}
           <Button
             variant="primary"
             size="sm"
             onClick={() => setIsExportModalOpen(true)}
             leftIcon={<Download className="w-4 h-4" />}
+            className="font-bold"
+            title="Export print-ready 300 DPI dye-sublimation files"
           >
-            Export Artwork
+            Export Production Files (300 DPI)
           </Button>
         </div>
       </div>

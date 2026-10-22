@@ -212,7 +212,7 @@ export const AssetUploaderModal: React.FC<AssetUploaderModalProps> = ({
     <Dialog
       isOpen={isOpen}
       onClose={onClose}
-      title="Sponsor Logos & Crest Uploader"
+      title="Sponsor Logos & Club Crests"
       description="Ingest sponsor logos, team crests, and sleeve patches locally. PNG, SVG, and JPG are supported."
       size="xl"
     >
@@ -272,10 +272,10 @@ export const AssetUploaderModal: React.FC<AssetUploaderModalProps> = ({
             </div>
             <div>
               <div className="text-xs font-bold text-text-primary group-hover:text-primary">
-                {isProcessing ? 'Processing local images...' : 'Click to browse or drop Sponsor Logos & Crests'}
+                {isProcessing ? 'Processing local images...' : 'Drag sponsor or team logos here, or click to browse'}
               </div>
-              <div className="text-[11px] text-text-muted">
-                Accepts PNG (transparent), SVG (vector), and JPG • Processed 100% locally
+              <div className="text-[11px] text-text-muted mt-0.5">
+                Supports PNG (transparent), SVG (vector), and JPG (Max 10MB) • Kept 100% private on this computer
               </div>
             </div>
           </div>

@@ -334,7 +334,7 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
               </div>
             </div>
 
-            {/* Font Size & Auto-Fit */}
+            {/* Font Size & Fit to Boundary */}
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
@@ -346,9 +346,9 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
                       type="button"
                       onClick={() => onAutoFitText(activeElement.id)}
                       className="text-[10px] text-primary hover:underline font-bold"
-                      title="Scale font size to fit bounding box perfectly"
+                      title="Automatically scale lettering to fit safely within printable boundary"
                     >
-                      Auto-Fit
+                      Fit to Boundary
                     </button>
                   )}
                 </div>
@@ -559,12 +559,12 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
         )}
 
         {/* ====================================================================
-            EFFECT 2: TEXT STROKE & CORNER JOINS (Feature 1)
+            EFFECT 2: ATHLETIC OUTLINE STROKE & CORNER JOINS
             ==================================================================== */}
         <div className="space-y-2.5">
           <div className="flex items-center justify-between">
             <label className="text-[11px] font-bold text-text-primary uppercase tracking-wider">
-              Outline / Stroke
+              Athletic Outline Stroke
             </label>
             <Switch
               checked={activeElement.strokeEnabled ?? false}

@@ -161,7 +161,7 @@ export const CanvasDimensionBar: React.FC<CanvasDimensionBarProps> = ({
             className="w-8 h-8 p-0"
             disabled={!canUndo}
             onClick={onUndo}
-            title="Undo (Ctrl+Z)"
+            title="Undo (⌘Z / Ctrl+Z)"
           >
             <Undo2 className="w-4 h-4" />
           </Button>
@@ -171,13 +171,13 @@ export const CanvasDimensionBar: React.FC<CanvasDimensionBarProps> = ({
             className="w-8 h-8 p-0"
             disabled={!canRedo}
             onClick={onRedo}
-            title="Redo (Ctrl+Shift+Z)"
+            title="Redo (⇧⌘Z / Ctrl+Y)"
           >
             <Redo2 className="w-4 h-4" />
           </Button>
         </div>
 
-        {/* Top "Auto-Fit" text scaling button (Feature 4) */}
+        {/* Top "Fit to Boundary" text scaling button */}
         {hasSelectedText && onAutoFitSelectedText && (
           <>
             <div className="w-[1px] h-4 bg-border" />
@@ -186,10 +186,10 @@ export const CanvasDimensionBar: React.FC<CanvasDimensionBarProps> = ({
               variant="outline"
               onClick={onAutoFitSelectedText}
               className="h-8 px-2.5 text-xs gap-1.5 font-bold border-primary/40 text-primary hover:bg-primary-subtle"
-              title="Automatically scale text font size to fit element bounding box"
+              title="Automatically scale lettering to fit safely inside the printable boundary"
             >
               <Maximize className="w-3.5 h-3.5" />
-              Auto-Fit Text
+              Fit to Boundary
             </Button>
           </>
         )}

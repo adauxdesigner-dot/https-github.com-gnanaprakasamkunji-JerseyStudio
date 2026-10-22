@@ -124,20 +124,24 @@ export const ExportModal: React.FC<ExportModalProps> = ({
     <Dialog
       isOpen={isOpen}
       onClose={onClose}
-      title="Export Jersey Artwork"
-      description="Generate local high-resolution print files for dye sublimation and client review."
+      title="Export Production Print Files"
+      description="Generate local 300 DPI print files for dye sublimation heat press transfer and client review."
       size="lg"
     >
       <div className="p-4 space-y-6">
         {/* ====================================================================
-            LOCAL PROCESSING NOTICE
+            LOCAL PROCESSING & STORAGE NOTICE
             ==================================================================== */}
-        <div className="flex items-center gap-2 p-3 bg-primary-subtle/50 border border-primary/20 rounded-md text-xs text-text-primary">
+        <div className="flex items-center gap-2.5 p-3 bg-surface-subtle border border-border rounded-md text-xs text-text-primary">
           <HardDrive className="w-4 h-4 text-primary shrink-0" />
-          <span>
-            <strong>100% Local Processing:</strong> Files are rendered on your device's GPU/CPU.
-            No artwork is uploaded or transmitted over the network.
-          </span>
+          <div className="flex flex-col">
+            <span className="font-bold text-text-primary">
+              100% Local Storage & Offline Rendering
+            </span>
+            <span className="text-text-secondary text-[11px] mt-0.5">
+              Saved locally to your computer at <code className="font-mono font-semibold text-text-primary">~/Documents/JerseyStudio/Exports/</code> (Zero cloud transmission).
+            </span>
+          </div>
         </div>
 
         {/* ====================================================================
@@ -162,8 +166,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({
               )}
             >
               <FileImage className={cn('w-6 h-6 mb-1.5', format === 'png' ? 'text-primary' : 'text-text-secondary')} />
-              <div className="text-xs font-bold text-text-primary">PNG Image</div>
-              <div className="text-[10px] text-text-muted">Transparent or solid print film</div>
+              <div className="text-xs font-bold text-text-primary">PNG (Transparent)</div>
+              <div className="text-[10px] text-text-muted mt-0.5">Dye-sublimation heat press transfer</div>
             </button>
 
             <button
@@ -180,8 +184,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({
               )}
             >
               <FileImage className={cn('w-6 h-6 mb-1.5', format === 'jpg' ? 'text-primary' : 'text-text-secondary')} />
-              <div className="text-xs font-bold text-text-primary">JPG Image</div>
-              <div className="text-[10px] text-text-muted">Configurable fill & compression</div>
+              <div className="text-xs font-bold text-text-primary">JPG (Solid Proof)</div>
+              <div className="text-[10px] text-text-muted mt-0.5">Client digital mockup sign-off</div>
             </button>
 
             <button
@@ -198,8 +202,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({
               )}
             >
               <FileText className={cn('w-6 h-6 mb-1.5', format === 'pdf' ? 'text-primary' : 'text-text-secondary')} />
-              <div className="text-xs font-bold text-text-primary">Print PDF (PDF 1.4)</div>
-              <div className="text-[10px] text-text-muted">Embedded exact physical sizing</div>
+              <div className="text-xs font-bold text-text-primary">Print PDF (Vector)</div>
+              <div className="text-[10px] text-text-muted mt-0.5">1:1 true-scale production sheet</div>
             </button>
           </div>
         </div>
@@ -415,10 +419,10 @@ export const ExportModal: React.FC<ExportModalProps> = ({
             }
           >
             {isExporting
-              ? 'Generating Offline Prints...'
+              ? 'Generating 300 DPI Prints Locally...'
               : isBatchMode
-              ? `Batch Export (${SAMPLE_BATCH_ROSTER.length} Jerseys)`
-              : `Export ${format.toUpperCase()} (${dpi} DPI)`}
+              ? `Batch Export (${SAMPLE_BATCH_ROSTER.length} Jerseys - 300 DPI)`
+              : `Download ${format.toUpperCase()} (${dpi} DPI Production File)`}
           </Button>
         </div>
       </div>

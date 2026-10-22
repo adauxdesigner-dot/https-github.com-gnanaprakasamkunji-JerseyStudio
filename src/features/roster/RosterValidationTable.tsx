@@ -299,10 +299,10 @@ export const RosterValidationTable: React.FC<RosterValidationTableProps> = ({
             <thead>
               <tr className="border-b border-border text-text-secondary bg-surface-subtle uppercase tracking-wider text-[11px]">
                 <th className="py-2.5 px-3 font-semibold w-12 text-center">#</th>
-                <th className="py-2.5 px-3 font-semibold w-24">Status</th>
+                <th className="py-2.5 px-3 font-semibold w-28">Print Status</th>
                 <th className="py-2.5 px-3 font-semibold">Player Name</th>
                 <th className="py-2.5 px-3 font-semibold w-28">Jersey #</th>
-                <th className="py-2.5 px-3 font-semibold w-24">Size</th>
+                <th className="py-2.5 px-3 font-semibold w-28">Garment Size</th>
                 <th className="py-2.5 px-3 font-semibold">Validation Notes</th>
                 <th className="py-2.5 px-3 font-semibold w-16 text-right">Actions</th>
               </tr>
@@ -341,18 +341,18 @@ export const RosterValidationTable: React.FC<RosterValidationTableProps> = ({
                       {/* Status Badge */}
                       <td className="py-2.5 px-3">
                         {row.status === 'valid' && (
-                          <Badge variant="success" size="sm" className="gap-1">
-                            <CheckCircle2 className="w-3 h-3" /> Valid
+                          <Badge variant="success" size="sm" className="gap-1 whitespace-nowrap">
+                            <CheckCircle2 className="w-3 h-3" /> Ready for Print
                           </Badge>
                         )}
                         {row.status === 'warning' && (
-                          <Badge variant="warning" size="sm" className="gap-1">
-                            <AlertTriangle className="w-3 h-3" /> Warning
+                          <Badge variant="warning" size="sm" className="gap-1 whitespace-nowrap">
+                            <AlertTriangle className="w-3 h-3" /> Exceeds Margin
                           </Badge>
                         )}
                         {row.status === 'error' && (
-                          <Badge variant="danger" size="sm" className="gap-1">
-                            <AlertCircle className="w-3 h-3" /> Error
+                          <Badge variant="danger" size="sm" className="gap-1 whitespace-nowrap">
+                            <AlertCircle className="w-3 h-3" /> Action Needed
                           </Badge>
                         )}
                       </td>

@@ -280,7 +280,7 @@ export const FontManagerModal: React.FC<FontManagerModalProps> = ({
     <Dialog
       isOpen={isOpen}
       onClose={onClose}
-      title="Jersey Font Manager"
+      title="Typography Studio & Font Manager"
       description="Select athletic typography, scan locally installed system fonts, or load your team's custom TTF/OTF files."
       size="xl"
     >
@@ -344,7 +344,7 @@ export const FontManagerModal: React.FC<FontManagerModalProps> = ({
             <div className="relative flex-1 max-w-xs">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
               <Input
-                placeholder="Search font by name..."
+                placeholder="Search athletic & system fonts..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 h-8 text-xs"
