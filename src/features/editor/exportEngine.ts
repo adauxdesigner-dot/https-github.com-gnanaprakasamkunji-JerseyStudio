@@ -338,50 +338,48 @@ export function buildPdfFromJpegBlob(
   // Encode PDF header and objects
   const encoder = new TextEncoder();
   const chunks: Uint8Array[] = [];
+  let currentOffset = 0;
 
   const addStr = (str: string) => {
-    chunks.push(encoder.encode(str));
+    const bytes = encoder.encode(str);
+    chunks.push(bytes);
+    currentOffset += bytes.length;
   };
 
-  const header = `%PDF-1.4\n%âãÏÓ\n`;
+  const header = `%PDF-1.4\n%\xe2\xe3\xcf\xd3\n`;
   addStr(header);
 
   const offsets: number[] = [];
-  let currentOffset = header.length;
 
   // Obj 1: Catalog
   offsets.push(currentOffset);
   const obj1 = `1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n`;
   addStr(obj1);
-  currentOffset += obj1.length;
 
   // Obj 2: Pages
   offsets.push(currentOffset);
   const obj2 = `2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n`;
   addStr(obj2);
-  currentOffset += obj2.length;
 
   // Obj 3: Page
   offsets.push(currentOffset);
   const obj3 = `3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${ptWidth} ${ptHeight}] /Contents 4 0 R /Resources << /XObject << /Im1 5 0 R >> >> >>\nendobj\n`;
   addStr(obj3);
-  currentOffset += obj3.length;
 
   // Obj 4: Content Stream (scale and draw image)
   offsets.push(currentOffset);
   const contentStream = `q\n${ptWidth} 0 0 ${ptHeight} 0 0 cm\n/Im1 Do\nQ\n`;
   const obj4 = `4 0 obj\n<< /Length ${contentStream.length} >>\nstream\n${contentStream}endstream\nendobj\n`;
   addStr(obj4);
-  currentOffset += obj4.length;
 
   // Obj 5: XObject Image
   offsets.push(currentOffset);
   const obj5Prefix = `5 0 obj\n<< /Type /XObject /Subtype /Image /Width ${imageWidthPx} /Height ${imageHeightPx} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpegBytes.length} >>\nstream\n`;
   addStr(obj5Prefix);
   chunks.push(jpegBytes);
+  currentOffset += jpegBytes.length;
   const obj5Suffix = `\nendstream\nendobj\n`;
   addStr(obj5Suffix);
-  currentOffset += obj5Prefix.length + jpegBytes.length + obj5Suffix.length;
 
   // Cross-reference table
   const xrefOffset = currentOffset;
@@ -477,7 +475,7 @@ export async function exportJersey(
       heightInches
     );
 
-    const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+    const pdfBlob = new Blob([pdfBytes as unknown as BlobPart], { type: 'application/pdf' });
     return {
       blob: pdfBlob,
       filename: `${baseName}_PrintReady_300DPI.pdf`,

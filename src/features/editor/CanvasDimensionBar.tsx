@@ -1,13 +1,9 @@
 import * as React from 'react';
 import {
-  Maximize,
   Sliders,
   Undo2,
   Redo2,
-  Layers,
   Shirt,
-  Sparkles,
-  ChevronDown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
@@ -17,7 +13,6 @@ import {
   CanvasResizeControl,
   CanvasDimensions,
   CANVAS_PRESETS,
-  CanvasUnit,
 } from '@/components/ui/CanvasResizeControl';
 import { GarmentView } from './editorTypes';
 

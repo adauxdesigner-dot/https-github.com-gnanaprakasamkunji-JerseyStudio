@@ -1,14 +1,7 @@
 import * as React from 'react';
 import {
   Download,
-  Save,
-  Shirt,
-  Sparkles,
-  Layers,
   HardDrive,
-  Eye,
-  Undo2,
-  Redo2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';

@@ -17,6 +17,8 @@ export const badgeVariants = cva(
           'bg-warning-subtle text-warning border border-warning/20',
         error:
           'bg-error-subtle text-error border border-error/20',
+        danger:
+          'bg-error-subtle text-error border border-error/20',
         outline:
           'bg-transparent text-text-primary border border-border',
       },

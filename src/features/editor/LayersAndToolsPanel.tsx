@@ -17,7 +17,6 @@ import {
   Plus,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/Button';
 import { Badge } from '@/components/ui/Badge';
 import { Switch } from '@/components/ui/Switch';
 import {
@@ -534,7 +533,7 @@ export const LayersAndToolsPanel: React.FC<LayersAndToolsPanelProps> = ({
               </div>
               <Switch
                 checked={mockupConfig.showSeams}
-                onChange={(checked) => onUpdateMockupConfig({ showSeams: checked })}
+                onChange={(checked: boolean) => onUpdateMockupConfig({ showSeams: checked })}
               />
             </div>
 
@@ -545,7 +544,7 @@ export const LayersAndToolsPanel: React.FC<LayersAndToolsPanelProps> = ({
               </div>
               <Switch
                 checked={mockupConfig.showGuides}
-                onChange={(checked) => onUpdateMockupConfig({ showGuides: checked })}
+                onChange={(checked: boolean) => onUpdateMockupConfig({ showGuides: checked })}
               />
             </div>
           </div>

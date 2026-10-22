@@ -177,7 +177,8 @@ export const CanvasResizeControl: React.FC<CanvasResizeControlProps> = ({
   };
 
   const handleWidthChange = (valStr: string) => {
-    const val = parseFloat(valStr) || 0;
+    const parsed = parseFloat(valStr);
+    const val = isNaN(parsed) ? 0 : Math.max(0, parsed);
     if (aspectLocked && aspectRatio > 0) {
       const newHeight = val / aspectRatio;
       setDimensions({
@@ -192,7 +193,8 @@ export const CanvasResizeControl: React.FC<CanvasResizeControlProps> = ({
   };
 
   const handleHeightChange = (valStr: string) => {
-    const val = parseFloat(valStr) || 0;
+    const parsed = parseFloat(valStr);
+    const val = isNaN(parsed) ? 0 : Math.max(0, parsed);
     if (aspectLocked && aspectRatio > 0) {
       const newWidth = val * aspectRatio;
       setDimensions({
@@ -223,6 +225,7 @@ export const CanvasResizeControl: React.FC<CanvasResizeControlProps> = ({
   };
 
   const handleApply = () => {
+    if (dimensions.width <= 0 || dimensions.height <= 0) return;
     onApplyDimensions(dimensions);
     setAppliedNotification(true);
     setTimeout(() => setAppliedNotification(false), 2000);

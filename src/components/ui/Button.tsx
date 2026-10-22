@@ -18,6 +18,8 @@ export const buttonVariants = cva(
           'text-text-primary hover:bg-surface-subtle hover:text-text-primary',
         destructive:
           'bg-error text-text-inverted hover:bg-error-hover shadow-sm',
+        danger:
+          'bg-error text-text-inverted hover:bg-error-hover shadow-sm',
         subtleDestructive:
           'bg-error-subtle text-error hover:bg-error/20 border border-error/30',
       },

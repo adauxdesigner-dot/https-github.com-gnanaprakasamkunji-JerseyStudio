@@ -4,7 +4,8 @@ import { cn } from '@/lib/utils';
 export interface SwitchProps {
   id?: string;
   checked: boolean;
-  onCheckedChange: (checked: boolean) => void;
+  onCheckedChange?: (checked: boolean) => void;
+  onChange?: (checked: boolean) => void;
   disabled?: boolean;
   label?: string;
   description?: string;
@@ -15,6 +16,7 @@ export const Switch: React.FC<SwitchProps> = ({
   id: customId,
   checked,
   onCheckedChange,
+  onChange,
   disabled = false,
   label,
   description,
@@ -22,6 +24,13 @@ export const Switch: React.FC<SwitchProps> = ({
 }) => {
   const generatedId = React.useId();
   const id = customId || generatedId;
+
+  const handleToggle = () => {
+    if (disabled) return;
+    const nextChecked = !checked;
+    onCheckedChange?.(nextChecked);
+    onChange?.(nextChecked);
+  };
 
   return (
     <div className={cn('flex items-start justify-between gap-3', className)}>
@@ -52,7 +61,7 @@ export const Switch: React.FC<SwitchProps> = ({
         role="switch"
         aria-checked={checked}
         disabled={disabled}
-        onClick={() => !disabled && onCheckedChange(!checked)}
+        onClick={handleToggle}
         className={cn(
           'relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out',
           'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',

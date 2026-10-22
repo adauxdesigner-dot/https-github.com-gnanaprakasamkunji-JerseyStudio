@@ -283,6 +283,19 @@ export class BatchProcessor {
     this.options = options;
   }
 
+  public get generating(): boolean {
+    return this.isGenerating;
+  }
+
+  public dispose(): void {
+    for (const item of this.results.values()) {
+      if (item.dataUrl) {
+        URL.revokeObjectURL(item.dataUrl);
+      }
+    }
+    this.results.clear();
+  }
+
   public getResults(): BatchItemResult[] {
     return Array.from(this.results.values());
   }

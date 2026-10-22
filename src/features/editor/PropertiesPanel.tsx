@@ -4,16 +4,8 @@ import {
   AlignCenter,
   AlignRight,
   AlignJustify,
-  Maximize,
-  Sliders,
-  Type,
-  Palette,
-  Sparkles,
-  Lock,
-  Unlock,
   Trash2,
   Copy,
-  Layers,
   ArrowUp,
   ArrowDown,
   CheckCircle2,
@@ -482,7 +474,7 @@ export const PropertiesPanel: React.FC<PropertiesPanelProps> = ({
             </label>
             <Switch
               checked={activeElement.strokeEnabled ?? false}
-              onChange={(checked) => {
+              onChange={(checked: boolean) => {
                 onUpdateElement(activeElement.id, { strokeEnabled: checked });
                 onCommitHistory();
               }}

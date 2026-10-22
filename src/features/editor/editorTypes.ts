@@ -1,4 +1,4 @@
-import { CanvasDimensions, CanvasUnit } from '@/components/ui/CanvasResizeControl';
+import { CanvasDimensions } from '@/components/ui/CanvasResizeControl';
 
 export type GarmentView = 'front' | 'back';
 

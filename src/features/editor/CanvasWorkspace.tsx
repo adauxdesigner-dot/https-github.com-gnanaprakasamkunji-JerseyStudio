@@ -6,20 +6,14 @@ import {
   RotateCw,
   Hand,
   MousePointer,
-  Lock,
-  Eye,
-  EyeOff,
   Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { Tooltip } from '@/components/ui/Tooltip';
-import { Badge } from '@/components/ui/Badge';
 import {
   JerseyDesign,
   EditorElement,
-  GarmentView,
-  JerseyMockupConfig,
 } from './editorTypes';
 import { JerseyMockup } from './jerseyMockups';
 import { getDimensionsInInches } from './exportEngine';

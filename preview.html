@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JerseyStudio — Founder Visual Review</title>
+  <!-- Tailwind CSS CDN for instant zero-setup visual preview -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --bg-app: #F5F6F8;
+      --surface: #FFFFFF;
+      --surface-subtle: #F0F2F5;
+      --text-primary: #171A21;
+      --text-secondary: #5D6675;
+      --border: #DCE1E8;
+      --primary: #3157D5;
+      --primary-hover: #2547B8;
+      --success: #16845B;
+      --warning: #A86612;
+      --error: #C23838;
+    }
+    body {
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .checkerboard {
+      background-color: #f8fafc;
+      background-image: linear-gradient(45deg, #e2e8f0 25%, transparent 25%),
+                        linear-gradient(-45deg, #e2e8f0 25%, transparent 25%),
+                        linear-gradient(45deg, transparent 75%, #e2e8f0 75%),
+                        linear-gradient(-45deg, transparent 75%, #e2e8f0 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    }
+  </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden select-none">
+
+  <!-- TOP HEADER -->
+  <header class="h-14 bg-white border-b border-[#DCE1E8] flex items-center justify-between px-5 shrink-0">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-lg bg-[#3157D5] text-white flex items-center justify-center font-bold text-base shadow-sm">
+        JS
+      </div>
+      <div>
+        <div class="font-bold text-sm tracking-tight text-[#171A21]">JerseyStudio <span class="font-normal text-xs text-gray-500">— Visual Review</span></div>
+        <div class="text-[11px] text-gray-400 font-mono">Project: Falcon FC Home Jersey 2026</div>
+      </div>
+    </div>
+
+    <!-- Center Save Status -->
+    <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-[#E8F6F0] text-[#16845B] text-xs font-medium border border-[#bbf7d0]">
+      <i data-lucide="shield-check" class="w-4 h-4"></i>
+      <span>100% Local Storage — Stays on your Mac</span>
+    </div>
+
+    <!-- Right Offline Badge & Export Button -->
+    <div class="flex items-center gap-3">
+      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        Offline Authorized (7 Days)
+      </span>
+      <button onclick="showExportModal()" class="px-4 py-1.5 rounded-md bg-[#3157D5] hover:bg-[#2547B8] text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition">
+        <i data-lucide="download" class="w-3.5 h-3.5"></i>
+        Export Production Files
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- LEFT SIDEBAR NAVIGATION -->
+    <aside class="w-60 bg-white border-r border-[#DCE1E8] flex flex-col justify-between shrink-0">
+      <div class="p-3 space-y-1">
+        <div class="px-3 py-2 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">Navigation</div>
+        
+        <button onclick="switchTab('editor')" id="tab-editor" class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition bg-[#EBF0FF] text-[#3157D5]">
+          <i data-lucide="palette" class="w-4 h-4"></i>
+          Jersey Design Editor
+        </button>
+
+        <button onclick="switchTab('roster')" id="tab-roster" class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition text-gray-600 hover:bg-gray-50">
+          <i data-lucide="users" class="w-4 h-4"></i>
+          Roster & Bulk Personalization
+        </button>
+
+        <button onclick="switchTab('dashboard')" id="tab-dashboard" class="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition text-gray-600 hover:bg-gray-50">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          Dashboard Overview
+        </button>
+      </div>
+
+      <!-- Bottom System Info -->
+      <div class="p-4 border-t border-gray-200 bg-gray-50">
+        <div class="text-[11px] font-semibold text-gray-700">Zero Cloud Data Guarantee</div>
+        <div class="text-[10px] text-gray-500 mt-0.5 leading-relaxed">
+          No designs, player rosters, or files are ever uploaded.
+        </div>
+      </div>
+    </aside>
+
+    <!-- CONTENT AREA -->
+    <main class="flex-1 flex overflow-hidden">
+
+      <!-- ================= VIEW 1: JERSEY EDITOR ================= -->
+      <div id="view-editor" class="flex-1 flex overflow-hidden">
+        
+        <!-- EDITOR LEFT PANEL: LAYERS & COLORS -->
+        <aside class="w-72 bg-white border-r border-[#DCE1E8] flex flex-col p-4 gap-4 overflow-y-auto shrink-0">
+          <div>
+            <div class="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">View & Garment</div>
+            <div class="grid grid-cols-2 gap-2 bg-gray-100 p-1 rounded-lg">
+              <button onclick="setJerseyView('back')" id="btn-view-back" class="py-1.5 px-3 rounded-md text-xs font-semibold bg-white text-[#3157D5] shadow-sm">
+                Back View
+              </button>
+              <button onclick="setJerseyView('front')" id="btn-view-front" class="py-1.5 px-3 rounded-md text-xs font-medium text-gray-600 hover:text-gray-900">
+                Front View
+              </button>
+            </div>
+          </div>
+
+          <!-- Jersey Colors -->
+          <div>
+            <div class="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">Jersey Colors</div>
+            <div class="space-y-2">
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-gray-600">Main Fabric:</span>
+                <input type="color" id="color-body" value="#1E3A8A" onchange="updateColors()" class="w-8 h-8 rounded border border-gray-300 cursor-pointer">
+              </div>
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-gray-600">Side Mesh Panels:</span>
+                <input type="color" id="color-panels" value="#FACC15" onchange="updateColors()" class="w-8 h-8 rounded border border-gray-300 cursor-pointer">
+              </div>
+              <div class="flex items-center justify-between text-xs">
+                <span class="text-gray-600">Collar & Trims:</span>
+                <input type="color" id="color-collar" value="#FFFFFF" onchange="updateColors()" class="w-8 h-8 rounded border border-gray-300 cursor-pointer">
+              </div>
+            </div>
+          </div>
+
+          <!-- Layers / Dynamic Fields -->
+          <div>
+            <div class="text-xs font-bold text-gray-900 uppercase tracking-wider mb-2">Dynamic Personalization</div>
+            <div class="space-y-2">
+              <div class="p-2.5 rounded-lg border border-blue-200 bg-blue-50/60 flex items-center justify-between">
+                <div>
+                  <div class="text-xs font-bold text-blue-900">Player Name</div>
+                  <div class="text-[10px] text-blue-700 font-mono">{player_name}</div>
+                </div>
+                <span class="text-[10px] bg-blue-200 text-blue-800 font-semibold px-2 py-0.5 rounded">Dynamic</span>
+              </div>
+
+              <div class="p-2.5 rounded-lg border border-purple-200 bg-purple-50/60 flex items-center justify-between">
+                <div>
+                  <div class="text-xs font-bold text-purple-900">Squad Number</div>
+                  <div class="text-[10px] text-purple-700 font-mono">{player_number}</div>
+                </div>
+                <span class="text-[10px] bg-purple-200 text-purple-800 font-semibold px-2 py-0.5 rounded">Dynamic</span>
+              </div>
+
+              <div class="p-2.5 rounded-lg border border-gray-200 bg-white flex items-center justify-between">
+                <div>
+                  <div class="text-xs font-medium text-gray-800">Team Header</div>
+                  <div class="text-[10px] text-gray-400">Static Team Text</div>
+                </div>
+                <span class="text-[10px] bg-gray-100 text-gray-600 font-medium px-2 py-0.5 rounded">Static</span>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- CENTER CANVAS WORKSPACE -->
+        <section class="flex-1 flex flex-col bg-[#F0F2F5] overflow-hidden relative">
+          <!-- Top Dimension Bar -->
+          <div class="h-12 bg-white border-b border-[#DCE1E8] flex items-center justify-between px-4 shrink-0">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-semibold text-gray-700">Garment Size Preset:</span>
+              <div class="flex gap-1">
+                <button onclick="setGarmentSize('YOUTH', 16, 22)" class="px-2 py-1 text-xs rounded border border-gray-200 hover:bg-gray-100">Youth</button>
+                <button onclick="setGarmentSize('S', 18, 26)" class="px-2 py-1 text-xs rounded border border-gray-200 hover:bg-gray-100">S</button>
+                <button onclick="setGarmentSize('M', 20, 28)" class="px-2 py-1 text-xs rounded border border-[#3157D5] bg-[#EBF0FF] text-[#3157D5] font-bold">M</button>
+                <button onclick="setGarmentSize('L', 22, 30)" class="px-2 py-1 text-xs rounded border border-gray-200 hover:bg-gray-100">L</button>
+                <button onclick="setGarmentSize('XL', 24, 32)" class="px-2 py-1 text-xs rounded border border-gray-200 hover:bg-gray-100">XL</button>
+                <button onclick="setGarmentSize('2XL', 26, 34)" class="px-2 py-1 text-xs rounded border border-gray-200 hover:bg-gray-100">2XL</button>
+              </div>
+            </div>
+
+            <div class="text-xs font-mono text-gray-500">
+              <span id="label-dimensions">20" × 28"</span> @ <span class="text-blue-600 font-bold">300 DPI</span> (6,000 × 8,400 px)
+            </div>
+          </div>
+
+          <!-- The Canvas Area -->
+          <div class="flex-1 flex items-center justify-center p-8 overflow-auto checkerboard">
+            <div id="jersey-container" class="relative w-[360px] h-[500px] bg-white rounded-xl shadow-2xl border border-gray-300 flex items-center justify-center transition-all duration-300">
+              
+              <!-- Vector Jersey Graphic (SVG) -->
+              <svg id="jersey-svg" class="w-[320px] h-[450px]" viewBox="0 0 400 550" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Body Silhouette -->
+                <path id="svg-body" d="M120 40 L80 120 L30 180 L60 230 L100 180 L100 500 L300 500 L300 180 L340 230 L370 180 L320 120 L280 40 Z" fill="#1E3A8A" stroke="#0F172A" stroke-width="4"/>
+                
+                <!-- Side Mesh Panels -->
+                <path id="svg-panel-left" d="M100 220 L100 500 L130 500 L120 220 Z" fill="#FACC15" opacity="0.9"/>
+                <path id="svg-panel-right" d="M300 220 L300 500 L270 500 L280 220 Z" fill="#FACC15" opacity="0.9"/>
+
+                <!-- Ribbed Collar -->
+                <path id="svg-collar" d="M140 40 Q200 80 260 40 L280 40 Q200 110 120 40 Z" fill="#FFFFFF" stroke="#0F172A" stroke-width="2"/>
+                
+                <!-- Sleeve Cuff Trims -->
+                <path id="svg-cuff-left" d="M30 180 L60 230 L65 220 L40 175 Z" fill="#FFFFFF"/>
+                <path id="svg-cuff-right" d="M370 180 L340 230 L335 220 L360 175 Z" fill="#FFFFFF"/>
+
+                <!-- Safe Print Area Dashed Box -->
+                <rect x="130" y="120" width="140" height="280" rx="8" stroke="#38BDF8" stroke-width="2" stroke-dasharray="6 6" fill="rgba(56, 189, 248, 0.05)"/>
+                <text x="200" y="140" text-anchor="middle" font-size="10" font-family="sans-serif" font-weight="bold" fill="#38BDF8">SAFE PRINT ZONE</text>
+              </svg>
+
+              <!-- Interactive Floating Elements on the Jersey -->
+              <div id="jersey-elements" class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+                
+                <!-- Team Name (Arch) -->
+                <div id="text-team" class="pointer-events-auto cursor-move font-black text-xl tracking-widest text-amber-300 drop-shadow-md mb-2">
+                  FALCON FC
+                </div>
+
+                <!-- Player Name (Draggable preview) -->
+                <div id="text-player-name" class="pointer-events-auto cursor-move font-black text-2xl uppercase tracking-wider text-white drop-shadow-md mb-1 px-3 py-1 border border-dashed border-transparent hover:border-blue-400 rounded">
+                  RODRIGUEZ
+                </div>
+
+                <!-- Squad Number (Draggable preview) -->
+                <div id="text-player-number" class="pointer-events-auto cursor-move font-black text-7xl text-white drop-shadow-lg px-4 py-1 border border-dashed border-transparent hover:border-blue-400 rounded">
+                  10
+                </div>
+
+              </div>
+
+            </div>
+          </div>
+        </section>
+
+        <!-- RIGHT PROPERTIES PANEL -->
+        <aside class="w-80 bg-white border-l border-[#DCE1E8] flex flex-col p-4 gap-4 overflow-y-auto shrink-0">
+          <div class="text-xs font-bold text-gray-900 uppercase tracking-wider">Selected Element Properties</div>
+
+          <!-- Player Name Input -->
+          <div>
+            <label class="text-xs font-semibold text-gray-700 block mb-1">Player Name Test</label>
+            <input type="text" id="prop-name" value="RODRIGUEZ" oninput="updateName(this.value)" class="w-full px-3 py-2 rounded border border-gray-300 text-sm font-semibold uppercase">
+          </div>
+
+          <!-- Jersey Number Input -->
+          <div>
+            <label class="text-xs font-semibold text-gray-700 block mb-1">Jersey Number Test</label>
+            <input type="text" id="prop-number" value="10" oninput="updateNumber(this.value)" class="w-full px-3 py-2 rounded border border-gray-300 text-sm font-black">
+          </div>
+
+          <!-- Font Family -->
+          <div>
+            <label class="text-xs font-semibold text-gray-700 block mb-1">Athletic Font Style</label>
+            <select id="prop-font" onchange="updateFont(this.value)" class="w-full px-3 py-2 rounded border border-gray-300 text-xs">
+              <option value="Impact, sans-serif">Impact (Standard Sportswear)</option>
+              <option value="'Arial Black', sans-serif">Arial Black (Bold Block)</option>
+              <option value="'Trebuchet MS', sans-serif">Trebuchet (Modern Athletic)</option>
+              <option value="Georgia, serif">College Varsity Serif</option>
+            </select>
+          </div>
+
+          <!-- Text Color -->
+          <div>
+            <label class="text-xs font-semibold text-gray-700 block mb-1">Number & Name Color</label>
+            <div class="flex items-center gap-2">
+              <input type="color" id="prop-text-color" value="#FFFFFF" onchange="updateTextColor(this.value)" class="w-9 h-9 rounded border border-gray-300 cursor-pointer">
+              <span class="text-xs text-gray-500 font-mono">Pure White (#FFFFFF)</span>
+            </div>
+          </div>
+
+          <!-- Quick Action -->
+          <div class="pt-4 border-t border-gray-200">
+            <button onclick="switchTab('roster')" class="w-full py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition">
+              <i data-lucide="users" class="w-4 h-4"></i>
+              Open Team Roster to Personalize
+            </button>
+          </div>
+        </aside>
+
+      </div>
+
+      <!-- ================= VIEW 2: ROSTER & BULK WORKFLOW ================= -->
+      <div id="view-roster" class="flex-1 hidden flex-col bg-white overflow-y-auto p-8">
+        <div class="max-w-6xl mx-auto w-full space-y-6">
+          
+          <div class="flex items-center justify-between border-b border-gray-200 pb-4">
+            <div>
+              <h1 class="text-xl font-bold text-gray-900">Bulk Team Personalization</h1>
+              <p class="text-xs text-gray-500 mt-1">Import team roster, validate player details, and generate jerseys in seconds on your Mac.</p>
+            </div>
+            
+            <button onclick="startBatchGeneration()" class="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-2 shadow transition">
+              <i data-lucide="play" class="w-4 h-4"></i>
+              Generate All Team Jerseys
+            </button>
+          </div>
+
+          <!-- Sample Roster Selector -->
+          <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 flex items-center justify-between">
+            <div>
+              <div class="text-xs font-bold text-gray-800">1-Click Test Rosters (No file needed):</div>
+              <div class="text-[11px] text-gray-500">Select a pre-loaded sport team to test right now:</div>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="loadSampleRoster('basketball')" class="px-3 py-1.5 rounded-md bg-white border border-gray-300 hover:border-blue-500 text-xs font-semibold shadow-sm">
+                🏀 10-Player Basketball
+              </button>
+              <button onclick="loadSampleRoster('soccer')" class="px-3 py-1.5 rounded-md bg-white border border-gray-300 hover:border-blue-500 text-xs font-semibold shadow-sm">
+                ⚽ 25-Player Soccer Squad
+              </button>
+              <button onclick="loadSampleRoster('stress')" class="px-3 py-1.5 rounded-md bg-white border border-gray-300 hover:border-blue-500 text-xs font-semibold shadow-sm text-purple-700">
+                ⚡ 100-Player Batch Test
+              </button>
+            </div>
+          </div>
+
+          <!-- Roster Table -->
+          <div class="border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+            <div class="bg-gray-50 px-4 py-3 border-b border-gray-200 flex items-center justify-between">
+              <div class="text-xs font-bold text-gray-700">
+                Team Roster: <span id="roster-name" class="text-blue-600">Hawks Basketball (10 Players)</span>
+              </div>
+              <div class="flex items-center gap-3">
+                <label class="flex items-center gap-2 text-xs text-gray-600 cursor-pointer">
+                  <input type="checkbox" id="toggle-duplicates" checked class="rounded text-blue-600">
+                  Allow Duplicate Jersey Numbers
+                </label>
+              </div>
+            </div>
+
+            <table class="w-full text-left text-xs">
+              <thead class="bg-gray-100 text-gray-700 font-semibold border-b border-gray-200">
+                <tr>
+                  <th class="py-2.5 px-4 w-16">#</th>
+                  <th class="py-2.5 px-4">Player Name</th>
+                  <th class="py-2.5 px-4 w-28">Jersey No</th>
+                  <th class="py-2.5 px-4 w-28">Size</th>
+                  <th class="py-2.5 px-4 w-40">Status</th>
+                  <th class="py-2.5 px-4 w-24 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody id="roster-tbody" class="divide-y divide-gray-100">
+                <!-- Rows injected dynamically via JavaScript -->
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ================= VIEW 3: DASHBOARD OVERVIEW ================= -->
+      <div id="view-dashboard" class="flex-1 hidden flex-col bg-white overflow-y-auto p-8">
+        <div class="max-w-4xl mx-auto w-full space-y-6">
+          <h1 class="text-2xl font-bold text-gray-900">Welcome to JerseyStudio</h1>
+          <p class="text-xs text-gray-500">Your local-first desktop workshop for jersey design and bulk team personalization.</p>
+          
+          <div class="grid grid-cols-2 gap-4">
+            <div onclick="switchTab('editor')" class="p-6 rounded-xl border border-gray-200 hover:border-blue-500 cursor-pointer transition shadow-sm hover:shadow-md bg-white">
+              <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center mb-3">
+                <i data-lucide="palette" class="w-5 h-5"></i>
+              </div>
+              <h2 class="text-base font-bold text-gray-900">Open Jersey Canvas</h2>
+              <p class="text-xs text-gray-500 mt-1">Design your master front and back jersey templates, arrange dynamic fields, and customize colors.</p>
+            </div>
+
+            <div onclick="switchTab('roster')" class="p-6 rounded-xl border border-gray-200 hover:border-emerald-500 cursor-pointer transition shadow-sm hover:shadow-md bg-white">
+              <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center mb-3">
+                <i data-lucide="users" class="w-5 h-5"></i>
+              </div>
+              <h2 class="text-base font-bold text-gray-900">Bulk Personalize Team</h2>
+              <p class="text-xs text-gray-500 mt-1">Drop in an Excel or CSV spreadsheet, validate player names/numbers, and batch render ready-to-print uniforms.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- EXPORT MODAL -->
+  <div id="export-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-gray-200 p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+        <h3 class="font-bold text-base text-gray-900">Export Production Files</h3>
+        <button onclick="closeExportModal()" class="text-gray-400 hover:text-gray-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="text-xs font-semibold text-gray-700 block mb-1">Export Format</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button class="py-2 px-3 rounded-lg border border-blue-500 bg-blue-50 text-blue-700 text-xs font-bold text-center">PNG (300 DPI)</button>
+            <button class="py-2 px-3 rounded-lg border border-gray-200 hover:bg-gray-50 text-xs font-semibold text-center">JPG (Solid)</button>
+            <button class="py-2 px-3 rounded-lg border border-gray-200 hover:bg-gray-50 text-xs font-semibold text-center">PDF (Print)</button>
+          </div>
+        </div>
+
+        <div>
+          <label class="text-xs font-semibold text-gray-700 block mb-1">Destination</label>
+          <div class="px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-xs font-mono text-gray-600">
+            ~/Documents/JerseyStudio/Exports/
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-gray-100 flex gap-2">
+        <button onclick="closeExportModal()" class="flex-1 py-2 rounded-lg border border-gray-300 text-xs font-semibold hover:bg-gray-50">Cancel</button>
+        <button onclick="alert('Export complete! Files saved locally to your Mac.'); closeExportModal();" class="flex-1 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow">Start Export</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGIC SCRIPT -->
+  <script>
+    lucide.createIcons();
+
+    // Sample data
+    const rosters = {
+      basketball: [
+        { name: 'CARTER', number: '15', size: 'L' },
+        { name: 'JORDAN', number: '23', size: 'XL' },
+        { name: 'BRYANT', number: '24', size: 'L' },
+        { name: 'JAMES', number: '6', size: '2XL' },
+        { name: "O'NEAL", number: '34', size: '3XL' },
+        { name: 'CURRY', number: '30', size: 'M' },
+        { name: 'ALLEN', number: '20', size: 'L' },
+        { name: 'DURANT', number: '35', size: 'XL' },
+        { name: 'BARKLEY', number: '32', size: 'XL' },
+        { name: 'RODMAN', number: '91', size: 'L' },
+      ],
+      soccer: [
+        { name: 'ALISSON', number: '1', size: 'XL' },
+        { name: 'WALKER', number: '2', size: 'L' },
+        { name: 'DIAS', number: '3', size: 'XL' },
+        { name: 'VAN DIJK', number: '4', size: '2XL' },
+        { name: 'RODRIGUEZ', number: '10', size: 'M' },
+        { name: 'SALAH', number: '11', size: 'L' },
+        { name: 'MBAPPE', number: '7', size: 'M' },
+        { name: 'HAALAND', number: '9', size: 'XL' },
+      ],
+      stress: Array.from({ length: 100 }, (_, i) => ({
+        name: 'PLAYER_' + (i + 1),
+        number: String(i + 1),
+        size: ['S', 'M', 'L', 'XL', '2XL'][i % 5]
+      }))
+    };
+
+    let activeRoster = rosters.basketball;
+
+    function renderRosterTable() {
+      const tbody = document.getElementById('roster-tbody');
+      tbody.innerHTML = '';
+      activeRoster.slice(0, 20).forEach((p, idx) => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-gray-50 transition';
+        tr.innerHTML = `
+          <td class="py-2.5 px-4 font-mono text-gray-400 font-semibold">${idx + 1}</td>
+          <td class="py-2.5 px-4 font-bold text-gray-900">${p.name}</td>
+          <td class="py-2.5 px-4 font-mono font-bold text-blue-600 text-sm">${p.number}</td>
+          <td class="py-2.5 px-4 font-semibold text-gray-700">${p.size}</td>
+          <td class="py-2.5 px-4"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">Ready to Print</span></td>
+          <td class="py-2.5 px-4 text-right">
+            <button onclick="previewPlayerOnJersey('${p.name}', '${p.number}')" class="text-xs font-semibold text-blue-600 hover:underline">Preview</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function previewPlayerOnJersey(name, num) {
+      document.getElementById('prop-name').value = name;
+      document.getElementById('prop-number').value = num;
+      updateName(name);
+      updateNumber(num);
+      switchTab('editor');
+    }
+
+    function loadSampleRoster(type) {
+      activeRoster = rosters[type];
+      const title = type === 'basketball' ? 'Hawks Basketball (10 Players)' : type === 'soccer' ? 'FC Strikers Soccer (25 Players)' : '100-Player Stress Batch';
+      document.getElementById('roster-name').innerText = title;
+      renderRosterTable();
+    }
+
+    function switchTab(tab) {
+      document.getElementById('view-editor').classList.add('hidden');
+      document.getElementById('view-roster').classList.add('hidden');
+      document.getElementById('view-dashboard').classList.add('hidden');
+
+      document.getElementById('tab-editor').className = "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition text-gray-600 hover:bg-gray-50";
+      document.getElementById('tab-roster').className = "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition text-gray-600 hover:bg-gray-50";
+      document.getElementById('tab-dashboard').className = "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition text-gray-600 hover:bg-gray-50";
+
+      if (tab === 'editor') {
+        document.getElementById('view-editor').classList.remove('hidden');
+        document.getElementById('tab-editor').className = "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition bg-[#EBF0FF] text-[#3157D5]";
+      } else if (tab === 'roster') {
+        document.getElementById('view-roster').classList.remove('hidden');
+        document.getElementById('tab-roster').className = "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition bg-[#EBF0FF] text-[#3157D5]";
+        renderRosterTable();
+      } else {
+        document.getElementById('view-dashboard').classList.remove('hidden');
+        document.getElementById('tab-dashboard').className = "w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition bg-[#EBF0FF] text-[#3157D5]";
+      }
+    }
+
+    function updateName(val) {
+      document.getElementById('text-player-name').innerText = val || 'NAME';
+    }
+
+    function updateNumber(val) {
+      document.getElementById('text-player-number').innerText = val || '00';
+    }
+
+    function updateFont(val) {
+      document.getElementById('text-player-name').style.fontFamily = val;
+      document.getElementById('text-player-number').style.fontFamily = val;
+    }
+
+    function updateTextColor(val) {
+      document.getElementById('text-player-name').style.color = val;
+      document.getElementById('text-player-number').style.color = val;
+    }
+
+    function updateColors() {
+      const bodyColor = document.getElementById('color-body').value;
+      const panelsColor = document.getElementById('color-panels').value;
+      const collarColor = document.getElementById('color-collar').value;
+
+      document.getElementById('svg-body').setAttribute('fill', bodyColor);
+      document.getElementById('svg-panel-left').setAttribute('fill', panelsColor);
+      document.getElementById('svg-panel-right').setAttribute('fill', panelsColor);
+      document.getElementById('svg-collar').setAttribute('fill', collarColor);
+      document.getElementById('svg-cuff-left').setAttribute('fill', collarColor);
+      document.getElementById('svg-cuff-right').setAttribute('fill', collarColor);
+    }
+
+    function setJerseyView(view) {
+      if (view === 'front') {
+        document.getElementById('btn-view-front').className = "py-1.5 px-3 rounded-md text-xs font-semibold bg-white text-[#3157D5] shadow-sm";
+        document.getElementById('btn-view-back').className = "py-1.5 px-3 rounded-md text-xs font-medium text-gray-600 hover:text-gray-900";
+        document.getElementById('text-team').innerText = "FALCON FC";
+        document.getElementById('text-player-name').style.display = 'none';
+        document.getElementById('text-player-number').className = "pointer-events-auto cursor-move font-black text-4xl text-white drop-shadow-lg px-4 py-1";
+      } else {
+        document.getElementById('btn-view-back').className = "py-1.5 px-3 rounded-md text-xs font-semibold bg-white text-[#3157D5] shadow-sm";
+        document.getElementById('btn-view-front').className = "py-1.5 px-3 rounded-md text-xs font-medium text-gray-600 hover:text-gray-900";
+        document.getElementById('text-team').innerText = "";
+        document.getElementById('text-player-name').style.display = 'block';
+        document.getElementById('text-player-number').className = "pointer-events-auto cursor-move font-black text-7xl text-white drop-shadow-lg px-4 py-1";
+      }
+    }
+
+    function setGarmentSize(label, w, h) {
+      document.getElementById('label-dimensions').innerText = `${w}" × ${h}" (${label})`;
+    }
+
+    function showExportModal() {
+      document.getElementById('export-modal').classList.remove('hidden');
+      document.getElementById('export-modal').classList.add('flex');
+    }
+
+    function closeExportModal() {
+      document.getElementById('export-modal').classList.add('hidden');
+      document.getElementById('export-modal').classList.remove('flex');
+    }
+
+    function startBatchGeneration() {
+      alert(`Batch Generation Started!\n\nProcessing ${activeRoster.length} jerseys locally on your Mac at 300 DPI.\nFiles will be bundled into a production ZIP with manifest.csv.`);
+    }
+
+    // Initialize initial table
+    renderRosterTable();
+  </script>
+</body>
+</html>

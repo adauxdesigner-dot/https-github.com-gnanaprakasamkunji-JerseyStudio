@@ -410,7 +410,13 @@ export const RosterValidationTable: React.FC<RosterValidationTableProps> = ({
                             onClick={() => handleStartEdit(row.id, 'number', row.number)}
                             className={cn(
                               'cursor-pointer py-1 px-1.5 rounded-sm hover:bg-surface border border-transparent hover:border-border inline-flex items-center gap-1.5 font-mono font-bold',
-                              row.number ? 'text-primary' : 'text-danger italic font-normal'
+                              row.number
+                                ? numberIssue?.severity === 'warning'
+                                  ? 'text-warning'
+                                  : numberIssue?.severity === 'error'
+                                  ? 'text-danger'
+                                  : 'text-primary'
+                                : 'text-danger italic font-normal'
                             )}
                             title="Click to edit number"
                           >

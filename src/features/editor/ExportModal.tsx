@@ -3,10 +3,6 @@ import {
   Download,
   FileImage,
   FileText,
-  FileSpreadsheet,
-  CheckCircle2,
-  Sparkles,
-  AlertCircle,
   Loader2,
   HardDrive,
   Users,
@@ -15,7 +11,6 @@ import { cn } from '@/lib/utils';
 import { Dialog } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
-import { Input } from '@/components/ui/Input';
 import { Switch } from '@/components/ui/Switch';
 import { Badge } from '@/components/ui/Badge';
 import { Alert } from '@/components/ui/Alert';
@@ -115,9 +110,10 @@ export const ExportModal: React.FC<ExportModalProps> = ({
         triggerFileDownload(result.blob, result.filename);
         setSuccessMessage(`Successfully exported ${result.filename}!`);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Export failed:', err);
-      alert(`Export error: ${err.message || 'Unknown error'}`);
+      const msg = err instanceof Error ? err.message : String(err);
+      alert(`Export error: ${msg || 'Unknown error'}`);
     } finally {
       setIsExporting(false);
       setExportProgress(null);

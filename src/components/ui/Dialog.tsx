@@ -9,7 +9,8 @@ export interface DialogProps {
   description?: string;
   children: React.ReactNode;
   footer?: React.ReactNode;
-  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | 'full';
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | 'full';
 }
 
 export const Dialog: React.FC<DialogProps> = ({
@@ -20,6 +21,7 @@ export const Dialog: React.FC<DialogProps> = ({
   children,
   footer,
   maxWidth = 'md',
+  size,
 }) => {
   const dialogRef = React.useRef<HTMLDivElement>(null);
 
@@ -48,13 +50,19 @@ export const Dialog: React.FC<DialogProps> = ({
 
   if (!isOpen) return null;
 
-  const maxWidthClasses = {
+  const maxWidthClasses: Record<string, string> = {
     sm: 'max-w-sm',
     md: 'max-w-md',
     lg: 'max-w-lg',
     xl: 'max-w-xl',
     '2xl': 'max-w-2xl',
+    '3xl': 'max-w-3xl',
+    '4xl': 'max-w-4xl',
+    '5xl': 'max-w-5xl',
+    full: 'max-w-[95vw]',
   };
+
+  const resolvedWidth = size || maxWidth || 'md';
 
   return (
     <div
@@ -73,7 +81,7 @@ export const Dialog: React.FC<DialogProps> = ({
         ref={dialogRef}
         className={cn(
           'w-full bg-surface rounded-md border border-border shadow-dialog overflow-hidden flex flex-col',
-          maxWidthClasses[maxWidth]
+          maxWidthClasses[resolvedWidth] || maxWidthClasses.md
         )}
       >
         {/* Header */}

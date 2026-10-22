@@ -96,6 +96,13 @@ export const RosterWorkflowView: React.FC<RosterWorkflowViewProps> = ({
   const batchProcessorRef = React.useRef<BatchProcessor | null>(null);
   const [isExportingZip, setIsExportingZip] = React.useState(false);
 
+  // Clean up object URLs on unmount
+  React.useEffect(() => {
+    return () => {
+      batchProcessorRef.current?.dispose();
+    };
+  }, []);
+
   // File Input Drag & Drop Handlers
   const handleFileUpload = async (file: File) => {
     setIsLoadingFile(true);
@@ -146,6 +153,7 @@ export const RosterWorkflowView: React.FC<RosterWorkflowViewProps> = ({
 
   // Step 3 -> Step 4 Transition
   const handleProceedToBatch = () => {
+    batchProcessorRef.current?.dispose();
     batchProcessorRef.current = new BatchProcessor(validatedRows, renderOptions);
     setBatchResults([]);
     setBatchProgress({

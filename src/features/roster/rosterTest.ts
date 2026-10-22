@@ -106,7 +106,7 @@ LeBron James,6,2XL`;
 
       // Verify long name (>14 chars) has warning
       const longNameRow = validatedDefault.find((r) => r.name === 'ALEXANDER-RODRIGUEZ');
-      assert('Validation: flags name > 14 chars as warning', longNameRow?.issues.some((i) => i.severity === 'warning'));
+      assert('Validation: flags name > 14 chars as warning', Boolean(longNameRow?.issues.some((i) => i.severity === 'warning')));
 
       // Test duplicate-number toggle: allow duplicates
       const allowDupConfig = { ...DEFAULT_VALIDATION_CONFIG, allowDuplicateNumbers: true };
@@ -115,7 +115,7 @@ LeBron James,6,2XL`;
       // Duplicate should now be warning instead of error
       assert(
         'Validation: duplicate toggle demotes error to warning when allowed',
-        row7?.issues.some((i) => i.message.includes('allowed by team settings'))
+        Boolean(row7?.issues.some((i) => i.message.includes('allowed by team settings')))
       );
 
       // Test inline update

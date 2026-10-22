@@ -18,6 +18,7 @@ export const alertVariants = cva(
         success: 'bg-success-subtle/70 border-success/30 text-text-primary [&>svg]:text-success',
         warning: 'bg-warning-subtle/70 border-warning/30 text-text-primary [&>svg]:text-warning',
         error: 'bg-error-subtle/70 border-error/30 text-text-primary [&>svg]:text-error',
+        danger: 'bg-error-subtle/70 border-error/30 text-text-primary [&>svg]:text-error',
       },
     },
     defaultVariants: {
@@ -31,6 +32,7 @@ const iconMap = {
   success: CheckCircle2,
   warning: AlertTriangle,
   error: AlertCircle,
+  danger: AlertCircle,
 };
 
 export interface AlertProps
