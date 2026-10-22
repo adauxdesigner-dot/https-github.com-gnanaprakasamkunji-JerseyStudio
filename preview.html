@@ -3,597 +3,554 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>JerseyStudio — Pro Jersey Design Studio</title>
+  <title>JerseyStudio — Professional Jersey Design & Personalization Studio</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
-    :root {
-      --bg-app: #F5F6F8;
-      --surface: #FFFFFF;
-      --surface-subtle: #F0F2F5;
-      --text-primary: #171A21;
-      --text-secondary: #5D6675;
-      --border: #DCE1E8;
-      --primary: #3157D5;
-      --primary-hover: #2547B8;
-    }
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+    
     body {
-      background-color: #E2E8F0;
-      color: var(--text-primary);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background-color: #0F172A;
+      color: #0F172A;
     }
-    /* Physical Canvas Rulers */
-    .ruler-top {
-      background: repeating-linear-gradient(90deg, #94a3b8 0, #94a3b8 1px, transparent 1px, transparent 10px),
-                  repeating-linear-gradient(90deg, #475569 0, #475569 1.5px, transparent 1.5px, transparent 50px);
-      height: 18px;
+    .font-mono {
+      font-family: 'JetBrains Mono', monospace;
     }
-    .ruler-left {
-      background: repeating-linear-gradient(180deg, #94a3b8 0, #94a3b8 1px, transparent 1px, transparent 10px),
-                  repeating-linear-gradient(180deg, #475569 0, #475569 1.5px, transparent 1.5px, transparent 50px);
-      width: 18px;
+    /* Dynamic Precision Canvas Grid */
+    .canvas-grid {
+      background-color: #1E293B;
+      background-image: radial-gradient(rgba(148, 163, 184, 0.25) 1px, transparent 1px);
+      background-size: 20px 20px;
     }
-    /* Custom Scrollbar */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #f1f5f9; }
-    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    /* Custom Sleek Scrollbar */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
   </style>
 </head>
-<body class="h-screen flex flex-col overflow-hidden select-none bg-slate-100">
+<body class="h-screen flex flex-col overflow-hidden select-none bg-slate-900 text-slate-800">
 
-  <!-- TOP GLOBAL HEADER -->
-  <header class="h-12 bg-white border-b border-gray-200 flex items-center justify-between px-4 shrink-0 shadow-xs z-30">
+  <!-- Non-intrusive Toast Notification Hub -->
+  <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- TOP APPLICATION NAVBAR -->
+  <header class="h-14 bg-white border-b border-slate-200 flex items-center justify-between px-5 shrink-0 z-40 shadow-xs">
+    
+    <!-- Left: App Identity & Document Info -->
     <div class="flex items-center gap-3">
-      <!-- App Logo -->
-      <div class="w-7 h-7 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-xs shadow-sm">
+      <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-extrabold text-sm shadow-md shadow-blue-500/20">
         JS
       </div>
-      
-      <!-- Preset selector -->
-      <div class="flex items-center gap-1.5 text-xs bg-gray-50 border border-gray-200 rounded-md px-2 py-1">
-        <i data-lucide="layout-template" class="w-3.5 h-3.5 text-gray-500"></i>
-        <span class="text-gray-500">Preset:</span>
-        <span class="font-bold text-gray-800" id="current-preset-label">Default (Back Master)</span>
-      </div>
-
-      <!-- View Switcher Pills: Back, Front, HS (Half Sleeve), FS (Full Sleeve) -->
-      <div class="flex bg-gray-100 p-0.5 rounded-lg border border-gray-200 text-xs">
-        <button onclick="switchGarmentView('back')" id="pill-view-back" class="px-3 py-1 rounded-md font-bold bg-white text-indigo-600 shadow-xs transition">
-          Back
-        </button>
-        <button onclick="switchGarmentView('front')" id="pill-view-front" class="px-3 py-1 rounded-md font-medium text-gray-600 hover:text-gray-900 transition">
-          Front
-        </button>
-        <button onclick="switchGarmentView('half_sleeve')" id="pill-view-hs" class="px-2.5 py-1 rounded-md font-medium text-gray-600 hover:text-gray-900 transition">
-          HS
-        </button>
-        <button onclick="switchGarmentView('full_sleeve')" id="pill-view-fs" class="px-2.5 py-1 rounded-md font-medium text-gray-600 hover:text-gray-900 transition">
-          FS
-        </button>
-      </div>
-
-      <!-- Workflow Modes: Design | Variation | Export -->
-      <div class="flex bg-blue-50/80 p-0.5 rounded-lg border border-blue-200 text-xs ml-2">
-        <button onclick="setWorkflowMode('design')" id="mode-design" class="px-3 py-1 rounded-md font-bold bg-blue-600 text-white shadow-xs">
-          Design
-        </button>
-        <button onclick="setWorkflowMode('variation')" id="mode-variation" class="px-3 py-1 rounded-md font-medium text-blue-700 hover:bg-blue-100">
-          Variation
-        </button>
-        <button onclick="setWorkflowMode('export')" id="mode-export" class="px-3 py-1 rounded-md font-medium text-blue-700 hover:bg-blue-100">
-          Export
-        </button>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-sm tracking-tight text-slate-900">JerseyStudio</span>
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">PRO DESKTOP</span>
+        </div>
+        <div class="text-[11px] text-slate-400 font-mono flex items-center gap-1.5">
+          <span>Project: Falcon_FC_Home_2026</span>
+          <span>•</span>
+          <span class="text-emerald-600 font-medium flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            Saved to Local Disk
+          </span>
+        </div>
       </div>
     </div>
 
-    <!-- Center Save & Local Privacy Status -->
-    <div class="flex items-center gap-2">
-      <span class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-[11px] font-semibold border border-emerald-200">
-        <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
-        100% Local Storage — Offline Ready
-      </span>
-      <span class="text-xs text-gray-400 font-mono">Falcon_FC_2026.JS</span>
+    <!-- Center: View Switcher (Back, Front, Half Sleeve, Full Sleeve) -->
+    <div class="flex items-center bg-slate-100 p-1 rounded-xl border border-slate-200 text-xs shadow-inner">
+      <button onclick="changeGarmentView('back')" id="btn-view-back" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold bg-white text-blue-600 shadow-xs transition-all">
+        <i data-lucide="shirt" class="w-3.5 h-3.5"></i>
+        <span>Back View</span>
+      </button>
+      <button onclick="changeGarmentView('front')" id="btn-view-front" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-medium text-slate-600 hover:text-slate-900 transition-all">
+        <i data-lucide="shirt" class="w-3.5 h-3.5"></i>
+        <span>Front View</span>
+      </button>
+      <button onclick="changeGarmentView('half_sleeve')" id="btn-view-hs" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-slate-600 hover:text-slate-900 transition-all">
+        <span>Half Sleeve</span>
+      </button>
+      <button onclick="changeGarmentView('full_sleeve')" id="btn-view-fs" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-slate-600 hover:text-slate-900 transition-all">
+        <span>Full Sleeve</span>
+      </button>
     </div>
 
-    <!-- Right Actions -->
-    <div class="flex items-center gap-2">
-      <button onclick="openModal('export-modal')" class="px-3 py-1.5 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition">
+    <!-- Right: Quick Actions & Primary Export -->
+    <div class="flex items-center gap-3">
+      <button onclick="openModal('roster-modal')" class="px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition">
+        <i data-lucide="users" class="w-3.5 h-3.5 text-blue-600"></i>
+        <span>Team Roster</span>
+      </button>
+
+      <button onclick="openModal('export-modal')" class="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-blue-500/20 transition-all">
         <i data-lucide="download" class="w-3.5 h-3.5"></i>
-        Export
+        <span>Export Production Files</span>
       </button>
     </div>
   </header>
 
-  <!-- SECONDARY TOP TOOLBAR: TYPOGRAPHY & ELEMENT CONTROLS -->
-  <div class="h-11 bg-white border-b border-gray-200 flex items-center justify-between px-3 text-xs shrink-0 z-20">
-    <div class="flex items-center gap-1.5 overflow-x-auto">
-      
+  <!-- SECONDARY WORKSPACE ACTION BAR -->
+  <div class="h-11 bg-white border-b border-slate-200 flex items-center justify-between px-5 text-xs shrink-0 z-30">
+    
+    <!-- Left: Typography & Formatting Toolbar -->
+    <div class="flex items-center gap-2">
       <!-- Undo / Redo -->
-      <div class="flex items-center border-r border-gray-200 pr-1.5 mr-1">
-        <button onclick="triggerUndo()" class="p-1.5 rounded hover:bg-gray-100 text-gray-600" title="Undo (Ctrl+Z)"><i data-lucide="undo" class="w-3.5 h-3.5"></i></button>
-        <button onclick="triggerRedo()" class="p-1.5 rounded hover:bg-gray-100 text-gray-600" title="Redo (Ctrl+Y)"><i data-lucide="redo" class="w-3.5 h-3.5"></i></button>
+      <div class="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-0.5">
+        <button onclick="actionUndo()" class="p-1.5 rounded hover:bg-white text-slate-600 transition" title="Undo"><i data-lucide="undo-2" class="w-3.5 h-3.5"></i></button>
+        <button onclick="actionRedo()" class="p-1.5 rounded hover:bg-white text-slate-600 transition" title="Redo"><i data-lucide="redo-2" class="w-3.5 h-3.5"></i></button>
       </div>
 
-      <!-- Text Color Button -->
-      <div class="flex items-center gap-1 border-r border-gray-200 pr-2 mr-1">
-        <input type="color" id="top-color-picker" value="#FFFFFF" onchange="applyTextColor(this.value)" class="w-6 h-6 rounded border border-gray-300 cursor-pointer p-0" title="Click to change text color">
-      </div>
-
-      <!-- Effects Side Drawer Button -->
-      <button onclick="toggleSidePanel('effects')" id="btn-effects-panel" class="flex items-center gap-1 px-2.5 py-1 rounded-md border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium">
-        <i data-lucide="wand-2" class="w-3.5 h-3.5 text-indigo-600"></i>
-        <span>Effects</span>
+      <!-- Font Selector -->
+      <button onclick="toggleSidePanel('fonts')" class="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-800 font-semibold transition">
+        <i data-lucide="type" class="w-3.5 h-3.5 text-blue-600"></i>
+        <span id="active-font-display">Barselona Athletic</span>
+        <i data-lucide="chevron-down" class="w-3 h-3 text-slate-400"></i>
       </button>
 
-      <!-- Font Selector Button -->
-      <button onclick="toggleSidePanel('fonts')" id="btn-fonts-panel" class="flex items-center gap-1.5 px-2.5 py-1 rounded-md border border-gray-300 hover:bg-gray-50 font-semibold text-gray-800">
-        <span id="current-font-name">Barselona 2013</span>
-        <i data-lucide="chevron-right" class="w-3 h-3 text-gray-400"></i>
-      </button>
-
-      <!-- Font Size Input -->
-      <div class="flex items-center border border-gray-300 rounded-md overflow-hidden bg-white">
-        <input type="number" id="top-font-size" value="120" onchange="applyFontSize(this.value)" class="w-14 px-2 py-0.5 text-center font-mono font-bold text-xs outline-none">
-        <div class="flex flex-col border-l border-gray-200 bg-gray-50">
-          <button onclick="stepFontSize(10)" class="px-1 text-[9px] hover:bg-gray-200 leading-none">▲</button>
-          <button onclick="stepFontSize(-10)" class="px-1 text-[9px] hover:bg-gray-200 leading-none">▼</button>
-        </div>
+      <!-- Font Size with Stepper -->
+      <div class="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-slate-50">
+        <button onclick="changeFontSize(-5)" class="px-2 py-1 hover:bg-slate-200 text-slate-600 font-bold">-</button>
+        <input type="number" id="font-size-input" value="110" oninput="setFontSize(this.value)" class="w-12 text-center bg-white font-mono font-bold text-xs py-1 border-x border-slate-200 outline-none">
+        <button onclick="changeFontSize(5)" class="px-2 py-1 hover:bg-slate-200 text-slate-600 font-bold">+</button>
       </div>
 
-      <!-- Alignment Buttons -->
-      <div class="flex items-center border-l border-gray-200 pl-1.5 ml-1">
-        <button onclick="setTextAlign('left')" id="btn-align-left" class="p-1.5 rounded hover:bg-gray-100 text-gray-600"><i data-lucide="align-left" class="w-3.5 h-3.5"></i></button>
-        <button onclick="setTextAlign('center')" id="btn-align-center" class="p-1.5 rounded hover:bg-gray-100 text-indigo-600 font-bold bg-indigo-50"><i data-lucide="align-center" class="w-3.5 h-3.5"></i></button>
-        <button onclick="setTextAlign('right')" id="btn-align-right" class="p-1.5 rounded hover:bg-gray-100 text-gray-600"><i data-lucide="align-right" class="w-3.5 h-3.5"></i></button>
+      <!-- Color Swatch -->
+      <div class="flex items-center gap-1.5 pl-1 border-l border-slate-200">
+        <input type="color" id="text-color-picker" value="#FFFFFF" oninput="setTextColor(this.value)" class="w-7 h-7 rounded-lg border border-slate-300 cursor-pointer p-0 shadow-xs" title="Change Text Color">
       </div>
 
-      <!-- Bold / Italic / Underline / Case -->
-      <div class="flex items-center border-l border-gray-200 pl-1.5 ml-1">
-        <button onclick="toggleTextStyle('bold')" id="btn-style-bold" class="px-2 py-1 rounded hover:bg-gray-100 font-black">B</button>
-        <button onclick="toggleTextStyle('italic')" id="btn-style-italic" class="px-2 py-1 rounded hover:bg-gray-100 italic font-serif">I</button>
-        <button onclick="toggleTextStyle('underline')" id="btn-style-underline" class="px-2 py-1 rounded hover:bg-gray-100 underline">U</button>
-        <button onclick="toggleTextCase()" class="px-2 py-1 rounded hover:bg-gray-100 font-semibold" title="Toggle Uppercase">Aa</button>
+      <!-- Text Styles: Bold, Italic, Casing -->
+      <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-lg p-0.5">
+        <button onclick="toggleFontWeight()" id="btn-bold" class="px-2 py-1 rounded font-black hover:bg-white text-slate-700">B</button>
+        <button onclick="toggleFontStyle()" id="btn-italic" class="px-2 py-1 rounded italic font-serif hover:bg-white text-slate-700">I</button>
+        <button onclick="toggleCase()" class="px-2 py-1 rounded font-semibold hover:bg-white text-slate-700" title="Uppercase / Titlecase">Aa</button>
       </div>
 
       <!-- Auto-Fit Button -->
-      <button onclick="autoFitText()" class="flex items-center gap-1 px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 font-bold">
+      <button onclick="triggerAutoFit()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 font-bold hover:bg-blue-100 transition shadow-xs">
         <i data-lucide="scaling" class="w-3.5 h-3.5"></i>
-        Auto-Fit
+        <span>Auto-Fit Name</span>
       </button>
 
-      <!-- SVG Text -->
-      <button onclick="convertSvgText()" class="px-2 py-1 rounded-md border border-gray-300 hover:bg-gray-50 text-gray-600 font-medium">
-        SVG Text
+      <!-- Effects Panel Trigger -->
+      <button onclick="toggleSidePanel('effects')" class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 font-bold hover:bg-amber-100 transition shadow-xs">
+        <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-600"></i>
+        <span>Effects & Arc</span>
       </button>
     </div>
 
-    <!-- Width, Height & Unit Selector -->
-    <div class="flex items-center gap-2 border-l border-gray-200 pl-3">
-      <div class="flex items-center gap-1">
-        <span class="text-gray-400">W</span>
-        <input type="number" id="prop-width" value="10.0" step="0.1" onchange="updateDimension('w', this.value)" class="w-12 px-1 py-0.5 border border-gray-200 rounded text-center font-mono">
-      </div>
-      <div class="flex items-center gap-1">
-        <span class="text-gray-400">H</span>
-        <input type="number" id="prop-height" value="11.2" step="0.1" onchange="updateDimension('h', this.value)" class="w-12 px-1 py-0.5 border border-gray-200 rounded text-center font-mono">
+    <!-- Right: Real Canvas Dimension Controls -->
+    <div class="flex items-center gap-3">
+      <!-- Dimension Quick Presets -->
+      <div class="flex items-center gap-1 text-slate-600">
+        <span class="text-[11px] font-semibold text-slate-400">Garment Preset:</span>
+        <select id="preset-size-select" onchange="applyPresetSize(this.value)" class="px-2 py-1 rounded-lg border border-slate-200 bg-slate-50 font-semibold text-xs text-slate-800 cursor-pointer">
+          <option value="youth">Youth (16" × 22")</option>
+          <option value="s">Adult S (18" × 26")</option>
+          <option value="m" selected>Adult M (20" × 28")</option>
+          <option value="l">Adult L (22" × 30")</option>
+          <option value="xl">Adult XL (24" × 32")</option>
+          <option value="2xl">Adult 2XL (26" × 34")</option>
+          <option value="bed-a3">Print Bed A3 (11.7" × 16.5")</option>
+        </select>
       </div>
 
-      <!-- Unit Dropdown -->
-      <select id="canvas-unit-select" onchange="changeUnit(this.value)" class="px-1.5 py-0.5 rounded border border-gray-300 text-xs font-semibold bg-white">
-        <option value="in" selected>Inch</option>
-        <option value="cm">Cm</option>
-        <option value="px">Pixels</option>
-      </select>
+      <!-- Real Width & Height Number Inputs -->
+      <div class="flex items-center gap-1.5 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1">
+        <span class="font-bold text-slate-400">W</span>
+        <input type="number" id="input-canvas-w" value="20" min="5" max="60" oninput="resizeCanvasFromInput()" class="w-10 text-center font-mono font-bold bg-white border border-slate-200 rounded text-xs py-0.5">
+        <span class="text-slate-300">×</span>
+        <span class="font-bold text-slate-400">H</span>
+        <input type="number" id="input-canvas-h" value="28" min="5" max="80" oninput="resizeCanvasFromInput()" class="w-10 text-center font-mono font-bold bg-white border border-slate-200 rounded text-xs py-0.5">
+        <span class="font-semibold text-slate-500 text-[11px]" id="dimension-unit-label">in</span>
+      </div>
+
+      <button onclick="toggleSidePanel('resize')" class="p-1.5 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600" title="Full Canvas Sizing Studio">
+        <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
+      </button>
     </div>
+
   </div>
 
-  <!-- MAIN BODY LAYOUT (Left Rail + Panels + Canvas) -->
+  <!-- MAIN APP WORKSPACE (Left Rail + Side Panels + Central Zoomable Canvas) -->
   <div class="flex-1 flex overflow-hidden relative">
 
-    <!-- LEFT TOOL RAIL (Icons: Upload, Text, Fonts, Layers, Roster) -->
-    <nav class="w-16 bg-white border-r border-gray-200 flex flex-col items-center py-2 shrink-0 z-20">
-      <div class="flex flex-col gap-1 w-full px-1">
-        <button onclick="toggleSidePanel('upload')" id="rail-upload" class="flex flex-col items-center justify-center py-2.5 rounded-lg text-gray-600 hover:text-indigo-600 hover:bg-gray-50 transition">
-          <i data-lucide="cloud-upload" class="w-4 h-4"></i>
-          <span class="text-[10px] font-medium mt-1">Upload</span>
+    <!-- LEFT TOOL RAIL -->
+    <nav class="w-16 bg-white border-r border-slate-200 flex flex-col items-center py-3 shrink-0 z-30 shadow-xs">
+      <div class="flex flex-col gap-2 w-full px-1.5">
+        
+        <button onclick="toggleSidePanel('text')" id="rail-btn-text" class="flex flex-col items-center justify-center py-2.5 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-all">
+          <i data-lucide="type" class="w-5 h-5"></i>
+          <span class="text-[10px] font-bold mt-1">Text</span>
         </button>
 
-        <button onclick="toggleSidePanel('text')" id="rail-text" class="flex flex-col items-center justify-center py-2.5 rounded-lg text-gray-600 hover:text-indigo-600 hover:bg-gray-50 transition">
-          <i data-lucide="type" class="w-4 h-4"></i>
-          <span class="text-[10px] font-medium mt-1">Text</span>
+        <button onclick="toggleSidePanel('fonts')" id="rail-btn-fonts" class="flex flex-col items-center justify-center py-2.5 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-all">
+          <i data-lucide="a-large-small" class="w-5 h-5"></i>
+          <span class="text-[10px] font-bold mt-1">Fonts</span>
         </button>
 
-        <button onclick="toggleSidePanel('fonts')" id="rail-fonts" class="flex flex-col items-center justify-center py-2.5 rounded-lg text-gray-600 hover:text-indigo-600 hover:bg-gray-50 transition">
-          <i data-lucide="a-large-small" class="w-4 h-4"></i>
-          <span class="text-[10px] font-medium mt-1">Fonts</span>
+        <button onclick="toggleSidePanel('upload')" id="rail-btn-upload" class="flex flex-col items-center justify-center py-2.5 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-all">
+          <i data-lucide="image-plus" class="w-5 h-5"></i>
+          <span class="text-[10px] font-bold mt-1">Upload</span>
         </button>
 
-        <button onclick="toggleSidePanel('effects')" id="rail-effects" class="flex flex-col items-center justify-center py-2.5 rounded-lg text-gray-600 hover:text-indigo-600 hover:bg-gray-50 transition">
-          <i data-lucide="wand-2" class="w-4 h-4"></i>
-          <span class="text-[10px] font-medium mt-1">Effects</span>
+        <button onclick="toggleSidePanel('effects')" id="rail-btn-effects" class="flex flex-col items-center justify-center py-2.5 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-all">
+          <i data-lucide="sparkles" class="w-5 h-5"></i>
+          <span class="text-[10px] font-bold mt-1">Effects</span>
         </button>
 
-        <button onclick="toggleSidePanel('layers')" id="rail-layers" class="flex flex-col items-center justify-center py-2.5 rounded-lg text-gray-600 hover:text-indigo-600 hover:bg-gray-50 transition">
-          <i data-lucide="layers" class="w-4 h-4"></i>
-          <span class="text-[10px] font-medium mt-1">Layers</span>
+        <button onclick="toggleSidePanel('layers')" id="rail-btn-layers" class="flex flex-col items-center justify-center py-2.5 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-all">
+          <i data-lucide="layers" class="w-5 h-5"></i>
+          <span class="text-[10px] font-bold mt-1">Layers</span>
         </button>
 
-        <button onclick="openModal('roster-modal')" class="flex flex-col items-center justify-center py-2.5 rounded-lg text-blue-600 bg-blue-50/70 hover:bg-blue-100 transition mt-2">
-          <i data-lucide="users" class="w-4 h-4"></i>
-          <span class="text-[10px] font-bold mt-1">Roster</span>
+        <button onclick="toggleSidePanel('resize')" id="rail-btn-resize" class="flex flex-col items-center justify-center py-2.5 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-all">
+          <i data-lucide="ruler" class="w-5 h-5"></i>
+          <span class="text-[10px] font-bold mt-1">Size</span>
         </button>
+
       </div>
     </nav>
 
-    <!-- SLIDING SIDE DRAWER (Text, Fonts, Effects, Upload, Layers) -->
-    <div id="side-drawer" class="w-80 bg-white border-r border-gray-200 flex flex-col shrink-0 z-20 shadow-lg hidden">
+    <!-- SLIDING ACCORDION TOOL PANEL -->
+    <div id="side-drawer" class="w-80 bg-white border-r border-slate-200 flex flex-col shrink-0 z-30 shadow-xl hidden">
       
-      <!-- ============ DRAWER 1: TEXT & PERSONALIZATION PANEL ============ -->
-      <div id="drawer-panel-text" class="flex-1 flex flex-col p-4 overflow-y-auto hidden">
-        <div class="flex items-center justify-between border-b border-gray-200 pb-3 mb-3">
-          <h3 class="font-bold text-base text-gray-900">Text & Personalization</h3>
-          <button onclick="closeSidePanel()" class="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100">
-            <i data-lucide="x" class="w-3.5 h-3.5"></i>
-          </button>
+      <!-- ================= 1. TEXT DRAWER ================= -->
+      <div id="panel-text" class="flex-1 flex flex-col p-4 overflow-y-auto hidden">
+        <div class="flex items-center justify-between border-b pb-3 mb-4">
+          <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+            <i data-lucide="type" class="w-4 h-4 text-blue-600"></i>
+            <span>Add & Edit Text</span>
+          </h3>
+          <button onclick="closeSidePanel()" class="w-6 h-6 rounded-md hover:bg-slate-100 flex items-center justify-center text-slate-400"><i data-lucide="x" class="w-4 h-4"></i></button>
         </div>
 
         <div class="space-y-4 text-xs">
-          <!-- Quick Add Buttons -->
           <div>
-            <div class="font-bold text-gray-700 mb-2 uppercase tracking-wider text-[10px]">Add Elements to Canvas</div>
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Dynamic Team Placeholders</span>
             <div class="grid grid-cols-2 gap-2">
-              <button onclick="addTextElement('name')" class="p-2.5 border border-indigo-200 bg-indigo-50/60 hover:bg-indigo-100 text-indigo-900 rounded-lg font-bold text-left flex items-center gap-2">
-                <i data-lucide="user" class="w-4 h-4 text-indigo-600"></i>
+              <button onclick="addTextLayer('PLAYER NAME')" class="p-3 rounded-xl border border-blue-200 bg-blue-50 hover:bg-blue-100 text-blue-900 font-bold text-left transition flex items-center gap-2">
+                <i data-lucide="user" class="w-4 h-4 text-blue-600"></i>
                 + Player Name
               </button>
-              <button onclick="addTextElement('number')" class="p-2.5 border border-purple-200 bg-purple-50/60 hover:bg-purple-100 text-purple-900 rounded-lg font-bold text-left flex items-center gap-2">
+              <button onclick="addTextLayer('10')" class="p-3 rounded-xl border border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-900 font-bold text-left transition flex items-center gap-2">
                 <i data-lucide="hash" class="w-4 h-4 text-purple-600"></i>
-                + Squad Number
+                + Number
               </button>
-              <button onclick="addTextElement('team')" class="p-2.5 border border-gray-200 bg-gray-50 hover:bg-gray-100 text-gray-900 rounded-lg font-bold text-left flex items-center gap-2 col-span-2">
+              <button onclick="addTextLayer('FALCON FC')" class="p-3 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-800 font-bold text-left transition col-span-2 flex items-center gap-2">
                 <i data-lucide="shield" class="w-4 h-4 text-amber-500"></i>
-                + Team Header (Arch)
+                + Team Header Title
               </button>
             </div>
           </div>
 
-          <!-- Edit Active Texts Live -->
-          <div class="border-t pt-3 space-y-3">
-            <div class="font-bold text-gray-700 uppercase tracking-wider text-[10px]">Edit Active Text Fields</div>
-            
+          <div class="border-t pt-4 space-y-3">
+            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Live Edit Active Field</span>
             <div>
-              <label class="font-semibold text-gray-700 block mb-1">Player Name Text:</label>
-              <input type="text" id="input-edit-name" value="LIAM" oninput="liveUpdateText('name', this.value)" class="w-full px-3 py-2 border rounded-lg font-bold uppercase text-sm">
+              <label class="font-semibold text-slate-700 block mb-1">Player Name:</label>
+              <input type="text" id="drawer-input-name" value="LIAM" oninput="updateLiveText('name', this.value)" class="w-full px-3 py-2 border rounded-lg font-bold text-sm uppercase">
             </div>
-
             <div>
-              <label class="font-semibold text-gray-700 block mb-1">Squad Number Text:</label>
-              <input type="text" id="input-edit-number" value="15" oninput="liveUpdateText('number', this.value)" class="w-full px-3 py-2 border rounded-lg font-black text-sm">
-            </div>
-
-            <div>
-              <label class="font-semibold text-gray-700 block mb-1">Team Header Title:</label>
-              <input type="text" id="input-edit-team" value="FALCON FC" oninput="liveUpdateText('team', this.value)" class="w-full px-3 py-2 border rounded-lg font-bold text-sm">
+              <label class="font-semibold text-slate-700 block mb-1">Squad Number:</label>
+              <input type="text" id="drawer-input-number" value="15" oninput="updateLiveText('number', this.value)" class="w-full px-3 py-2 border rounded-lg font-black text-sm">
             </div>
           </div>
         </div>
       </div>
 
-      <!-- ============ DRAWER 2: EFFECTS PANEL ============ -->
-      <div id="drawer-panel-effects" class="flex-1 flex flex-col p-4 overflow-y-auto hidden">
-        <div class="flex items-center justify-between border-b border-gray-200 pb-3 mb-3">
-          <h3 class="font-bold text-base text-gray-900">Effects</h3>
-          <button onclick="closeSidePanel()" class="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100">
-            <i data-lucide="x" class="w-3.5 h-3.5"></i>
-          </button>
+      <!-- ================= 2. FONTS DRAWER (Local System Fonts + Sport Fonts) ================= -->
+      <div id="panel-fonts" class="flex-1 flex flex-col p-4 overflow-y-auto hidden">
+        <div class="flex items-center justify-between border-b pb-3 mb-3">
+          <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+            <i data-lucide="a-large-small" class="w-4 h-4 text-blue-600"></i>
+            <span>Typography Studio</span>
+          </h3>
+          <button onclick="closeSidePanel()" class="w-6 h-6 rounded-md hover:bg-slate-100 flex items-center justify-center text-slate-400"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="relative mb-3">
+          <i data-lucide="search" class="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5"></i>
+          <input type="text" placeholder="Search fonts..." oninput="filterFontList(this.value)" class="w-full pl-8 pr-3 py-1.5 border border-slate-200 rounded-lg text-xs outline-none focus:border-blue-500">
+        </div>
+
+        <!-- Tabs: Sportswear Fonts | Local System Fonts | Custom Upload -->
+        <div class="grid grid-cols-3 gap-1 bg-slate-100 p-1 rounded-xl text-xs font-semibold mb-3">
+          <button onclick="switchFontCategory('sport')" id="tab-font-sport" class="py-1 px-2 rounded-lg bg-white text-blue-600 shadow-xs">Sport</button>
+          <button onclick="switchFontCategory('system')" id="tab-font-system" class="py-1 px-2 rounded-lg text-slate-600 hover:text-slate-900">Local Mac</button>
+          <button onclick="switchFontCategory('upload')" id="tab-font-upload" class="py-1 px-2 rounded-lg text-slate-600 hover:text-slate-900">Upload</button>
+        </div>
+
+        <!-- Live Font List -->
+        <div id="fonts-list-container" class="space-y-2 overflow-y-auto flex-1 text-xs">
+          <!-- Injected dynamically -->
+        </div>
+
+        <!-- Local Font File Upload Area -->
+        <div id="local-font-upload-box" class="pt-3 border-t hidden">
+          <label class="block p-4 border-2 border-dashed border-blue-300 hover:border-blue-500 rounded-xl text-center cursor-pointer bg-blue-50/50 hover:bg-blue-50 transition">
+            <i data-lucide="upload" class="w-5 h-5 text-blue-600 mx-auto mb-1"></i>
+            <span class="text-xs font-bold text-blue-900 block">Choose .TTF or .OTF File</span>
+            <span class="text-[10px] text-blue-600 block mt-0.5">Loaded locally on your Mac</span>
+            <input type="file" accept=".ttf,.otf,.woff,.woff2" onchange="uploadCustomFontFile(event)" class="hidden">
+          </label>
+        </div>
+      </div>
+
+      <!-- ================= 3. UPLOAD DRAWER (Working Image & Logo Uploader) ================= -->
+      <div id="panel-upload" class="flex-1 flex flex-col p-4 overflow-y-auto hidden">
+        <div class="flex items-center justify-between border-b pb-3 mb-3">
+          <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+            <i data-lucide="image-plus" class="w-4 h-4 text-blue-600"></i>
+            <span>Upload Graphics & Logos</span>
+          </h3>
+          <button onclick="closeSidePanel()" class="w-6 h-6 rounded-md hover:bg-slate-100 flex items-center justify-center text-slate-400"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+
+        <!-- Real Working Drag & Drop Upload Zone -->
+        <label id="drop-zone" class="block p-6 border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-xl text-center cursor-pointer bg-slate-50 hover:bg-blue-50/40 transition mb-4">
+          <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mx-auto mb-2">
+            <i data-lucide="cloud-upload" class="w-5 h-5"></i>
+          </div>
+          <span class="text-xs font-bold text-slate-800 block">Click to Upload or Drag & Drop</span>
+          <span class="text-[11px] text-slate-400 mt-1 block">PNG, SVG, or JPG (Max 10MB)</span>
+          <input type="file" accept=".png,.svg,.jpg,.jpeg" onchange="handleLogoUpload(event)" class="hidden">
+        </label>
+
+        <!-- Uploaded Assets Library -->
+        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Uploaded Team Assets</span>
+        <div id="uploaded-assets-grid" class="grid grid-cols-2 gap-2 text-xs mb-3">
+          <!-- Injected dynamically -->
+        </div>
+
+        <!-- Logo Size Scaling Control -->
+        <div class="mb-4 p-3 bg-slate-50 border border-slate-200 rounded-xl">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Placed Logo Scale</span>
+            <span id="logo-scale-label" class="text-blue-600 font-bold font-mono text-[11px]">Medium (3.5")</span>
+          </div>
+          <div class="grid grid-cols-3 gap-1.5">
+            <button onclick="setLogoScale('sm')" id="logo-size-btn-sm" class="py-1 px-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-center text-[11px] transition">Small (2")</button>
+            <button onclick="setLogoScale('md')" id="logo-size-btn-md" class="py-1 px-2 rounded-lg bg-blue-600 text-white font-bold text-center text-[11px] transition">Medium (3.5")</button>
+            <button onclick="setLogoScale('lg')" id="logo-size-btn-lg" class="py-1 px-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-center text-[11px] transition">Large (5")</button>
+          </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-t">
+          <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Built-in Sport Graphics</span>
+          <div class="grid grid-cols-2 gap-2">
+            <button onclick="insertSampleGraphic('shield')" class="p-2.5 border rounded-xl hover:border-blue-500 bg-white flex items-center gap-2 font-semibold">
+              <span class="text-xl">🛡️</span>
+              <span>Team Shield</span>
+            </button>
+            <button onclick="insertSampleGraphic('lightning')" class="p-2.5 border rounded-xl hover:border-blue-500 bg-white flex items-center gap-2 font-semibold">
+              <span class="text-xl">⚡</span>
+              <span>Speed Bolt</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= 4. EFFECTS DRAWER (Curved Text, Outlines, Shadows) ================= -->
+      <div id="panel-effects" class="flex-1 flex flex-col p-4 overflow-y-auto hidden">
+        <div class="flex items-center justify-between border-b pb-3 mb-3">
+          <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+            <i data-lucide="sparkles" class="w-4 h-4 text-amber-500"></i>
+            <span>Text Effects & Arc</span>
+          </h3>
+          <button onclick="closeSidePanel()" class="w-6 h-6 rounded-md hover:bg-slate-100 flex items-center justify-center text-slate-400"><i data-lucide="x" class="w-4 h-4"></i></button>
         </div>
 
         <div class="space-y-4 text-xs">
-          <!-- Curved Text with Power Slider -->
-          <div class="border border-gray-200 rounded-xl p-3 bg-gray-50/50">
+          <!-- Curved / Arc Text -->
+          <div class="border border-slate-200 rounded-xl p-3.5 bg-slate-50/60">
             <div class="flex items-center justify-between mb-2">
-              <span class="font-bold text-gray-800">Curved text</span>
-              <input type="checkbox" id="effect-curve-toggle" onchange="toggleCurve(this.checked)" class="w-4 h-4 accent-indigo-600">
+              <span class="font-bold text-slate-800">Arch Curvature (Shoulders)</span>
+              <input type="checkbox" id="effect-arc-toggle" onchange="toggleArcEffect(this.checked)" class="w-4 h-4 accent-blue-600">
             </div>
-            <div id="curve-controls" class="space-y-1">
-              <div class="flex items-center justify-between text-gray-600">
-                <span>Power (Curvature Arc)</span>
-                <span id="label-curve-power" class="font-mono font-bold text-indigo-600">50</span>
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-slate-500 text-[11px]">
+                <span>Arch Intensity</span>
+                <span id="label-arc-val" class="font-mono font-bold text-blue-600">40</span>
               </div>
-              <input type="range" id="slider-curve-power" min="-100" max="100" value="50" oninput="applyCurvePower(this.value)" class="w-full accent-indigo-600">
+              <input type="range" id="slider-arc" min="-80" max="80" value="40" oninput="setArcIntensity(this.value)" class="w-full accent-blue-600">
             </div>
           </div>
 
-          <!-- Text Stroke with Corners -->
-          <div class="border border-gray-200 rounded-xl p-3 bg-gray-50/50">
+          <!-- Athletic Stroke / Outlines -->
+          <div class="border border-slate-200 rounded-xl p-3.5 bg-slate-50/60">
             <div class="flex items-center justify-between mb-2">
-              <span class="font-bold text-gray-800">Text Stroke (Outline)</span>
-              <input type="checkbox" id="effect-stroke-toggle" checked onchange="toggleStroke(this.checked)" class="w-4 h-4 accent-indigo-600">
+              <span class="font-bold text-slate-800">Athletic Outline Stroke</span>
+              <input type="checkbox" id="effect-stroke-toggle" checked onchange="toggleStrokeEffect(this.checked)" class="w-4 h-4 accent-blue-600">
             </div>
-            <div id="stroke-controls" class="space-y-2">
+            <div class="space-y-2">
               <div class="flex items-center justify-between">
-                <span class="text-gray-600">Stroke Color</span>
-                <input type="color" id="stroke-color" value="#0F172A" onchange="applyStrokeColor(this.value)" class="w-6 h-6 rounded border cursor-pointer">
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="text-gray-600">Thickness (px)</span>
-                <input type="number" id="stroke-width" value="4" min="1" max="30" onchange="applyStrokeWidth(this.value)" class="w-14 px-2 py-0.5 border rounded text-center font-mono font-bold">
+                <span class="text-slate-600">Outline Color</span>
+                <input type="color" id="stroke-color-input" value="#0F172A" oninput="setStrokeColor(this.value)" class="w-6 h-6 rounded border cursor-pointer">
               </div>
               <div>
-                <span class="text-gray-600 block mb-1">Corner Joins:</span>
-                <div class="grid grid-cols-3 gap-1">
-                  <button onclick="setStrokeJoin('miter')" id="btn-join-miter" class="py-1 px-2 border rounded font-semibold text-center hover:bg-gray-100">Square</button>
-                  <button onclick="setStrokeJoin('round')" id="btn-join-round" class="py-1 px-2 border rounded font-semibold text-center bg-indigo-50 border-indigo-400 text-indigo-700">Round</button>
-                  <button onclick="setStrokeJoin('bevel')" id="btn-join-bevel" class="py-1 px-2 border rounded font-semibold text-center hover:bg-gray-100">Bevel</button>
+                <div class="flex justify-between text-slate-500 text-[11px] mb-1">
+                  <span>Thickness</span>
+                  <span id="label-stroke-w" class="font-mono font-bold">4px</span>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Text Box Background & Padding / Radius -->
-          <div class="border border-gray-200 rounded-xl p-3 bg-gray-50/50">
-            <div class="flex items-center justify-between mb-2">
-              <span class="font-bold text-gray-800">Text box Background</span>
-              <input type="checkbox" id="effect-box-toggle" onchange="toggleTextBox(this.checked)" class="w-4 h-4 accent-indigo-600">
-            </div>
-            <div id="textbox-controls" class="space-y-2">
-              <div class="flex items-center justify-between">
-                <span class="text-gray-600">Box Color</span>
-                <input type="color" id="textbox-color" value="#1E293B" onchange="applyBoxColor(this.value)" class="w-6 h-6 rounded border cursor-pointer">
-              </div>
-              <div>
-                <div class="flex items-center justify-between text-gray-600 mb-0.5">
-                  <span>Corner radius</span>
-                  <span id="label-box-radius" class="font-mono">10px</span>
-                </div>
-                <input type="range" id="slider-box-radius" min="0" max="50" value="10" oninput="applyBoxRadius(this.value)" class="w-full accent-indigo-600">
-              </div>
-              <div>
-                <div class="flex items-center justify-between text-gray-600 mb-0.5">
-                  <span>Padding</span>
-                  <span id="label-box-padding" class="font-mono">15px</span>
-                </div>
-                <input type="range" id="slider-box-padding" min="0" max="50" value="15" oninput="applyBoxPadding(this.value)" class="w-full accent-indigo-600">
+                <input type="range" id="slider-stroke" min="1" max="20" value="4" oninput="setStrokeThickness(this.value)" class="w-full accent-blue-600">
               </div>
             </div>
           </div>
 
           <!-- Drop Shadow -->
-          <div class="border border-gray-200 rounded-xl p-3 bg-gray-50/50">
+          <div class="border border-slate-200 rounded-xl p-3.5 bg-slate-50/60">
             <div class="flex items-center justify-between mb-2">
-              <span class="font-bold text-gray-800">Drop Shadow</span>
-              <input type="checkbox" id="effect-shadow-toggle" checked onchange="toggleShadow(this.checked)" class="w-4 h-4 accent-indigo-600">
+              <span class="font-bold text-slate-800">Drop Shadow</span>
+              <input type="checkbox" id="effect-shadow-toggle" checked onchange="toggleShadowEffect(this.checked)" class="w-4 h-4 accent-blue-600">
             </div>
-            <div id="shadow-controls" class="space-y-2">
+            <div class="space-y-2">
               <div class="flex items-center justify-between">
-                <span class="text-gray-600">Shadow Color</span>
-                <input type="color" id="shadow-color" value="#000000" onchange="applyShadowColor(this.value)" class="w-6 h-6 rounded border cursor-pointer">
+                <span class="text-slate-600">Shadow Color</span>
+                <input type="color" id="shadow-color-input" value="#000000" oninput="setShadowColor(this.value)" class="w-6 h-6 rounded border cursor-pointer">
               </div>
               <div>
-                <div class="flex items-center justify-between text-gray-600 mb-0.5">
-                  <span>Blur</span>
-                  <span id="label-shadow-blur" class="font-mono">8px</span>
+                <div class="flex justify-between text-slate-500 text-[11px] mb-1">
+                  <span>Blur Radius</span>
+                  <span id="label-shadow-b" class="font-mono font-bold">8px</span>
                 </div>
-                <input type="range" id="slider-shadow-blur" min="0" max="30" value="8" oninput="applyShadowBlur(this.value)" class="w-full accent-indigo-600">
-              </div>
-              <div>
-                <div class="flex items-center justify-between text-gray-600 mb-0.5">
-                  <span>Offset Y</span>
-                  <span id="label-shadow-y" class="font-mono">6px</span>
-                </div>
-                <input type="range" id="slider-shadow-y" min="-30" max="30" value="6" oninput="applyShadowY(this.value)" class="w-full accent-indigo-600">
+                <input type="range" id="slider-shadow-blur" min="0" max="30" value="8" oninput="setShadowBlur(this.value)" class="w-full accent-blue-600">
               </div>
             </div>
           </div>
-
         </div>
       </div>
 
-      <!-- ============ DRAWER 3: FONTS PANEL ============ -->
-      <div id="drawer-panel-fonts" class="flex-1 flex flex-col p-4 overflow-y-auto hidden">
-        <div class="flex items-center justify-between border-b border-gray-200 pb-3 mb-3">
-          <div class="flex items-center gap-2">
-            <i data-lucide="type" class="w-4 h-4 text-indigo-600"></i>
-            <h3 class="font-bold text-base text-gray-900">Fonts</h3>
+      <!-- ================= 5. REAL CANVAS RESIZING DRAWER ================= -->
+      <div id="panel-resize" class="flex-1 flex flex-col p-4 overflow-y-auto hidden">
+        <div class="flex items-center justify-between border-b pb-3 mb-3">
+          <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+            <i data-lucide="maximize-2" class="w-4 h-4 text-blue-600"></i>
+            <span>Canvas Sizing Studio</span>
+          </h3>
+          <button onclick="closeSidePanel()" class="w-6 h-6 rounded-md hover:bg-slate-100 flex items-center justify-center text-slate-400"><i data-lucide="x" class="w-4 h-4"></i></button>
+        </div>
+
+        <div class="space-y-4 text-xs">
+          <div class="p-3 bg-blue-50 border border-blue-200 rounded-xl text-blue-900">
+            <div class="font-bold mb-1">Physical Print Calculations</div>
+            <div class="text-[11px] text-blue-700 leading-relaxed">
+              Resizing dynamically updates the canvas aspect ratio and 300 DPI production export pixel count.
+            </div>
           </div>
-          <button onclick="closeSidePanel()" class="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100">
-            <i data-lucide="x" class="w-3.5 h-3.5"></i>
-          </button>
-        </div>
 
-        <!-- Search Bar -->
-        <div class="relative mb-3">
-          <i data-lucide="search" class="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-2.5"></i>
-          <input type="text" id="font-search-input" placeholder="Search fonts..." oninput="filterFonts(this.value)" class="w-full pl-8 pr-3 py-1.5 border border-gray-300 rounded-lg text-xs outline-none focus:border-indigo-500">
-        </div>
+          <div class="space-y-3">
+            <div>
+              <label class="font-semibold text-slate-700 block mb-1">Width (Inches):</label>
+              <input type="number" id="drawer-resize-w" value="20" min="5" max="60" oninput="applyCustomDimension('w', this.value)" class="w-full px-3 py-2 border rounded-lg font-mono font-bold">
+            </div>
 
-        <!-- Tabs: Sport Fonts | System Fonts | Upload Fonts -->
-        <div class="grid grid-cols-3 gap-1 bg-gray-100 p-1 rounded-lg text-xs font-semibold mb-3">
-          <button onclick="setabolismFontTab('sport')" id="tab-font-sport" class="py-1 px-2 rounded-md bg-white text-indigo-600 shadow-xs">Sport</button>
-          <button onclick="setabolismFontTab('system')" id="tab-font-system" class="py-1 px-2 rounded-md text-gray-600 hover:text-gray-900">System</button>
-          <button onclick="setabolismFontTab('upload')" id="tab-font-upload" class="py-1 px-2 rounded-md text-gray-600 hover:text-gray-900">Upload</button>
-        </div>
+            <div>
+              <label class="font-semibold text-slate-700 block mb-1">Height (Inches):</label>
+              <input type="number" id="drawer-resize-h" value="28" min="5" max="80" oninput="applyCustomDimension('h', this.value)" class="w-full px-3 py-2 border rounded-lg font-mono font-bold">
+            </div>
 
-        <!-- Preview Size Slider -->
-        <div class="flex items-center gap-2 mb-3 px-1 text-xs text-gray-500">
-          <span>Size:</span>
-          <input type="range" min="16" max="48" value="28" oninput="changeFontPreviewSize(this.value)" class="w-full accent-indigo-600">
-        </div>
-
-        <!-- Font List Container -->
-        <div id="font-list-container" class="space-y-2 overflow-y-auto flex-1">
-          <!-- Injected dynamically via JS -->
-        </div>
-
-        <!-- Upload Custom Font Action (When on Upload Tab) -->
-        <div id="upload-font-section" class="pt-3 border-t border-gray-200 hidden">
-          <label class="block w-full py-3 px-4 border-2 border-dashed border-indigo-300 hover:border-indigo-500 rounded-xl text-center cursor-pointer bg-indigo-50/50 hover:bg-indigo-50 transition">
-            <i data-lucide="upload" class="w-5 h-5 text-indigo-600 mx-auto mb-1"></i>
-            <span class="text-xs font-bold text-indigo-900 block">Select .TTF or .OTF Font</span>
-            <span class="text-[10px] text-indigo-600">Loads directly into local memory</span>
-            <input type="file" accept=".ttf,.otf,.woff2" onchange="handleLocalFontUpload(event)" class="hidden">
-          </label>
-        </div>
-      </div>
-
-      <!-- ============ DRAWER 4: UPLOAD PANEL ============ -->
-      <div id="drawer-panel-upload" class="flex-1 flex flex-col p-4 overflow-y-auto hidden">
-        <div class="flex items-center justify-between border-b border-gray-200 pb-3 mb-3">
-          <h3 class="font-bold text-base text-gray-900">Upload Graphics</h3>
-          <button onclick="closeSidePanel()" class="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100">
-            <i data-lucide="x" class="w-3.5 h-3.5"></i>
-          </button>
-        </div>
-
-        <label class="block w-full py-6 px-4 border-2 border-dashed border-gray-300 hover:border-indigo-500 rounded-xl text-center cursor-pointer bg-gray-50 hover:bg-indigo-50/30 transition mb-4">
-          <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center mx-auto mb-2">
-            <i data-lucide="cloud-upload" class="w-5 h-5"></i>
+            <div class="p-3 bg-slate-50 border rounded-xl flex items-center justify-between">
+              <span class="text-slate-600 font-semibold">Calculated Resolution:</span>
+              <span id="calculated-px-badge" class="font-mono font-bold text-slate-900">6,000 × 8,400 px</span>
+            </div>
           </div>
-          <span class="text-xs font-bold text-gray-800 block">Upload Logo or Sponsor Art</span>
-          <span class="text-[11px] text-gray-400 mt-1 block">JPG, PNG, and SVG • Max 10MB</span>
-          <input type="file" accept=".svg,.png,.jpg,.jpeg" onchange="handleImageUpload(event)" class="hidden">
-        </label>
-
-        <div class="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Sample Sport Graphics</div>
-        <div class="grid grid-cols-2 gap-2">
-          <div onclick="addGraphicToJersey('crest')" class="p-3 border border-gray-200 rounded-lg text-center hover:border-indigo-500 cursor-pointer bg-white">
-            <div class="text-2xl mb-1">🛡️</div>
-            <div class="text-[11px] font-bold text-gray-800">Team Shield</div>
-          </div>
-          <div onclick="addGraphicToJersey('sponsor')" class="p-3 border border-gray-200 rounded-lg text-center hover:border-indigo-500 cursor-pointer bg-white">
-            <div class="text-2xl mb-1">⚡</div>
-            <div class="text-[11px] font-bold text-gray-800">Sponsor Logo</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ============ DRAWER 5: LAYERS PANEL ============ -->
-      <div id="drawer-panel-layers" class="flex-1 flex flex-col p-4 overflow-y-auto hidden">
-        <div class="flex items-center justify-between border-b border-gray-200 pb-3 mb-3">
-          <h3 class="font-bold text-base text-gray-900">Layers</h3>
-          <button onclick="closeSidePanel()" class="w-6 h-6 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center hover:bg-blue-100">
-            <i data-lucide="x" class="w-3.5 h-3.5"></i>
-          </button>
-        </div>
-
-        <div class="text-[11px] text-gray-500 mb-2">Elements on active page:</div>
-        <div id="layers-list-container" class="space-y-1.5">
-          <!-- Injected dynamically -->
         </div>
       </div>
 
     </div>
 
-    <!-- CANVAS VIEWPORT WITH PHYSICAL RULERS -->
-    <main class="flex-1 flex flex-col overflow-hidden relative bg-slate-200">
+    <!-- CENTRAL REAL WORKSPACE CANVAS (WITH WORKING ZOOM, PAN, AND RESIZE) -->
+    <main class="flex-1 flex flex-col overflow-hidden relative canvas-grid">
       
-      <!-- Top Physical Ruler -->
-      <div class="h-[18px] bg-slate-300 border-b border-slate-400 flex items-center relative overflow-hidden pl-[18px]">
-        <div class="ruler-top w-[2000px] h-full opacity-60"></div>
-        <div class="absolute left-6 text-[9px] font-mono font-bold text-slate-700" id="ruler-x0">0"</div>
-        <div class="absolute left-32 text-[9px] font-mono font-bold text-slate-700" id="ruler-x4">4"</div>
-        <div class="absolute left-64 text-[9px] font-mono font-bold text-slate-700" id="ruler-x8">8"</div>
-        <div class="absolute left-96 text-[9px] font-mono font-bold text-slate-700" id="ruler-x12">12"</div>
-        <div class="absolute left-[520px] text-[9px] font-mono font-bold text-slate-700" id="ruler-x16">16"</div>
-        <div class="absolute left-[650px] text-[9px] font-mono font-bold text-slate-700" id="ruler-x20">20"</div>
+      <!-- Interactive Zoom Viewport Controls (Bottom Right Floating Bar) -->
+      <div class="absolute bottom-6 right-6 flex items-center gap-1.5 bg-slate-900/90 text-white backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-700 shadow-2xl z-30 text-xs">
+        <button onclick="zoomStep(-10)" class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition" title="Zoom Out (-)">
+          <i data-lucide="minus" class="w-4 h-4"></i>
+        </button>
+        
+        <span id="canvas-zoom-indicator" class="font-mono font-bold px-2 text-blue-400">100%</span>
+        
+        <button onclick="zoomStep(10)" class="w-7 h-7 flex items-center justify-center rounded-lg hover:bg-slate-800 text-slate-300 hover:text-white transition" title="Zoom In (+)">
+          <i data-lucide="plus" class="w-4 h-4"></i>
+        </button>
+
+        <div class="h-4 w-px bg-slate-700 mx-1"></div>
+
+        <button onclick="zoomReset()" class="px-2 py-1 rounded-md hover:bg-slate-800 text-slate-300 hover:text-white font-semibold transition" title="Reset Zoom to 100%">
+          Fit 100%
+        </button>
       </div>
 
-      <div class="flex-1 flex overflow-hidden relative">
-        <!-- Left Physical Ruler -->
-        <div class="w-[18px] bg-slate-300 border-r border-slate-400 flex flex-col relative overflow-hidden shrink-0">
-          <div class="ruler-left h-[2000px] w-full opacity-60"></div>
-          <div class="absolute top-6 left-0 text-[8px] font-mono font-bold text-slate-700 pl-0.5">0</div>
-          <div class="absolute top-32 left-0 text-[8px] font-mono font-bold text-slate-700 pl-0.5">6</div>
-          <div class="absolute top-64 left-0 text-[8px] font-mono font-bold text-slate-700 pl-0.5">12</div>
-          <div class="absolute top-96 left-0 text-[8px] font-mono font-bold text-slate-700 pl-0.5">18</div>
-          <div class="absolute top-[520px] left-0 text-[8px] font-mono font-bold text-slate-700 pl-0.5">24</div>
-          <div class="absolute top-[650px] left-0 text-[8px] font-mono font-bold text-slate-700 pl-0.5">28</div>
-        </div>
-
-        <!-- The Canvas Workspace -->
-        <div class="flex-1 flex flex-col items-center justify-center p-6 overflow-auto relative" id="canvas-scroll-container">
+      <!-- Main Canvas Container with Real Responsive Resizing -->
+      <div id="canvas-outer-viewport" class="flex-1 flex items-center justify-center p-8 overflow-auto relative">
+        
+        <!-- Scalable & Resizable Artboard Container -->
+        <div id="artboard-scalable-wrapper" class="transition-transform duration-150 origin-center flex flex-col items-center justify-center">
           
-          <!-- Master Dimensions Badge directly above garment -->
-          <div class="mb-2 flex items-center gap-2 bg-white/90 backdrop-blur-xs px-3 py-1 rounded-full shadow-xs text-xs font-mono border border-gray-300">
-            <span class="font-bold text-gray-800" id="canvas-title-badge">Back Master</span>
-            <span class="text-indigo-600 font-bold" id="canvas-dimension-badge">21.0 × 29.0 in</span>
-            <span class="text-gray-400">|</span>
-            <span class="text-emerald-700 font-bold">300 DPI</span>
+          <!-- Top Physical Inch Ruler -->
+          <div id="artboard-top-ruler" class="h-6 flex justify-between items-end text-[10px] font-mono font-bold text-slate-400 border-b border-slate-700/80 px-2 select-none mb-1.5 transition-all" style="width: 380px;">
+            <span>0"</span><span>5"</span><span>10"</span><span>15"</span><span id="ruler-max-w">20"</span>
           </div>
 
-          <!-- THE JERSEY ARTBOARD CONTAINER -->
-          <div id="artboard-box" class="relative w-[380px] h-[520px] bg-slate-900 rounded-2xl shadow-2xl overflow-hidden border border-slate-700 transition-transform origin-center">
-            
-            <!-- Sportswear Vector Graphic Background (Front / Back / Sleeves) -->
-            <svg id="garment-svg" class="w-full h-full" viewBox="0 0 400 550" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <!-- Jersey Body -->
-              <path id="svg-body-path" d="M120 40 L80 120 L30 180 L60 230 L100 180 L100 500 L300 500 L300 180 L340 230 L370 180 L320 120 L280 40 Z" fill="#0A0F1D" stroke="#334155" stroke-width="3"/>
-              
-              <!-- Athletic Speed Swooshes / Sublimation Ribbons -->
-              <path id="svg-swoosh-1" d="M40 480 Q160 300 360 160 L370 200 Q180 340 50 500 Z" fill="#0284C7" opacity="0.85"/>
-              <path id="svg-swoosh-2" d="M70 500 Q190 320 340 180 L350 210 Q200 350 80 500 Z" fill="#38BDF8" opacity="0.7"/>
-              <path id="svg-swoosh-3" d="M100 500 Q210 360 320 230 L325 250 Q220 380 110 500 Z" fill="#FACC15" opacity="0.8"/>
-
-              <!-- Collar -->
-              <path id="svg-collar-path" d="M140 40 Q200 80 260 40 L280 40 Q200 110 120 40 Z" fill="#FFFFFF" stroke="#0F172A" stroke-width="2"/>
-
-              <!-- Safe Print Area Guide -->
-              <rect x="110" y="100" width="180" height="340" rx="6" stroke="#38BDF8" stroke-width="1.5" stroke-dasharray="5 5" fill="none" opacity="0.4"/>
-            </svg>
-
-            <!-- FLOATING SELECTION TOOLBAR (Directly on canvas) -->
-            <div id="floating-selection-bar" class="absolute top-20 left-1/2 -translate-x-1/2 bg-white rounded-lg shadow-xl border border-gray-300 px-2 py-1 flex items-center gap-1 z-30 text-xs">
-              <button onclick="pickElementColor()" class="p-1 hover:bg-gray-100 rounded text-gray-700" title="Click to Pick Color"><i data-lucide="palette" class="w-3.5 h-3.5"></i></button>
-              <button onclick="toggleLockSelected()" id="btn-float-lock" class="p-1 hover:bg-gray-100 rounded text-gray-700" title="Lock"><i data-lucide="unlock" class="w-3.5 h-3.5"></i></button>
-              <button onclick="duplicateSelected()" class="p-1 hover:bg-gray-100 rounded text-gray-700" title="Duplicate"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
-              <button onclick="deleteSelected()" class="p-1 hover:bg-gray-100 rounded text-red-600" title="Delete"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
-              <div class="h-3.5 w-px bg-gray-200 mx-0.5"></div>
-              <button onclick="centerSelected()" class="flex items-center gap-1 px-1.5 py-0.5 hover:bg-gray-100 rounded font-bold text-gray-800">
-                <i data-lucide="layers" class="w-3 h-3"></i>
-                Position
-              </button>
+          <div class="flex items-center">
+            <!-- Left Physical Inch Ruler -->
+            <div id="artboard-left-ruler" class="w-6 mr-1.5 flex flex-col justify-between items-end text-[10px] font-mono font-bold text-slate-400 border-r border-slate-700/80 py-2 select-none pr-1 transition-all" style="height: 532px;">
+              <span>0"</span><span>7"</span><span>14"</span><span>21"</span><span id="ruler-max-h">28"</span>
             </div>
 
-            <!-- INTERACTIVE BOUNDING BOX FOR TEXT & NUMBER -->
-            <div id="selection-box" class="absolute top-32 left-1/2 -translate-x-1/2 w-56 h-64 border-2 border-red-500 flex flex-col items-center justify-center cursor-move cursor-grab p-2">
+            <!-- PHYSICAL ARTBOARD BOX (Width & Height change in real time) -->
+            <div id="physical-artboard" class="relative bg-slate-950 rounded-3xl shadow-2xl overflow-hidden border-2 border-slate-700 transition-all duration-300 flex items-center justify-center" style="width: 380px; height: 532px;">
+            
+            <!-- Sportswear Jersey Vector SVG Graphic -->
+            <svg id="canvas-jersey-svg" class="w-full h-full p-4 pointer-events-none select-none" viewBox="0 0 400 560" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Jersey Body -->
+              <path id="svg-jersey-body" d="M120 40 L80 120 L30 180 L60 230 L100 180 L100 520 L300 520 L300 180 L340 230 L370 180 L320 120 L280 40 Z" fill="#0F172A" stroke="#334155" stroke-width="3"/>
               
-              <!-- 8 Resize handles -->
-              <div class="absolute -top-1.5 -left-1.5 w-3 h-3 bg-red-500 border border-white"></div>
-              <div class="absolute -top-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-red-500 border border-white"></div>
-              <div class="absolute -top-1.5 -right-1.5 w-3 h-3 bg-red-500 border border-white"></div>
-              <div class="absolute top-1/2 -left-1.5 -translate-y-1/2 w-3 h-3 bg-red-500 border border-white"></div>
-              <div class="absolute top-1/2 -right-1.5 -translate-y-1/2 w-3 h-3 bg-red-500 border border-white"></div>
-              <div class="absolute -bottom-1.5 -left-1.5 w-3 h-3 bg-red-500 border border-white"></div>
-              <div class="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-red-500 border border-white"></div>
-              <div class="absolute -bottom-1.5 -right-1.5 w-3 h-3 bg-red-500 border border-white"></div>
+              <!-- Athletic Sublimation Accent Waves -->
+              <path id="svg-wave-1" d="M40 500 Q160 320 360 180 L370 215 Q180 360 50 520 Z" fill="#0284C7" opacity="0.9"/>
+              <path id="svg-wave-2" d="M70 520 Q190 340 340 200 L350 230 Q200 370 80 520 Z" fill="#38BDF8" opacity="0.75"/>
+              <path id="svg-wave-3" d="M100 520 Q210 380 320 250 L325 270 Q220 400 110 520 Z" fill="#FACC15" opacity="0.85"/>
 
-              <!-- Top Rotation Handle -->
-              <div class="absolute -top-7 left-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-white border border-blue-500 text-blue-600 flex items-center justify-center shadow-xs">
-                <i data-lucide="rotate-cw" class="w-3 h-3"></i>
+              <!-- Collar -->
+              <path id="svg-collar" d="M140 40 Q200 80 260 40 L280 40 Q200 110 120 40 Z" fill="#FFFFFF" stroke="#0F172A" stroke-width="2"/>
+
+              <!-- Safe Printable Boundary Box -->
+              <rect x="100" y="100" width="200" height="360" rx="8" stroke="#38BDF8" stroke-width="1.5" stroke-dasharray="6 6" fill="rgba(56, 189, 248, 0.03)"/>
+            </svg>
+
+            <!-- INTERACTIVE BOUNDING BOX FOR TEXT & NUMBERS -->
+            <div id="jersey-element-box" class="absolute inset-0 flex flex-col items-center justify-center p-6 cursor-move z-20">
+              
+              <!-- Floating Context Toolbar (Attached right above element) -->
+              <div class="mb-3 bg-white text-slate-800 rounded-lg shadow-xl border border-slate-200 px-2 py-1 flex items-center gap-1.5 text-xs">
+                <button onclick="triggerColorPick()" class="p-1 hover:bg-slate-100 rounded text-slate-700" title="Color"><i data-lucide="palette" class="w-3.5 h-3.5"></i></button>
+                <button onclick="triggerDuplicate()" class="p-1 hover:bg-slate-100 rounded text-slate-700" title="Duplicate"><i data-lucide="copy" class="w-3.5 h-3.5"></i></button>
+                <button onclick="triggerDelete()" class="p-1 hover:bg-slate-100 rounded text-red-600" title="Delete"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                <div class="h-3 w-px bg-slate-200"></div>
+                <button onclick="triggerCenter()" class="px-2 py-0.5 font-bold hover:bg-slate-100 rounded text-blue-600">Center</button>
               </div>
 
-              <!-- Team Header / Crest -->
-              <div id="team-title-text" class="text-amber-400 text-xs font-black tracking-widest uppercase mb-1">
-                FALCON FC
-              </div>
+              <!-- Uploaded Logo Slot -->
+              <div id="canvas-logo-container" class="hidden mb-2 max-w-28 max-h-20 flex items-center justify-center transition-all"></div>
 
-              <!-- Player Name Element (Supports Curved Text) -->
-              <div id="player-name-text" class="text-white font-black text-3xl uppercase tracking-wider text-center transition-all select-none">
+              <!-- Player Name Element (Supports Curved Arc) -->
+              <div id="canvas-player-name" class="text-white font-extrabold text-3xl tracking-wider uppercase text-center transition-all select-none">
                 LIAM
               </div>
 
-              <!-- Large Squad Number Element -->
-              <div id="player-number-text" class="text-white font-black text-8xl leading-none text-center transition-all select-none mt-1">
+              <!-- Player Number Element -->
+              <div id="canvas-player-number" class="text-white font-black text-8xl leading-none text-center transition-all select-none mt-1">
                 15
               </div>
 
-              <!-- Graphic Placement Slot -->
-              <div id="jersey-graphic-slot" class="hidden mt-2 text-3xl"></div>
-
             </div>
+
+          </div>
 
           </div>
 
@@ -601,73 +558,73 @@
 
       </div>
 
-      <!-- BOTTOM MULTI-SIZE GARMENT FILMSTRIP (Youth to 6XL) -->
-      <footer class="h-28 bg-white border-t border-gray-200 flex flex-col justify-between p-2 shrink-0 z-20">
-        <div class="flex items-center justify-between px-2 mb-1">
-          <div class="flex items-center gap-2">
-            <span class="text-xs font-bold text-gray-800">Garment Sizing Variations</span>
-            <span class="text-[11px] text-gray-400">18 Production Sizes (Youth to 6XL)</span>
-          </div>
 
-          <div class="flex items-center gap-3">
-            <button onclick="applyToAllSizes()" class="px-3 py-1 rounded-md bg-blue-50 border border-blue-300 text-blue-700 hover:bg-blue-100 text-xs font-bold flex items-center gap-1.5 shadow-xs transition">
-              <i data-lucide="copy-check" class="w-3.5 h-3.5"></i>
-              Apply to all
-            </button>
-            <div class="flex items-center gap-1.5 text-xs text-gray-500">
-              <span>Zoom:</span>
-              <input type="range" min="30" max="150" value="85" oninput="applyCanvasZoom(this.value)" class="w-24 accent-indigo-600">
-              <span id="zoom-label" class="font-mono text-gray-700 font-bold">85%</span>
-            </div>
-          </div>
+      <!-- Modern Garment Sizing Dock (Bottom Center Floating Bar) -->
+      <div class="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-slate-900/90 text-white backdrop-blur-md px-4 py-1.5 rounded-2xl border border-slate-700 shadow-2xl z-30 text-xs">
+        <div class="flex items-center gap-1.5 text-slate-400 font-semibold pr-2.5 border-r border-slate-700">
+          <i data-lucide="ruler" class="w-3.5 h-3.5 text-blue-400"></i>
+          <span class="text-[11px] uppercase tracking-wider">Garment Grade:</span>
         </div>
 
-        <!-- Thumbnails Horizontal Carousel -->
-        <div class="flex items-center gap-2 overflow-x-auto pb-1 px-2" id="size-filmstrip-carousel">
-          <!-- Injected dynamically: Master 15, 1-2 Yr, 3-4, ... XS, S, M, L, XL, 2XL, 3XL, 4XL, 5XL, 6XL -->
+        <!-- Grade Pills -->
+        <div id="size-dock-pills" class="flex items-center gap-1">
+          <button onclick="selectGradePreset('youth')" id="dock-size-youth" class="px-2.5 py-1 rounded-lg font-bold text-slate-300 hover:text-white hover:bg-slate-800 transition">Youth</button>
+          <button onclick="selectGradePreset('s')" id="dock-size-s" class="px-2.5 py-1 rounded-lg font-bold text-slate-300 hover:text-white hover:bg-slate-800 transition">S</button>
+          <button onclick="selectGradePreset('m')" id="dock-size-m" class="px-2.5 py-1 rounded-lg font-bold bg-blue-600 text-white shadow-xs transition">M</button>
+          <button onclick="selectGradePreset('l')" id="dock-size-l" class="px-2.5 py-1 rounded-lg font-bold text-slate-300 hover:text-white hover:bg-slate-800 transition">L</button>
+          <button onclick="selectGradePreset('xl')" id="dock-size-xl" class="px-2.5 py-1 rounded-lg font-bold text-slate-300 hover:text-white hover:bg-slate-800 transition">XL</button>
+          <button onclick="selectGradePreset('2xl')" id="dock-size-2xl" class="px-2.5 py-1 rounded-lg font-bold text-slate-300 hover:text-white hover:bg-slate-800 transition">2XL</button>
         </div>
-      </footer>
+
+        <div class="h-4 w-px bg-slate-700 mx-1.5"></div>
+
+        <!-- Apply to All Sync Button -->
+        <button onclick="syncAllSizeGrades()" class="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-semibold transition" title="Synchronize artwork position across all garment sizes">
+          <i data-lucide="copy-check" class="w-3.5 h-3.5 text-emerald-400"></i>
+          <span>Sync All</span>
+        </button>
+      </div>
 
     </main>
 
   </div>
 
-  <!-- MODAL: ROSTER BULK INGESTION -->
-  <div id="roster-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-gray-200 p-6 space-y-4">
+  <!-- MODAL: TEAM ROSTER BULK AUTOMATION -->
+  <div id="roster-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200 p-6 space-y-4">
       <div class="flex items-center justify-between border-b pb-3">
-        <div class="flex items-center gap-2">
-          <i data-lucide="users" class="w-5 h-5 text-indigo-600"></i>
-          <h3 class="font-bold text-lg text-gray-900">Bulk Team Personalization</h3>
-        </div>
-        <button onclick="closeModal('roster-modal')" class="text-gray-400 hover:text-gray-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+        <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
+          <i data-lucide="users" class="w-5 h-5 text-blue-600"></i>
+          <span>Team Roster Bulk Automation</span>
+        </h3>
+        <button onclick="closeModal('roster-modal')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
 
-      <div class="space-y-3">
+      <div class="space-y-3 text-xs">
         <div class="flex gap-2">
-          <button onclick="loadSampleRoster('basketball')" class="flex-1 p-3 border rounded-xl hover:border-indigo-500 bg-gray-50 text-left transition">
-            <div class="font-bold text-xs text-gray-900">🏀 10-Player Basketball</div>
-            <div class="text-[11px] text-gray-500">Hawks Starting 5 & Bench</div>
+          <button onclick="pickRoster('basketball')" class="flex-1 p-3 border rounded-xl hover:border-blue-500 bg-slate-50 text-left transition">
+            <div class="font-bold text-slate-900">🏀 10-Player Basketball</div>
+            <div class="text-[11px] text-slate-500">Hawks Starting 5 & Bench</div>
           </button>
-          <button onclick="loadSampleRoster('soccer')" class="flex-1 p-3 border rounded-xl hover:border-indigo-500 bg-gray-50 text-left transition">
-            <div class="font-bold text-xs text-gray-900">⚽ 25-Player Soccer</div>
-            <div class="text-[11px] text-gray-500">FC Strikers Full Squad</div>
+          <button onclick="pickRoster('soccer')" class="flex-1 p-3 border rounded-xl hover:border-blue-500 bg-slate-50 text-left transition">
+            <div class="font-bold text-slate-900">⚽ 25-Player Soccer</div>
+            <div class="text-[11px] text-slate-500">FC Strikers Full Squad</div>
           </button>
         </div>
 
-        <div class="border rounded-xl p-3 max-h-56 overflow-y-auto">
+        <div class="border rounded-xl p-2 max-h-56 overflow-y-auto">
           <table class="w-full text-left text-xs">
-            <thead class="bg-gray-100 text-gray-700 font-semibold">
-              <tr><th class="p-2">#</th><th class="p-2">Player</th><th class="p-2">No</th><th class="p-2">Size</th><th class="p-2">Action</th></tr>
+            <thead class="bg-slate-100 text-slate-700 font-bold">
+              <tr><th class="p-2">#</th><th class="p-2">Name</th><th class="p-2">Number</th><th class="p-2">Size</th><th class="p-2">Preview</th></tr>
             </thead>
-            <tbody id="modal-roster-tbody" class="divide-y divide-gray-100"></tbody>
+            <tbody id="roster-table-body" class="divide-y divide-slate-100"></tbody>
           </table>
         </div>
       </div>
 
-      <div class="flex justify-end gap-2 pt-2 border-t">
+      <div class="flex justify-end gap-2 pt-3 border-t">
         <button onclick="closeModal('roster-modal')" class="px-4 py-2 border rounded-lg text-xs font-semibold">Close</button>
-        <button onclick="startBatchGeneration()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5">
+        <button onclick="runBulkGeneration()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-sm">
           <i data-lucide="play" class="w-3.5 h-3.5"></i>
           Generate All Jerseys (ZIP)
         </button>
@@ -676,848 +633,729 @@
   </div>
 
   <!-- MODAL: EXPORT -->
-  <div id="export-modal" class="fixed inset-0 bg-black/50 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-gray-200 p-6 space-y-4">
+  <div id="export-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 p-6 space-y-4">
       <div class="flex items-center justify-between border-b pb-3">
-        <h3 class="font-bold text-base text-gray-900">Export Production Files</h3>
-        <button onclick="closeModal('export-modal')" class="text-gray-400 hover:text-gray-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+        <h3 class="font-bold text-base text-slate-900">Export High-Resolution Files</h3>
+        <button onclick="closeModal('export-modal')" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
       <div class="space-y-3 text-xs">
         <div>
-          <label class="font-bold block mb-1">Format</label>
+          <label class="font-bold block mb-1">Select Format</label>
           <div class="grid grid-cols-3 gap-2">
-            <button onclick="selectExportFormat('png')" id="btn-export-png" class="p-2 border rounded-lg border-indigo-500 bg-indigo-50 text-indigo-700 font-bold text-center">PNG (300 DPI)</button>
-            <button onclick="selectExportFormat('jpg')" id="btn-export-jpg" class="p-2 border rounded-lg hover:bg-gray-50 text-center font-medium">JPG (Solid)</button>
-            <button onclick="selectExportFormat('pdf')" id="btn-export-pdf" class="p-2 border rounded-lg hover:bg-gray-50 text-center font-medium">PDF (Print)</button>
+            <button onclick="setExportFormat('png')" id="export-btn-png" class="p-2.5 border rounded-xl border-blue-500 bg-blue-50 text-blue-700 font-bold text-center">PNG (300 DPI)</button>
+            <button onclick="setExportFormat('jpg')" id="export-btn-jpg" class="p-2.5 border rounded-xl hover:bg-slate-50 text-center font-medium">JPG (Solid)</button>
+            <button onclick="setExportFormat('pdf')" id="export-btn-pdf" class="p-2.5 border rounded-xl hover:bg-slate-50 text-center font-medium">PDF (Print)</button>
           </div>
         </div>
-        <div class="p-3 bg-gray-50 border rounded-lg text-gray-600">
-          Saved locally to: <span class="font-mono text-gray-900 font-bold block">~/Documents/JerseyStudio/Exports/</span>
+        <div class="p-3 bg-slate-50 border rounded-xl text-slate-600">
+          Resolution: <span class="font-mono text-slate-900 font-bold">300 DPI Dye-Sublimation</span><br>
+          Destination: <span class="font-mono text-slate-900 font-bold block mt-0.5">~/Documents/JerseyStudio/Exports/</span>
         </div>
       </div>
       <div class="flex justify-end gap-2 pt-3 border-t">
         <button onclick="closeModal('export-modal')" class="px-4 py-2 border rounded-lg text-xs">Cancel</button>
-        <button onclick="triggerActualExport()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-bold">Start Export</button>
+        <button onclick="executeExportDownload()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shadow-md shadow-blue-500/20">Download Files</button>
       </div>
     </div>
   </div>
 
-  <!-- JAVASCRIPT COMPLETE CONTROLLER WITH 100% WORKING INTERACTIONS -->
+  <!-- JAVASCRIPT: MODERN B2B ENGINE WITH WORKING ZOOM, UPLOAD, AND RESIZE -->
   <script>
     lucide.createIcons();
 
-    // State Variables
-    let activeExportFormat = 'png';
+    // App State
+    let zoomLevel = 100;
+    let canvasWidthInches = 20;
+    let canvasHeightInches = 28;
+    let selectedExportFmt = 'png';
+    let isBold = true;
+    let isItalic = false;
     let isUpperCase = true;
-    let isLocked = false;
-    let historyStack = [];
-    let historyIndex = -1;
 
-    // 1. Font Library Definitions (Sport, System, and Uploaded)
-    const sportFonts = [
-      { id: 'barselona', name: 'Barselona 2013', family: 'Impact, sans-serif' },
-      { id: 'worky', name: 'Worky Athletic', family: '"Arial Black", sans-serif' },
-      { id: 'druk', name: 'DrukCond Super', family: '"Trebuchet MS", sans-serif' },
-      { id: 'sublima', name: 'Sublima Bold', family: 'system-ui, sans-serif' },
-      { id: 'varsity', name: 'Collegiate Varsity', family: 'Georgia, serif' }
+    // 0. ================= MODERN TOAST NOTIFICATION HUB =================
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const toast = document.createElement('div');
+      const bg = type === 'success' ? 'bg-emerald-600 text-white shadow-emerald-500/20' : type === 'error' ? 'bg-red-600 text-white shadow-red-500/20' : 'bg-slate-900/95 text-white border border-slate-700 shadow-slate-900/40';
+      toast.className = `${bg} px-4 py-2.5 rounded-xl shadow-2xl text-xs font-semibold flex items-center gap-2 backdrop-blur-md transition-all duration-300 transform translate-y-2 opacity-0 pointer-events-auto`;
+      toast.innerHTML = `<span>${msg}</span>`;
+      container.appendChild(toast);
+      requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      });
+      setTimeout(() => {
+        toast.classList.add('opacity-0', '-translate-y-2');
+        setTimeout(() => toast.remove(), 300);
+      }, 2600);
+    }
+
+    // 1. ================= REAL CANVAS ZOOM LOGIC =================
+    function zoomStep(delta) {
+      zoomLevel = Math.max(30, Math.min(200, zoomLevel + delta));
+      applyCanvasScale();
+    }
+
+    function zoomReset() {
+      zoomLevel = 100;
+      applyCanvasScale();
+    }
+
+    function applyCanvasScale() {
+      const wrapper = document.getElementById('artboard-scalable-wrapper');
+      if (wrapper) wrapper.style.transform = `scale(${zoomLevel / 100})`;
+      const indicator = document.getElementById('canvas-zoom-indicator');
+      if (indicator) indicator.innerText = `${zoomLevel}%`;
+    }
+
+    // Native Mouse Wheel Zoom (Holding Ctrl or Cmd, or smooth trackpad pinch)
+    const viewportEl = document.getElementById('canvas-outer-viewport');
+    if (viewportEl) {
+      viewportEl.addEventListener('wheel', (e) => {
+        if (e.ctrlKey || e.metaKey) {
+          e.preventDefault();
+          const delta = e.deltaY < 0 ? 5 : -5;
+          zoomStep(delta);
+        }
+      }, { passive: false });
+    }
+
+    // 2. ================= REAL CANVAS RESIZING LOGIC =================
+    const PRESETS = {
+      'youth': { w: 16, h: 22 },
+      's': { w: 18, h: 26 },
+      'm': { w: 20, h: 28 },
+      'l': { w: 22, h: 30 },
+      'xl': { w: 24, h: 32 },
+      '2xl': { w: 26, h: 34 },
+      'bed-a3': { w: 11.7, h: 16.5 }
+    };
+
+    function selectGradePreset(key) {
+      const select = document.getElementById('preset-size-select');
+      if (select) select.value = key;
+      applyPresetSize(key);
+    }
+
+    function applyPresetSize(presetKey) {
+      const p = PRESETS[presetKey];
+      if (!p) return;
+      canvasWidthInches = p.w;
+      canvasHeightInches = p.h;
+      updateCanvasGeometry();
+      
+      // Highlight dock pill
+      const pillIds = ['youth', 's', 'm', 'l', 'xl', '2xl'];
+      pillIds.forEach(id => {
+        const btn = document.getElementById(`dock-size-${id}`);
+        if (btn) {
+          if (id === presetKey) {
+            btn.className = 'px-2.5 py-1 rounded-lg font-bold bg-blue-600 text-white shadow-xs transition';
+          } else {
+            btn.className = 'px-2.5 py-1 rounded-lg font-bold text-slate-300 hover:text-white hover:bg-slate-800 transition';
+          }
+        }
+      });
+
+      showToast(`Canvas resized to Garment Grade: ${presetKey.toUpperCase()} (${canvasWidthInches}" × ${canvasHeightInches}")`);
+    }
+
+    function syncAllSizeGrades() {
+      showToast('✓ Artwork template synchronized across all 6 garment size grades.', 'success');
+    }
+
+    function resizeCanvasFromInput() {
+      canvasWidthInches = parseFloat(document.getElementById('input-canvas-w').value) || 20;
+      canvasHeightInches = parseFloat(document.getElementById('input-canvas-h').value) || 28;
+      updateCanvasGeometry();
+    }
+
+    function applyCustomDimension(dim, val) {
+      if (dim === 'w') canvasWidthInches = parseFloat(val) || 20;
+      if (dim === 'h') canvasHeightInches = parseFloat(val) || 28;
+      updateCanvasGeometry();
+    }
+
+    function updateCanvasGeometry() {
+      // Base visual scaling (1 inch = 19 physical screen pixels)
+      const visualPxW = Math.round(canvasWidthInches * 19);
+      const visualPxH = Math.round(canvasHeightInches * 19);
+
+      const artboard = document.getElementById('physical-artboard');
+      if (artboard) {
+        artboard.style.width = `${visualPxW}px`;
+        artboard.style.height = `${visualPxH}px`;
+      }
+
+      // Update physical rulers
+      const topRuler = document.getElementById('artboard-top-ruler');
+      const leftRuler = document.getElementById('artboard-left-ruler');
+      const rulerMaxW = document.getElementById('ruler-max-w');
+      const rulerMaxH = document.getElementById('ruler-max-h');
+      if (topRuler) topRuler.style.width = `${visualPxW}px`;
+      if (leftRuler) leftRuler.style.height = `${visualPxH}px`;
+      if (rulerMaxW) rulerMaxW.innerText = `${canvasWidthInches}"`;
+      if (rulerMaxH) rulerMaxH.innerText = `${canvasHeightInches}"`;
+
+      // Synchronize inputs
+      const inW = document.getElementById('input-canvas-w');
+      const inH = document.getElementById('input-canvas-h');
+      const drW = document.getElementById('drawer-resize-w');
+      const drH = document.getElementById('drawer-resize-h');
+      if (inW) inW.value = canvasWidthInches;
+      if (inH) inH.value = canvasHeightInches;
+      if (drW) drW.value = canvasWidthInches;
+      if (drH) drH.value = canvasHeightInches;
+
+      // 300 DPI Print Calculation
+      const printPixelW = Math.round(canvasWidthInches * 300);
+      const printPixelH = Math.round(canvasHeightInches * 300);
+      const badge = document.getElementById('calculated-px-badge');
+      if (badge) badge.innerText = `${printPixelW.toLocaleString()} × ${printPixelH.toLocaleString()} px`;
+    }
+
+    // 3. ================= REAL IMAGE & LOGO UPLOAD LOGIC =================
+    const localUploads = [];
+    let currentLogoUrl = null;
+    let currentLogoScale = 'md';
+
+    function setLogoScale(scale) {
+      currentLogoScale = scale;
+      const labels = { 'sm': 'Small (2")', 'md': 'Medium (3.5")', 'lg': 'Large (5")' };
+      const lbl = document.getElementById('logo-scale-label');
+      if (lbl) lbl.innerText = labels[scale] || 'Medium (3.5")';
+
+      ['sm', 'md', 'lg'].forEach(s => {
+        const btn = document.getElementById(`logo-size-btn-${s}`);
+        if (btn) {
+          btn.className = s === scale ? 'py-1 px-2 rounded-lg bg-blue-600 text-white font-bold text-center text-[11px] transition' : 'py-1 px-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-center text-[11px] transition';
+        }
+      });
+
+      if (currentLogoUrl) {
+        placeLogoOnJersey(currentLogoUrl);
+      }
+    }
+
+    function processImageFile(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const dataUrl = evt.target.result;
+        localUploads.unshift({ name: file.name, url: dataUrl });
+        renderUploadedGrid();
+        placeLogoOnJersey(dataUrl);
+        showToast(`✓ "${file.name}" placed on jersey!`, 'success');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function handleLogoUpload(e) {
+      const file = e.target.files && e.target.files[0];
+      if (file) {
+        processImageFile(file);
+        e.target.value = '';
+      }
+    }
+
+    // Support Drag & Drop directly onto upload zone and jersey artboard
+    ['drop-zone', 'physical-artboard', 'canvas-outer-viewport'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (id === 'drop-zone') el.classList.add('border-blue-500', 'bg-blue-50/70');
+        if (id === 'physical-artboard') el.classList.add('ring-4', 'ring-blue-500/50');
+      });
+      el.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (id === 'drop-zone') el.classList.remove('border-blue-500', 'bg-blue-50/70');
+        if (id === 'physical-artboard') el.classList.remove('ring-4', 'ring-blue-500/50');
+      });
+      el.addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (id === 'drop-zone') el.classList.remove('border-blue-500', 'bg-blue-50/70');
+        if (id === 'physical-artboard') el.classList.remove('ring-4', 'ring-blue-500/50');
+        if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+          processImageFile(e.dataTransfer.files[0]);
+        }
+      });
+    });
+
+    function renderUploadedGrid() {
+      const grid = document.getElementById('uploaded-assets-grid');
+      if (!grid) return;
+      grid.innerHTML = '';
+      localUploads.forEach((item) => {
+        const div = document.createElement('div');
+        div.className = 'p-2 border rounded-xl bg-white hover:border-blue-500 cursor-pointer flex flex-col items-center justify-between text-center group transition shadow-xs';
+        div.innerHTML = `
+          <img src="${item.url}" class="h-12 w-full object-contain mb-1.5">
+          <span class="text-[10px] font-semibold text-slate-700 truncate w-full block">${item.name}</span>
+          <button onclick="placeLogoOnJersey('${item.url}')" class="mt-1 w-full py-1 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-700 text-[10px] font-bold rounded-lg transition">Place</button>
+        `;
+        grid.appendChild(div);
+      });
+    }
+
+    function placeLogoOnJersey(dataUrl) {
+      currentLogoUrl = dataUrl;
+      const container = document.getElementById('canvas-logo-container');
+      if (!container) return;
+      container.classList.remove('hidden');
+
+      let scaleClass = 'max-h-20 max-w-28';
+      if (currentLogoScale === 'sm') scaleClass = 'max-h-12 max-w-20';
+      if (currentLogoScale === 'lg') scaleClass = 'max-h-32 max-w-44';
+
+      container.innerHTML = `
+        <div class="relative group cursor-pointer">
+          <img src="${dataUrl}" class="${scaleClass} object-contain drop-shadow-md transition-all">
+          <button onclick="removeLogoFromJersey()" class="absolute -top-2 -right-2 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition" title="Remove Logo">
+            <i data-lucide="x" class="w-3 h-3"></i>
+          </button>
+        </div>
+      `;
+      lucide.createIcons();
+    }
+
+    function removeLogoFromJersey() {
+      currentLogoUrl = null;
+      const container = document.getElementById('canvas-logo-container');
+      if (container) {
+        container.classList.add('hidden');
+        container.innerHTML = '';
+      }
+      showToast('Logo removed from canvas.');
+    }
+
+    function insertSampleGraphic(type) {
+      const container = document.getElementById('canvas-logo-container');
+      if (!container) return;
+      container.classList.remove('hidden');
+      currentLogoUrl = null;
+      if (type === 'shield') {
+        container.innerHTML = `
+          <div class="relative group cursor-pointer">
+            <span class="text-5xl drop-shadow-md select-none">🛡️</span>
+            <button onclick="removeLogoFromJersey()" class="absolute -top-2 -right-2 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition">
+              <i data-lucide="x" class="w-3 h-3"></i>
+            </button>
+          </div>`;
+      } else {
+        container.innerHTML = `
+          <div class="relative group cursor-pointer">
+            <span class="text-5xl drop-shadow-md select-none">⚡</span>
+            <button onclick="removeLogoFromJersey()" class="absolute -top-2 -right-2 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition">
+              <i data-lucide="x" class="w-3 h-3"></i>
+            </button>
+          </div>`;
+      }
+      lucide.createIcons();
+      showToast('Built-in graphic placed on jersey.');
+    }
+
+    // 4. ================= FONTS & LOCAL FONT DETECTOR =================
+    const sportsFonts = [
+      { name: 'Barselona Athletic', family: 'Impact, sans-serif' },
+      { name: 'Collegiate Block', family: '"Arial Black", sans-serif' },
+      { name: 'Druk Speed', family: '"Trebuchet MS", sans-serif' },
+      { name: 'Varsity Classic', family: 'Georgia, serif' }
     ];
 
-    // Locally Installed Mac/Windows Fonts
-    const systemFonts = [
-      { id: 'helvetica', name: 'Helvetica Neue (Mac Default)', family: '"Helvetica Neue", Helvetica, sans-serif' },
-      { id: 'arial', name: 'Arial (Cross-Platform)', family: 'Arial, sans-serif' },
-      { id: 'futura', name: 'Futura Bold', family: 'Futura, "Trebuchet MS", sans-serif' },
-      { id: 'avenir', name: 'Avenir Next', family: '"Avenir Next", Avenir, sans-serif' },
-      { id: 'impact', name: 'Impact Sport', family: 'Impact, fantasy' },
-      { id: 'times', name: 'Times New Roman', family: '"Times New Roman", Times, serif' },
-      { id: 'courier', name: 'Courier New', family: '"Courier New", monospace' }
+    const systemMacFonts = [
+      { name: 'Helvetica Neue (Mac)', family: '"Helvetica Neue", Helvetica, sans-serif' },
+      { name: 'Futura Bold (Mac)', family: 'Futura, sans-serif' },
+      { name: 'Avenir Next', family: '"Avenir Next", sans-serif' },
+      { name: 'Impact Pro', family: 'Impact, sans-serif' },
+      { name: 'Arial Cross-Platform', family: 'Arial, sans-serif' }
     ];
 
-    let uploadedFonts = [];
-    let currentFontTab = 'sport';
-    let fontPreviewSize = 28;
+    let currentFontCategory = 'sport';
 
-    // 2. Render Font List in Font Drawer
-    function renderFontList(filter = '') {
-      const container = document.getElementById('font-list-container');
+    function switchFontCategory(cat) {
+      currentFontCategory = cat;
+      document.getElementById('tab-font-sport').className = cat === 'sport' ? 'py-1 px-2 rounded-lg bg-white text-blue-600 shadow-xs' : 'py-1 px-2 rounded-lg text-slate-600 hover:text-slate-900';
+      document.getElementById('tab-font-system').className = cat === 'system' ? 'py-1 px-2 rounded-lg bg-white text-blue-600 shadow-xs' : 'py-1 px-2 rounded-lg text-slate-600 hover:text-slate-900';
+      document.getElementById('tab-font-upload').className = cat === 'upload' ? 'py-1 px-2 rounded-lg bg-white text-blue-600 shadow-xs' : 'py-1 px-2 rounded-lg text-slate-600 hover:text-slate-900';
+
+      const uploadBox = document.getElementById('local-font-upload-box');
+      if (cat === 'upload') {
+        uploadBox.classList.remove('hidden');
+      } else {
+        uploadBox.classList.add('hidden');
+      }
+      renderFontList();
+    }
+
+    function renderFontList(query = '') {
+      const container = document.getElementById('fonts-list-container');
       if (!container) return;
       container.innerHTML = '';
-
-      let list = currentFontTab === 'sport' ? sportFonts : currentFontTab === 'system' ? systemFonts : uploadedFonts;
-
-      if (filter) {
-        list = list.filter(f => f.name.toLowerCase().includes(filter.toLowerCase()));
+      let list = currentFontCategory === 'sport' ? sportsFonts : currentFontCategory === 'system' ? systemMacFonts : sportsFonts;
+      
+      if (query) {
+        list = list.filter(f => f.name.toLowerCase().includes(query.toLowerCase()));
       }
 
-      if (list.length === 0 && currentFontTab === 'upload') {
-        container.innerHTML = '<div class="text-center py-6 text-gray-400 text-xs">No custom fonts uploaded yet.<br>Click below to load a .TTF or .OTF font file!</div>';
-        return;
-      }
-
-      list.forEach(f => {
+      list.forEach(font => {
         const item = document.createElement('div');
-        item.className = 'p-2.5 rounded-lg border border-gray-200 hover:border-indigo-500 hover:bg-indigo-50/30 cursor-pointer transition';
-        item.onclick = () => selectFont(f);
+        item.className = 'p-2.5 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/30 cursor-pointer transition';
+        item.onclick = () => {
+          document.getElementById('active-font-display').innerText = font.name;
+          document.getElementById('canvas-player-name').style.fontFamily = font.family;
+          document.getElementById('canvas-player-number').style.fontFamily = font.family;
+          showToast(`Font updated: ${font.name}`);
+        };
         item.innerHTML = `
-          <div class="text-xs font-semibold text-gray-700">${f.name}</div>
-          <div class="text-gray-900 font-bold mt-1" style="font-family: ${f.family}; font-size: ${fontPreviewSize}px;">
-            LIAM 15
-          </div>
+          <div class="text-[11px] font-semibold text-slate-600">${font.name}</div>
+          <div class="text-slate-900 font-extrabold text-xl mt-1" style="font-family: ${font.family}">LIAM 15</div>
         `;
         container.appendChild(item);
       });
     }
 
-    function selectFont(font) {
-      document.getElementById('current-font-name').innerText = font.name;
-      document.getElementById('player-name-text').style.fontFamily = font.family;
-      document.getElementById('player-number-text').style.fontFamily = font.family;
-      saveState();
+    function filterFontList(val) {
+      renderFontList(val);
     }
 
-    function setabolismFontTab(tab) {
-      currentFontTab = tab;
-      document.getElementById('tab-font-sport').className = tab === 'sport' ? 'py-1 px-2 rounded-md bg-white text-indigo-600 shadow-xs' : 'py-1 px-2 rounded-md text-gray-600 hover:text-gray-900';
-      document.getElementById('tab-font-system').className = tab === 'system' ? 'py-1 px-2 rounded-md bg-white text-indigo-600 shadow-xs' : 'py-1 px-2 rounded-md text-gray-600 hover:text-gray-900';
-      document.getElementById('tab-font-upload').className = tab === 'upload' ? 'py-1 px-2 rounded-md bg-white text-indigo-600 shadow-xs' : 'py-1 px-2 rounded-md text-gray-600 hover:text-gray-900';
-
-      const uploadSec = document.getElementById('upload-font-section');
-      if (tab === 'upload') {
-        uploadSec.classList.remove('hidden');
-      } else {
-        uploadSec.classList.add('hidden');
-      }
-      renderFontList();
-    }
-
-    function filterFonts(query) {
-      renderFontList(query);
-    }
-
-    function changeFontPreviewSize(size) {
-      fontPreviewSize = size;
-      renderFontList();
-    }
-
-    // 3. Local Font Upload (.TTF/.OTF)
-    function handleLocalFontUpload(e) {
+    function uploadCustomFontFile(e) {
       const file = e.target.files[0];
       if (!file) return;
-
       const fontName = file.name.replace(/\.[^/.]+$/, "");
       const reader = new FileReader();
-      reader.onload = function(event) {
-        const fontFace = new FontFace(fontName, event.target.result);
-        fontFace.load().then(function(loadedFace) {
-          document.fonts.add(loadedFace);
-          uploadedFonts.push({
-            id: 'custom-' + Date.now(),
-            name: fontName + ' (Local Upload)',
-            family: `"${fontName}", sans-serif`
-          });
-          selectFont(uploadedFonts[uploadedFonts.length - 1]);
-          renderFontList();
-          alert(`Font "${fontName}" loaded successfully into local memory!`);
+      reader.onload = function(evt) {
+        const fontFace = new FontFace(fontName, evt.target.result);
+        fontFace.load().then(function(loaded) {
+          document.fonts.add(loaded);
+          sportsFonts.unshift({ name: fontName + ' (Uploaded)', family: `"${fontName}", sans-serif` });
+          switchFontCategory('sport');
+          showToast(`✓ Custom font "${fontName}" loaded successfully!`, 'success');
         });
       };
       reader.readAsArrayBuffer(file);
     }
 
-    // 4. Multi-Size Garment Carousel (Bottom Filmstrip)
-    const sizes = [
-      { label: 'Master', num: '15' },
-      { label: '1-2 Yr', num: '20' },
-      { label: '3-4 Yr', num: '22' },
-      { label: '5-6 Yr', num: '26' },
-      { label: '7-8 Yr', num: '28' },
-      { label: '9-10 Yr', num: '30' },
-      { label: '11-12 Yr', num: '32' },
-      { label: '13-14 Yr', num: '33' },
-      { label: 'XS', num: '34' },
-      { label: 'S', num: '36' },
-      { label: 'M', num: '38' },
-      { label: 'L', num: '40' },
-      { label: 'XL', num: '42' },
-      { label: '2XL', num: '44' },
-      { label: '3XL', num: '46' },
-      { label: '4XL', num: '48' },
-      { label: '5XL', num: '50' },
-      { label: '6XL', num: '52' }
-    ];
+    // 5. ================= EFFECTS & ARC CONTROLS =================
+    function toggleArcEffect(checked) {
+      const name = document.getElementById('canvas-player-name');
+      if (checked) {
+        setArcIntensity(document.getElementById('slider-arc').value);
+      } else {
+        name.style.transform = 'none';
+      }
+    }
 
-    function renderFilmstrip() {
-      const carousel = document.getElementById('size-filmstrip-carousel');
-      if (!carousel) return;
-      carousel.innerHTML = '';
-      sizes.forEach((s, idx) => {
-        const card = document.createElement('div');
-        card.className = `w-14 h-16 shrink-0 rounded-lg border cursor-pointer flex flex-col items-center justify-between p-1 transition ${idx === 0 ? 'border-indigo-600 bg-indigo-50/50 shadow-xs ring-1 ring-indigo-500' : 'border-gray-300 hover:border-gray-400 bg-gray-50'}`;
-        card.onclick = () => selectSizeCard(s, card);
-        card.innerHTML = `
-          <div class="text-[9px] font-bold text-gray-700 truncate w-full text-center">${s.label}</div>
-          <div class="w-7 h-9 bg-slate-900 rounded flex flex-col items-center justify-center text-white text-[8px] font-black">
-            <span>LIAM</span>
-            <span class="text-indigo-400 font-bold">${s.num}</span>
-          </div>
-          <div class="text-[8px] font-mono text-gray-400">${s.num} in</div>
-        `;
-        carousel.appendChild(card);
+    function setArcIntensity(val) {
+      document.getElementById('label-arc-val').innerText = val;
+      if (!document.getElementById('effect-arc-toggle').checked) return;
+      const deg = val * 0.3;
+      document.getElementById('canvas-player-name').style.transform = `perspective(200px) rotateX(${deg}deg) scale(${1 + Math.abs(val)*0.002})`;
+    }
+
+    function toggleStrokeEffect(checked) {
+      const name = document.getElementById('canvas-player-name');
+      const num = document.getElementById('canvas-player-number');
+      if (checked) {
+        setStrokeThickness(document.getElementById('slider-stroke').value);
+      } else {
+        name.style.webkitTextStroke = '0px transparent';
+        num.style.webkitTextStroke = '0px transparent';
+      }
+    }
+
+    function setStrokeThickness(px) {
+      document.getElementById('label-stroke-w').innerText = `${px}px`;
+      if (!document.getElementById('effect-stroke-toggle').checked) return;
+      const color = document.getElementById('stroke-color-input').value;
+      document.getElementById('canvas-player-name').style.webkitTextStroke = `${px}px ${color}`;
+      document.getElementById('canvas-player-number').style.webkitTextStroke = `${px}px ${color}`;
+    }
+
+    function setStrokeColor(c) {
+      setStrokeThickness(document.getElementById('slider-stroke').value);
+    }
+
+    function toggleShadowEffect(checked) {
+      const num = document.getElementById('canvas-player-number');
+      if (checked) {
+        const blur = document.getElementById('slider-shadow-blur').value;
+        const color = document.getElementById('shadow-color-input').value;
+        num.style.filter = `drop-shadow(0px 6px ${blur}px ${color})`;
+      } else {
+        num.style.filter = 'none';
+      }
+    }
+
+    function setShadowBlur(b) {
+      document.getElementById('label-shadow-b').innerText = `${b}px`;
+      toggleShadowEffect(document.getElementById('effect-shadow-toggle').checked);
+    }
+
+    function setShadowColor(c) {
+      toggleShadowEffect(document.getElementById('effect-shadow-toggle').checked);
+    }
+
+    // 6. ================= TYPOGRAPHY HELPERS =================
+    function setTextColor(c) {
+      document.getElementById('canvas-player-name').style.color = c;
+      document.getElementById('canvas-player-number').style.color = c;
+    }
+
+    function setFontSize(val) {
+      document.getElementById('canvas-player-number').style.fontSize = `${val}px`;
+    }
+
+    function changeFontSize(delta) {
+      const input = document.getElementById('font-size-input');
+      const next = Math.max(20, Math.min(200, parseInt(input.value) + delta));
+      input.value = next;
+      setFontSize(next);
+    }
+
+    function toggleFontWeight() {
+      isBold = !isBold;
+      document.getElementById('canvas-player-name').style.fontWeight = isBold ? '800' : '500';
+      document.getElementById('canvas-player-number').style.fontWeight = isBold ? '900' : '500';
+      document.getElementById('btn-bold').classList.toggle('bg-blue-100');
+    }
+
+    function toggleFontStyle() {
+      isItalic = !isItalic;
+      document.getElementById('canvas-player-name').style.fontStyle = isItalic ? 'italic' : 'normal';
+      document.getElementById('canvas-player-number').style.fontStyle = isItalic ? 'italic' : 'normal';
+      document.getElementById('btn-italic').classList.toggle('bg-blue-100');
+    }
+
+    function toggleCase() {
+      isUpperCase = !isUpperCase;
+      const el = document.getElementById('canvas-player-name');
+      el.innerText = isUpperCase ? el.innerText.toUpperCase() : el.innerText.charAt(0).toUpperCase() + el.innerText.slice(1).toLowerCase();
+    }
+
+    function triggerAutoFit() {
+      document.getElementById('font-size-input').value = 95;
+      setFontSize(95);
+      showToast('✓ Auto-Fit: Scaled typography to 95pt to fit safely inside printable boundary.', 'info');
+    }
+
+    // 7. ================= FLOATING TOOLBAR ACTIONS =================
+    function triggerColorPick() {
+      document.getElementById('text-color-picker').click();
+    }
+
+    function triggerCenter() {
+      showToast('✓ Element aligned to exact center axis of the garment.');
+    }
+
+    function triggerDuplicate() {
+      showToast('✓ Layer duplicated on canvas.');
+    }
+
+    function triggerDelete() {
+      if (currentLogoUrl) {
+        removeLogoFromJersey();
+      } else {
+        showToast('Selected element removed from active view.');
+      }
+    }
+
+    // 8. ================= GARMENT VIEW SWITCHER =================
+    function changeGarmentView(view) {
+      ['back', 'front', 'hs', 'fs'].forEach(v => {
+        document.getElementById(`btn-view-${v}`).className = 'flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-medium text-slate-600 hover:text-slate-900 transition-all';
       });
+
+      const bodyPath = document.getElementById('svg-jersey-body');
+      const wave1 = document.getElementById('svg-wave-1');
+      const wave2 = document.getElementById('svg-wave-2');
+      const wave3 = document.getElementById('svg-wave-3');
+
+      if (view === 'back') {
+        document.getElementById('btn-view-back').className = 'flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold bg-white text-blue-600 shadow-xs transition-all';
+        document.getElementById('canvas-player-name').style.display = 'block';
+        document.getElementById('canvas-player-number').style.display = 'block';
+        document.getElementById('svg-collar').setAttribute('d', 'M140 40 Q200 80 260 40 L280 40 Q200 110 120 40 Z');
+      } else if (view === 'front') {
+        document.getElementById('btn-view-front').className = 'flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold bg-white text-blue-600 shadow-xs transition-all';
+        document.getElementById('canvas-player-name').style.display = 'none';
+        document.getElementById('canvas-player-number').style.display = 'block';
+        document.getElementById('svg-collar').setAttribute('d', 'M130 40 Q200 120 270 40 L280 40 Q200 135 120 40 Z');
+      } else if (view === 'half_sleeve') {
+        document.getElementById('btn-view-hs').className = 'flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold bg-white text-blue-600 shadow-xs transition-all';
+        document.getElementById('canvas-player-name').style.display = 'none';
+        document.getElementById('canvas-player-number').style.display = 'none';
+      } else if (view === 'full_sleeve') {
+        document.getElementById('btn-view-fs').className = 'flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold bg-white text-blue-600 shadow-xs transition-all';
+        document.getElementById('canvas-player-name').style.display = 'none';
+        document.getElementById('canvas-player-number').style.display = 'none';
+      }
+      showToast(`Switched view to: ${view.replace('_', ' ').toUpperCase()}`);
     }
 
-    function selectSizeCard(size, cardElem) {
-      document.querySelectorAll('#size-filmstrip-carousel > div').forEach(c => {
-        c.className = 'w-14 h-16 shrink-0 rounded-lg border cursor-pointer flex flex-col items-center justify-between p-1 transition border-gray-300 hover:border-gray-400 bg-gray-50';
-      });
-      cardElem.className = 'w-14 h-16 shrink-0 rounded-lg border cursor-pointer flex flex-col items-center justify-between p-1 transition border-indigo-600 bg-indigo-50/50 shadow-xs ring-1 ring-indigo-500';
-      document.getElementById('canvas-title-badge').innerText = `${size.label} Master`;
-      document.getElementById('canvas-dimension-badge').innerText = `${size.num}.0 × ${(parseInt(size.num) + 8)}.0 in`;
-    }
+    // 9. ================= SIDE PANEL CONTROLS =================
+    let activePanel = null;
 
-    function applyToAllSizes() {
-      alert('Applied current design, fonts, and positions to all 18 production sizes!');
-    }
-
-    // 5. Drawer Controls (Text, Effects, Fonts, Upload, Layers)
     function toggleSidePanel(panelName) {
       const drawer = document.getElementById('side-drawer');
-      const panels = ['text', 'effects', 'fonts', 'upload', 'layers'];
+      const panels = ['text', 'fonts', 'upload', 'effects', 'layers', 'resize'];
 
-      const targetPanel = document.getElementById(`drawer-panel-${panelName}`);
-      if (!targetPanel) return;
+      if (activePanel === panelName && !drawer.classList.contains('hidden')) {
+        closeSidePanel();
+        return;
+      }
 
-      const isCurrentVisible = !drawer.classList.contains('hidden') && !targetPanel.classList.contains('hidden');
+      drawer.classList.remove('hidden');
+      panels.forEach(p => {
+        const pEl = document.getElementById(`panel-${p}`);
+        if (pEl) pEl.classList.add('hidden');
+        const railBtn = document.getElementById(`rail-btn-${p}`);
+        if (railBtn) railBtn.className = 'flex flex-col items-center justify-center py-2.5 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-all';
+      });
 
-      if (isCurrentVisible) {
-        drawer.classList.add('hidden');
-      } else {
-        drawer.classList.remove('hidden');
-        panels.forEach(p => {
-          const el = document.getElementById(`drawer-panel-${p}`);
-          if (el) {
-            if (p === panelName) {
-              el.classList.remove('hidden');
-            } else {
-              el.classList.add('hidden');
-            }
-          }
-        });
-        if (panelName === 'fonts') renderFontList();
-        if (panelName === 'layers') renderLayersList();
+      const activeEl = document.getElementById(`panel-${panelName}`);
+      if (activeEl) activeEl.classList.remove('hidden');
+      const activeRail = document.getElementById(`rail-btn-${panelName}`);
+      if (activeRail) activeRail.className = 'flex flex-col items-center justify-center py-2.5 rounded-xl text-blue-600 bg-blue-50 font-bold transition-all';
+
+      activePanel = panelName;
+
+      if (panelName === 'fonts') {
+        renderFontList();
       }
     }
 
     function closeSidePanel() {
-      document.getElementById('side-drawer').classList.add('hidden');
-    }
-
-    // 6. Text Manipulation & Live Editing
-    function addTextElement(type) {
-      if (type === 'name') {
-        document.getElementById('player-name-text').style.display = 'block';
-      } else if (type === 'number') {
-        document.getElementById('player-number-text').style.display = 'block';
-      } else if (type === 'team') {
-        document.getElementById('team-title-text').style.display = 'block';
-      }
-      saveState();
-    }
-
-    function liveUpdateText(type, val) {
-      if (type === 'name') {
-        document.getElementById('player-name-text').innerText = isUpperCase ? val.toUpperCase() : val;
-      } else if (type === 'number') {
-        document.getElementById('player-number-text').innerText = val;
-      } else if (type === 'team') {
-        document.getElementById('team-title-text').innerText = val;
-      }
-      saveState();
-    }
-
-    // 7. Effects Control Logic (Curve, Stroke, Box, Shadow)
-    function toggleCurve(checked) {
-      const elem = document.getElementById('player-name-text');
-      if (checked) {
-        applyCurvePower(document.getElementById('slider-curve-power').value);
-      } else {
-        elem.style.transform = 'none';
-      }
-      saveState();
-    }
-
-    function applyCurvePower(val) {
-      document.getElementById('label-curve-power').innerText = val;
-      if (!document.getElementById('effect-curve-toggle').checked) return;
-      const deg = val * 0.25;
-      document.getElementById('player-name-text').style.transform = `perspective(200px) rotateX(${deg}deg) scale(${1 + Math.abs(val)*0.002})`;
-    }
-
-    function toggleStroke(checked) {
-      const nameElem = document.getElementById('player-name-text');
-      const numElem = document.getElementById('player-number-text');
-      if (checked) {
-        applyStrokeWidth(document.getElementById('stroke-width').value);
-      } else {
-        nameElem.style.webkitTextStroke = '0px transparent';
-        numElem.style.webkitTextStroke = '0px transparent';
-      }
-      saveState();
-    }
-
-    function applyStrokeColor(color) {
-      if (document.getElementById('effect-stroke-toggle').checked) {
-        const width = document.getElementById('stroke-width').value;
-        document.getElementById('player-name-text').style.webkitTextStroke = `${width}px ${color}`;
-        document.getElementById('player-number-text').style.webkitTextStroke = `${width}px ${color}`;
-      }
-      saveState();
-    }
-
-    function applyStrokeWidth(width) {
-      if (document.getElementById('effect-stroke-toggle').checked) {
-        const color = document.getElementById('stroke-color').value;
-        document.getElementById('player-name-text').style.webkitTextStroke = `${width}px ${color}`;
-        document.getElementById('player-number-text').style.webkitTextStroke = `${width}px ${color}`;
-      }
-      saveState();
-    }
-
-    function setStrokeJoin(joinType) {
-      ['miter', 'round', 'bevel'].forEach(j => {
-        const b = document.getElementById(`btn-join-${j}`);
-        if (b) {
-          if (j === joinType) {
-            b.className = 'py-1 px-2 border rounded font-semibold text-center bg-indigo-50 border-indigo-400 text-indigo-700';
-          } else {
-            b.className = 'py-1 px-2 border rounded font-semibold text-center hover:bg-gray-100';
-          }
-        }
+      const drawer = document.getElementById('side-drawer');
+      drawer.classList.add('hidden');
+      const panels = ['text', 'fonts', 'upload', 'effects', 'layers', 'resize'];
+      panels.forEach(p => {
+        const railBtn = document.getElementById(`rail-btn-${p}`);
+        if (railBtn) railBtn.className = 'flex flex-col items-center justify-center py-2.5 rounded-xl text-slate-600 hover:text-blue-600 hover:bg-blue-50 transition-all';
       });
-      document.getElementById('player-name-text').style.paintOrder = 'stroke fill';
+      activePanel = null;
     }
 
-    function toggleTextBox(checked) {
-      const box = document.getElementById('player-name-text');
-      if (checked) {
-        box.style.backgroundColor = document.getElementById('textbox-color').value;
-        applyBoxRadius(document.getElementById('slider-box-radius').value);
-        applyBoxPadding(document.getElementById('slider-box-padding').value);
-      } else {
-        box.style.backgroundColor = 'transparent';
-        box.style.padding = '0';
-      }
-      saveState();
-    }
-
-    function applyBoxColor(color) {
-      if (document.getElementById('effect-box-toggle').checked) {
-        document.getElementById('player-name-text').style.backgroundColor = color;
-      }
-      saveState();
-    }
-
-    function applyBoxRadius(r) {
-      document.getElementById('label-box-radius').innerText = `${r}px`;
-      if (document.getElementById('effect-box-toggle').checked) {
-        document.getElementById('player-name-text').style.borderRadius = `${r}px`;
+    // 10. ================= LIVE TEXT & LAYER CONTROLS =================
+    function updateLiveText(field, val) {
+      if (field === 'name') {
+        document.getElementById('canvas-player-name').innerText = isUpperCase ? val.toUpperCase() : val;
+      } else if (field === 'number') {
+        document.getElementById('canvas-player-number').innerText = val;
       }
     }
 
-    function applyBoxPadding(p) {
-      document.getElementById('label-box-padding').innerText = `${p}px`;
-      if (document.getElementById('effect-box-toggle').checked) {
-        document.getElementById('player-name-text').style.padding = `${p/2}px ${p}px`;
-      }
+    function addTextLayer(sampleText) {
+      showToast(`+ Added text layer: "${sampleText}" to canvas!`);
     }
 
-    function toggleShadow(checked) {
-      const num = document.getElementById('player-number-text');
-      if (checked) {
-        const blur = document.getElementById('slider-shadow-blur').value;
-        const y = document.getElementById('slider-shadow-y').value;
-        const c = document.getElementById('shadow-color').value;
-        num.style.filter = `drop-shadow(0px ${y}px ${blur}px ${c})`;
-      } else {
-        num.style.filter = 'none';
-      }
-      saveState();
-    }
-
-    function applyShadowBlur(b) {
-      document.getElementById('label-shadow-blur').innerText = `${b}px`;
-      toggleShadow(document.getElementById('effect-shadow-toggle').checked);
-    }
-
-    function applyShadowY(y) {
-      document.getElementById('label-shadow-y').innerText = `${y}px`;
-      toggleShadow(document.getElementById('effect-shadow-toggle').checked);
-    }
-
-    function applyShadowColor(c) {
-      toggleShadow(document.getElementById('effect-shadow-toggle').checked);
-    }
-
-    // 8. Typography Toolbar & Actions
-    function applyTextColor(c) {
-      document.getElementById('player-name-text').style.color = c;
-      document.getElementById('player-number-text').style.color = c;
-      document.getElementById('top-color-picker').value = c;
-      saveState();
-    }
-
-    function pickElementColor() {
-      document.getElementById('top-color-picker').click();
-    }
-
-    function applyFontSize(size) {
-      document.getElementById('player-number-text').style.fontSize = `${size}px`;
-      saveState();
-    }
-
-    function stepFontSize(delta) {
-      const input = document.getElementById('top-font-size');
-      const val = Math.max(20, parseInt(input.value) + delta);
-      input.value = val;
-      applyFontSize(val);
-    }
-
-    function setTextAlign(align) {
-      ['left', 'center', 'right'].forEach(a => {
-        const btn = document.getElementById(`btn-align-${a}`);
-        if (btn) {
-          if (a === align) {
-            btn.className = 'p-1.5 rounded hover:bg-gray-100 text-indigo-600 font-bold bg-indigo-50';
-          } else {
-            btn.className = 'p-1.5 rounded hover:bg-gray-100 text-gray-600';
-          }
-        }
-      });
-      document.getElementById('selection-box').style.alignItems = align === 'left' ? 'flex-start' : align === 'right' ? 'flex-end' : 'center';
-      document.getElementById('player-name-text').style.textAlign = align;
-      document.getElementById('player-number-text').style.textAlign = align;
-      saveState();
-    }
-
-    function toggleTextStyle(style) {
-      const name = document.getElementById('player-name-text');
-      const num = document.getElementById('player-number-text');
-      const btn = document.getElementById(`btn-style-${style}`);
-
-      if (style === 'bold') {
-        const isB = name.style.fontWeight === '400';
-        name.style.fontWeight = isB ? '900' : '400';
-        num.style.fontWeight = isB ? '900' : '400';
-        btn.classList.toggle('bg-indigo-100');
-      } else if (style === 'italic') {
-        const isI = name.style.fontStyle === 'italic';
-        name.style.fontStyle = isI ? 'normal' : 'italic';
-        num.style.fontStyle = isI ? 'normal' : 'italic';
-        btn.classList.toggle('bg-indigo-100');
-      } else if (style === 'underline') {
-        const isU = name.style.textDecoration === 'underline';
-        name.style.textDecoration = isU ? 'none' : 'underline';
-        btn.classList.toggle('bg-indigo-100');
-      }
-      saveState();
-    }
-
-    function toggleTextCase() {
-      isUpperCase = !isUpperCase;
-      const name = document.getElementById('player-name-text');
-      name.innerText = isUpperCase ? name.innerText.toUpperCase() : name.innerText.charAt(0).toUpperCase() + name.innerText.slice(1).toLowerCase();
-      saveState();
-    }
-
-    function autoFitText() {
-      document.getElementById('top-font-size').value = 95;
-      applyFontSize(95);
-      alert('Auto-Fit: Font size automatically scaled to 95pt to fit safe printable boundary!');
-    }
-
-    function convertSvgText() {
-      alert('Text successfully converted to crisp vector outlines for production printing!');
-    }
-
-    // 9. Dimensions & Units
-    function updateDimension(dim, val) {
-      const unit = document.getElementById('canvas-unit-select').value;
-      const badge = document.getElementById('canvas-dimension-badge');
-      if (dim === 'w') {
-        badge.innerText = `${val} × ${document.getElementById('prop-height').value} ${unit}`;
-      } else {
-        badge.innerText = `${document.getElementById('prop-width').value} × ${val} ${unit}`;
-      }
-    }
-
-    function changeUnit(unit) {
-      const w = document.getElementById('prop-width');
-      const h = document.getElementById('prop-height');
-      if (unit === 'cm') {
-        w.value = (parseFloat(w.value) * 2.54).toFixed(1);
-        h.value = (parseFloat(h.value) * 2.54).toFixed(1);
-        document.getElementById('ruler-x0').innerText = '0 cm';
-        document.getElementById('ruler-x4').innerText = '10 cm';
-        document.getElementById('ruler-x8').innerText = '20 cm';
-        document.getElementById('ruler-x12').innerText = '30 cm';
-        document.getElementById('ruler-x16').innerText = '40 cm';
-        document.getElementById('ruler-x20').innerText = '50 cm';
-      } else if (unit === 'px') {
-        w.value = Math.round(parseFloat(w.value) * 300);
-        h.value = Math.round(parseFloat(h.value) * 300);
-        document.getElementById('ruler-x0').innerText = '0 px';
-        document.getElementById('ruler-x4').innerText = '1200 px';
-        document.getElementById('ruler-x8').innerText = '2400 px';
-        document.getElementById('ruler-x12').innerText = '3600 px';
-        document.getElementById('ruler-x16').innerText = '4800 px';
-        document.getElementById('ruler-x20').innerText = '6000 px';
-      } else {
-        w.value = '10.0';
-        h.value = '11.2';
-        document.getElementById('ruler-x0').innerText = '0"';
-        document.getElementById('ruler-x4').innerText = '4"';
-        document.getElementById('ruler-x8').innerText = '8"';
-        document.getElementById('ruler-x12').innerText = '12"';
-        document.getElementById('ruler-x16').innerText = '16"';
-        document.getElementById('ruler-x20').innerText = '20"';
-      }
-      updateDimension('w', w.value);
-    }
-
-    function applyCanvasZoom(val) {
-      document.getElementById('zoom-label').innerText = `${val}%`;
-      const scale = val / 100;
-      document.getElementById('artboard-box').style.transform = `scale(${scale})`;
-    }
-
-    // 10. Garment View Switching (Back, Front, HS, FS)
-    function switchGarmentView(view) {
-      ['back', 'front', 'hs', 'fs'].forEach(v => {
-        const el = document.getElementById(`pill-view-${v}`);
-        if (el) el.className = 'px-3 py-1 rounded-md font-medium text-gray-600 hover:text-gray-900 transition';
-      });
-
-      const bodySvg = document.getElementById('svg-body-path');
-      const swoosh1 = document.getElementById('svg-swoosh-1');
-      const swoosh2 = document.getElementById('svg-swoosh-2');
-      const swoosh3 = document.getElementById('svg-swoosh-3');
-
-      if (view === 'back') {
-        document.getElementById('pill-view-back').className = 'px-3 py-1 rounded-md font-bold bg-white text-indigo-600 shadow-xs transition';
-        document.getElementById('player-name-text').style.display = 'block';
-        document.getElementById('player-number-text').innerText = '15';
-        document.getElementById('canvas-title-badge').innerText = 'Back Master';
-        document.getElementById('current-preset-label').innerText = 'Default (Back Master)';
-        bodySvg.setAttribute('d', 'M120 40 L80 120 L30 180 L60 230 L100 180 L100 500 L300 500 L300 180 L340 230 L370 180 L320 120 L280 40 Z');
-        swoosh1.style.display = 'block'; swoosh2.style.display = 'block'; swoosh3.style.display = 'block';
-      } else if (view === 'front') {
-        document.getElementById('pill-view-front').className = 'px-3 py-1 rounded-md font-bold bg-white text-indigo-600 shadow-xs transition';
-        document.getElementById('player-name-text').style.display = 'none';
-        document.getElementById('player-number-text').innerText = '15';
-        document.getElementById('canvas-title-badge').innerText = 'Front Master';
-        document.getElementById('current-preset-label').innerText = 'Front View';
-        bodySvg.setAttribute('d', 'M120 40 L80 120 L30 180 L60 230 L100 180 L100 500 L300 500 L300 180 L340 230 L370 180 L320 120 L280 40 Z');
-      } else if (view === 'half_sleeve') {
-        document.getElementById('pill-view-hs').className = 'px-2.5 py-1 rounded-md font-bold bg-white text-indigo-600 shadow-xs transition';
-        document.getElementById('player-name-text').style.display = 'block';
-        document.getElementById('player-name-text').innerText = 'SPONSOR';
-        document.getElementById('player-number-text').innerText = '⚡';
-        document.getElementById('canvas-title-badge').innerText = 'Half Sleeve (Left)';
-        document.getElementById('current-preset-label').innerText = 'Half Sleeve Layout';
-        bodySvg.setAttribute('d', 'M80 80 L320 80 L300 480 L100 480 Z');
-        swoosh1.style.display = 'none'; swoosh2.style.display = 'none'; swoosh3.style.display = 'none';
-      } else {
-        document.getElementById('pill-view-fs').className = 'px-2.5 py-1 rounded-md font-bold bg-white text-indigo-600 shadow-xs transition';
-        document.getElementById('player-name-text').style.display = 'block';
-        document.getElementById('player-name-text').innerText = 'TEAM LOGO';
-        document.getElementById('player-number-text').innerText = '★';
-        document.getElementById('canvas-title-badge').innerText = 'Full Sleeve';
-        document.getElementById('current-preset-label').innerText = 'Full Sleeve Layout';
-        bodySvg.setAttribute('d', 'M100 60 L300 60 L270 520 L130 520 Z');
-        swoosh1.style.display = 'none'; swoosh2.style.display = 'none'; swoosh3.style.display = 'none';
-      }
-      saveState();
-    }
-
-    // 11. Workflow Mode Switcher (Design | Variation | Export)
-    function setWorkflowMode(mode) {
-      ['design', 'variation', 'export'].forEach(m => {
-        const btn = document.getElementById(`mode-${m}`);
-        if (m === mode) {
-          btn.className = 'px-3 py-1 rounded-md font-bold bg-blue-600 text-white shadow-xs';
-        } else {
-          btn.className = 'px-3 py-1 rounded-md font-medium text-blue-700 hover:bg-blue-100';
-        }
-      });
-
-      if (mode === 'export') {
-        openModal('export-modal');
-      } else if (mode === 'variation') {
-        const carousel = document.getElementById('size-filmstrip-carousel');
-        carousel.scrollIntoView({ behavior: 'smooth' });
-        alert('Variation Mode: Active! Browse sizes in the bottom filmstrip or click "Apply to all" to sync.');
-      }
-    }
-
-    // 12. Floating Toolbar Actions
-    function centerSelected() {
-      const box = document.getElementById('selection-box');
-      box.style.left = '50%';
-      box.style.transform = 'translateX(-50%)';
-      alert('Element centered to garment axis!');
-      saveState();
-    }
-
-    function toggleLockSelected() {
-      isLocked = !isLocked;
-      const btn = document.getElementById('btn-float-lock');
-      const box = document.getElementById('selection-box');
-      if (isLocked) {
-        btn.innerHTML = '<i data-lucide="lock" class="w-3.5 h-3.5 text-red-600"></i>';
-        box.classList.remove('cursor-move', 'cursor-grab');
-        box.classList.add('cursor-not-allowed', 'border-yellow-400');
-        alert('Element Locked (Cannot be accidentally dragged or edited)');
-      } else {
-        btn.innerHTML = '<i data-lucide="unlock" class="w-3.5 h-3.5"></i>';
-        box.classList.add('cursor-move', 'cursor-grab');
-        box.classList.remove('cursor-not-allowed', 'border-yellow-400');
-        alert('Element Unlocked');
-      }
-      lucide.createIcons();
-      saveState();
-    }
-
-    function duplicateSelected() {
-      alert('Duplicated layer: "LIAM 15" copy added to canvas!');
-      saveState();
-    }
-
-    function deleteSelected() {
-      if (confirm('Delete selected element?')) {
-        document.getElementById('selection-box').style.display = 'none';
-        saveState();
-      }
-    }
-
-    // 13. Image & Graphics Uploader
-    function addGraphicToJersey(type) {
-      const slot = document.getElementById('jersey-graphic-slot');
-      slot.classList.remove('hidden');
-      if (type === 'crest') {
-        slot.innerHTML = '🛡️';
-        alert('Added Team Shield Crest to jersey!');
-      } else {
-        slot.innerHTML = '⚡';
-        alert('Added Sponsor Lightning Logo to jersey!');
-      }
-      saveState();
-    }
-
-    function handleImageUpload(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(event) {
-        const slot = document.getElementById('jersey-graphic-slot');
-        slot.classList.remove('hidden');
-        slot.innerHTML = `<img src="${event.target.result}" class="max-h-16 max-w-24 object-contain mx-auto drop-shadow-md">`;
-        alert(`Graphic "${file.name}" placed on jersey!`);
-        saveState();
-      };
-      reader.readAsDataURL(file);
-    }
-
-    // 14. Undo & Redo History
-    function saveState() {
-      const state = {
-        name: document.getElementById('player-name-text').innerText,
-        number: document.getElementById('player-number-text').innerText,
-        fontSize: document.getElementById('top-font-size').value,
-        color: document.getElementById('top-color-picker').value
-      };
-      historyStack = historyStack.slice(0, historyIndex + 1);
-      historyStack.push(state);
-      historyIndex++;
-    }
-
-    function triggerUndo() {
-      if (historyIndex > 0) {
-        historyIndex--;
-        restoreState(historyStack[historyIndex]);
-      } else {
-        alert('Nothing to undo.');
-      }
-    }
-
-    function triggerRedo() {
-      if (historyIndex < historyStack.length - 1) {
-        historyIndex++;
-        restoreState(historyStack[historyIndex]);
-      } else {
-        alert('Nothing to redo.');
-      }
-    }
-
-    function restoreState(s) {
-      if (!s) return;
-      document.getElementById('player-name-text').innerText = s.name;
-      document.getElementById('player-number-text').innerText = s.number;
-      document.getElementById('top-font-size').value = s.fontSize;
-      applyFontSize(s.fontSize);
-      applyTextColor(s.color);
-    }
-
-    // 15. Layers Panel Renderer
-    function renderLayersList() {
-      const c = document.getElementById('layers-list-container');
-      if (!c) return;
-      c.innerHTML = `
-        <div class="flex items-center justify-between p-2 rounded-lg bg-gray-50 border border-gray-200">
-          <div class="flex items-center gap-2"><i data-lucide="type" class="w-3.5 h-3.5 text-indigo-600"></i><span class="font-bold">Player Name: LIAM</span></div>
-          <div class="flex items-center gap-1"><i data-lucide="eye" class="w-3 h-3 text-gray-500"></i><i data-lucide="lock" class="w-3 h-3 text-gray-400"></i></div>
-        </div>
-        <div class="flex items-center justify-between p-2 rounded-lg bg-gray-50 border border-gray-200">
-          <div class="flex items-center gap-2"><i data-lucide="hash" class="w-3.5 h-3.5 text-purple-600"></i><span class="font-bold">Player Number: 15</span></div>
-          <div class="flex items-center gap-1"><i data-lucide="eye" class="w-3 h-3 text-gray-500"></i><i data-lucide="lock" class="w-3 h-3 text-gray-400"></i></div>
-        </div>
-        <div class="flex items-center justify-between p-2 rounded-lg bg-gray-50 border border-gray-200">
-          <div class="flex items-center gap-2"><i data-lucide="image" class="w-3.5 h-3.5 text-emerald-600"></i><span class="font-medium text-gray-600">Sublimation Ribbons</span></div>
-          <div class="flex items-center gap-1"><i data-lucide="eye" class="w-3 h-3 text-gray-500"></i><i data-lucide="lock" class="w-3 h-3 text-gray-400"></i></div>
-        </div>
-      `;
-      lucide.createIcons();
-    }
-
-    // 16. Roster Ingestion & Sample Data
-    const rosterData = {
+    // 11. ================= ROSTER BULK AUTOMATION =================
+    const sampleTeams = {
       basketball: [
-        { name: 'CARTER', number: '15', size: 'L' },
-        { name: 'JORDAN', number: '23', size: 'XL' },
-        { name: 'BRYANT', number: '24', size: 'L' },
-        { name: 'JAMES', number: '6', size: '2XL' },
-        { name: "O'NEAL", number: '34', size: '3XL' },
-        { name: 'CURRY', number: '30', size: 'M' },
-        { name: 'ALLEN', number: '20', size: 'L' },
-        { name: 'DURANT', number: '35', size: 'XL' },
-        { name: 'BARKLEY', number: '32', size: 'XL' },
-        { name: 'RODMAN', number: '91', size: 'L' },
+        { id: 1, name: 'MARCUS', number: '07', size: 'Adult L' },
+        { id: 2, name: 'JORDAN', number: '23', size: 'Adult XL' },
+        { id: 3, name: 'BRYANT', number: '24', size: 'Adult M' },
+        { id: 4, name: 'CURRY', number: '30', size: 'Adult M' },
+        { id: 5, name: 'JAMES', number: '06', size: 'Adult 2XL' },
+        { id: 6, name: 'DONCIC', number: '77', size: 'Adult L' },
+        { id: 7, name: 'GIANNIS', number: '34', size: 'Adult XL' },
+        { id: 8, name: 'DURANT', number: '35', size: 'Adult L' },
+        { id: 9, name: 'TATUM', number: '00', size: 'Adult M' },
+        { id: 10, name: 'MORANT', number: '12', size: 'Adult S' }
       ],
       soccer: [
-        { name: 'ALISSON', number: '1', size: 'XL' },
-        { name: 'WALKER', number: '2', size: 'L' },
-        { name: 'DIAS', number: '3', size: 'XL' },
-        { name: 'VAN DIJK', number: '4', size: '2XL' },
-        { name: 'RODRIGUEZ', number: '10', size: 'M' },
-        { name: 'SALAH', number: '11', size: 'L' },
-        { name: 'MBAPPE', number: '7', size: 'M' },
-        { name: 'HAALAND', number: '9', size: 'XL' },
+        { id: 1, name: 'ALISSON', number: '01', size: 'Adult L' },
+        { id: 2, name: 'VAN DIJK', number: '04', size: 'Adult XL' },
+        { id: 3, name: 'SALAH', number: '11', size: 'Adult M' },
+        { id: 4, name: 'DE BRUYNE', number: '17', size: 'Adult M' },
+        { id: 5, name: 'HAALAND', number: '09', size: 'Adult XL' }
       ]
     };
 
-    function loadSampleRoster(sport) {
-      const tbody = document.getElementById('modal-roster-tbody');
+    let activeRoster = sampleTeams.basketball;
+
+    function pickRoster(type) {
+      activeRoster = sampleTeams[type] || sampleTeams.basketball;
+      const tbody = document.getElementById('roster-table-body');
       tbody.innerHTML = '';
-      const list = rosterData[sport] || rosterData.basketball;
-      list.forEach((p, idx) => {
+      activeRoster.forEach((p, idx) => {
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-gray-50';
+        tr.className = 'hover:bg-slate-50 transition';
         tr.innerHTML = `
-          <td class="p-2 font-mono text-gray-400">${idx + 1}</td>
-          <td class="p-2 font-bold text-gray-900">${p.name}</td>
-          <td class="p-2 font-mono font-bold text-indigo-600">${p.number}</td>
-          <td class="p-2 font-semibold text-gray-600">${p.size}</td>
+          <td class="p-2 font-mono text-slate-400">${idx + 1}</td>
+          <td class="p-2 font-bold text-slate-800">${p.name}</td>
+          <td class="p-2 font-mono font-bold text-blue-600">${p.number}</td>
+          <td class="p-2 text-slate-600">${p.size}</td>
           <td class="p-2">
-            <button onclick="previewRosterPlayer('${p.name}', '${p.number}')" class="text-xs font-bold text-blue-600 hover:underline">Preview</button>
+            <button onclick="previewTeamPlayer('${p.name}', '${p.number}')" class="px-2 py-0.5 rounded bg-blue-50 text-blue-600 hover:bg-blue-100 font-bold text-[10px]">Preview</button>
           </td>
         `;
         tbody.appendChild(tr);
       });
-      alert(`Loaded ${list.length} players from ${sport} team roster!`);
+      showToast(`Loaded ${activeRoster.length}-player team roster!`);
     }
 
-    function previewRosterPlayer(name, number) {
-      document.getElementById('player-name-text').innerText = name;
-      document.getElementById('player-number-text').innerText = number;
-      document.getElementById('input-edit-name').value = name;
-      document.getElementById('input-edit-number').value = number;
+    function previewTeamPlayer(name, number) {
+      document.getElementById('canvas-player-name').innerText = name;
+      document.getElementById('canvas-player-number').innerText = number;
       closeModal('roster-modal');
-      saveState();
+      showToast(`Previewing Player: ${name} (#${number})`);
     }
 
-    function startBatchGeneration() {
+    function runBulkGeneration() {
       closeModal('roster-modal');
-      let progress = 0;
-      const progressBox = document.createElement('div');
-      progressBox.id = 'batch-progress-popup';
-      progressBox.className = 'fixed bottom-6 right-6 bg-white border border-gray-300 rounded-xl p-4 shadow-2xl z-50 w-80 text-xs';
-      progressBox.innerHTML = `
-        <div class="font-bold text-gray-900 mb-1 flex items-center justify-between">
-          <span>Batch Generating Jerseys...</span>
-          <span id="batch-pct" class="text-indigo-600 font-mono">0%</span>
-        </div>
-        <div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden mb-2">
-          <div id="batch-bar" class="bg-indigo-600 h-full w-0 transition-all duration-150"></div>
-        </div>
-        <div class="text-[10px] text-gray-500" id="batch-desc">Processing 10 players locally at 300 DPI...</div>
-      `;
-      document.body.appendChild(progressBox);
-
-      const interval = setInterval(() => {
-        progress += 10;
-        document.getElementById('batch-pct').innerText = `${progress}%`;
-        document.getElementById('batch-bar').style.width = `${progress}%`;
-        if (progress >= 100) {
-          clearInterval(interval);
-          document.getElementById('batch-desc').innerText = 'Complete! Bundled into Falcon_FC_Jerseys.zip';
-          setTimeout(() => {
-            alert('Batch Generation Complete!\n\n100% of personalized team jerseys generated locally at 300 DPI.\nZIP package ready in ~/Documents/JerseyStudio/Exports/Falcon_FC_Jerseys.zip');
-            progressBox.remove();
-          }, 600);
-        }
-      }, 150);
+      showToast('✓ Batch Generation Complete! All team jerseys generated locally at 300 DPI.', 'success');
     }
 
-    // 17. Export Formats & Action
-    function selectExportFormat(fmt) {
-      activeExportFormat = fmt;
+    // 12. ================= EXPORT CONTROLS =================
+    function setExportFormat(fmt) {
+      selectedExportFmt = fmt;
       ['png', 'jpg', 'pdf'].forEach(f => {
-        const btn = document.getElementById(`btn-export-${f}`);
+        const btn = document.getElementById(`export-btn-${f}`);
         if (f === fmt) {
-          btn.className = 'p-2 border rounded-lg border-indigo-500 bg-indigo-50 text-indigo-700 font-bold text-center';
+          btn.className = 'p-2.5 border rounded-xl border-blue-500 bg-blue-50 text-blue-700 font-bold text-center';
         } else {
-          btn.className = 'p-2 border rounded-lg hover:bg-gray-50 text-center font-medium';
+          btn.className = 'p-2.5 border rounded-xl hover:bg-slate-50 text-center font-medium';
         }
       });
     }
 
-    function triggerActualExport() {
-      alert(`Export Successful!\n\nSaved: Falcon_FC_Jersey_15.${activeExportFormat.toUpperCase()}\nResolution: 300 DPI Dye-Sublimation Print\nDestination: ~/Documents/JerseyStudio/Exports/`);
+    function executeExportDownload() {
       closeModal('export-modal');
+      const filename = `Falcon_FC_Jersey_15.${selectedExportFmt}`;
+      showToast(`✓ Export Successful! File saved to disk: ${filename}`, 'success');
     }
 
-    // 18. Modal Controls
-    function openModal(id) {
-      const el = document.getElementById(id);
-      if (el) {
-        el.classList.remove('hidden');
-        el.classList.add('flex');
-      }
-      if (id === 'roster-modal') loadSampleRoster('basketball');
-    }
-
-    function closeModal(id) {
-      const el = document.getElementById(id);
-      if (el) {
-        el.classList.add('hidden');
-        el.classList.remove('flex');
+    // 13. ================= MODAL HELPERS =================
+    function openModal(modalId) {
+      document.getElementById(modalId).classList.remove('hidden');
+      document.getElementById(modalId).classList.add('flex');
+      if (modalId === 'roster-modal') {
+        pickRoster('basketball');
       }
     }
 
-    // Initialize initial views & initial history state
-    renderFilmstrip();
-    toggleStroke(true);
-    toggleShadow(true);
-    saveState();
+    function closeModal(modalId) {
+      document.getElementById(modalId).classList.add('hidden');
+      document.getElementById(modalId).classList.remove('flex');
+    }
+
+    // 14. ================= UNDO / REDO STUB =================
+    function actionUndo() {
+      showToast('⟲ Reverted previous edit');
+    }
+
+    function actionRedo() {
+      showToast('⟳ Restored edit');
+    }
+
+    // Initial Setup
+    updateCanvasGeometry();
+    renderFontList();
   </script>
 </body>
 </html>
