@@ -1,10 +1,12 @@
 import { CanvasDimensions } from '@/components/ui/CanvasResizeControl';
 
-export type GarmentView = 'front' | 'back';
+export type GarmentView = 'front' | 'back' | 'half_sleeve' | 'full_sleeve';
 
-export type CanvasLayerType = 'text' | 'dynamic_name' | 'dynamic_number' | 'shape';
+export type CanvasLayerType = 'text' | 'dynamic_name' | 'dynamic_number' | 'shape' | 'image';
 
 export type DynamicBindingKey = 'player_name' | 'player_number' | 'custom';
+
+export type StrokeCornerJoin = 'miter' | 'bevel' | 'round';
 
 export interface EditorElement {
   id: string;
@@ -29,12 +31,38 @@ export interface EditorElement {
   strokeColor?: string;
   strokeWidth?: number; // in points
   strokeEnabled?: boolean;
+  strokeJoin?: StrokeCornerJoin; // 'miter' | 'bevel' | 'round'
   letterSpacing?: number; // in px or em
   textAlign: 'left' | 'center' | 'right';
   textTransform?: 'uppercase' | 'none' | 'lowercase';
-  
+
+  // Advanced Text Effects: Curved / Arc Text
+  curvedTextEnabled?: boolean;
+  curvePower?: number; // 0 to 100
+  curveDirection?: 'up' | 'down'; // 'up' (rainbow arch) | 'down' (smile arch)
+
+  // Advanced Text Effects: Text Box Background
+  bgEnabled?: boolean;
+  bgColor?: string;
+  bgOpacity?: number; // 0 to 1
+  bgCornerRadius?: number; // 0 to 50
+  bgPadding?: number; // 0 to 50
+
+  // Advanced Text Effects: Drop Shadow
+  shadowEnabled?: boolean;
+  shadowColor?: string;
+  shadowBlur?: number; // 0 to 50
+  shadowOffsetX?: number; // -50 to 50
+  shadowOffsetY?: number; // -50 to 50
+  shadowOpacity?: number; // 0 to 1
+
   // Shape properties
   shapeType?: 'rectangle' | 'circle' | 'badge' | 'stripe';
+
+  // Image / Local Logo properties
+  imageSrc?: string;
+  imageFileName?: string;
+  imageMimeType?: string;
 
   // Management
   opacity: number; // 0 to 1
@@ -86,4 +114,23 @@ export interface BatchRosterItem {
   name: string;
   number: string;
   size?: string;
+}
+
+export interface CustomFontItem {
+  id: string;
+  name: string;
+  family: string;
+  source: 'sports' | 'system' | 'uploaded';
+  category?: 'varsity' | 'block' | 'collegiate' | 'sans' | 'serif' | 'display';
+  previewUrl?: string;
+  format?: string;
+}
+
+export interface GarmentSizeItem {
+  id: string;
+  name: string;
+  category: 'youth' | 'adult';
+  widthInches: number;
+  heightInches: number;
+  description: string;
 }
