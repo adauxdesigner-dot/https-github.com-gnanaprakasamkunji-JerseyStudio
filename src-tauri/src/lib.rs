@@ -1,5 +1,7 @@
 pub mod db;
+pub mod auth;
 
+use auth::{get_offline_auth_status, save_entitlement_token, clear_local_license};
 use db::{DbError, DesignElementRecord, LocalLicenseCacheRecord, ProjectRecord};
 use rusqlite::{params, Connection};
 use std::path::PathBuf;
@@ -328,7 +330,10 @@ pub fn run() {
             get_local_setting,
             set_local_setting,
             get_license_cache,
-            set_license_cache
+            set_license_cache,
+            get_offline_auth_status,
+            save_entitlement_token,
+            clear_local_license
         ])
         .run(tauri::generate_context!())
         .expect("error while running JerseyStudio desktop application");

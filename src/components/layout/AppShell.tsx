@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Tooltip } from '@/components/ui/Tooltip';
+import { LicenseStatusBadge, LicenseBanner } from '@/features/auth';
 
 export type NavigationTab = 'dashboard' | 'projects' | 'templates' | 'editor' | 'roster' | 'settings';
 
@@ -29,6 +30,7 @@ export interface AppShellProps {
   saveStatus?: SaveStatus;
   lastSavedAt?: Date | null;
   onManualSave?: () => void;
+  onOpenAuthModal?: () => void;
   children: React.ReactNode;
 }
 
@@ -39,6 +41,7 @@ export const AppShell: React.FC<AppShellProps> = ({
   saveStatus = 'saved',
   lastSavedAt = new Date(),
   onManualSave,
+  onOpenAuthModal,
   children,
 }) => {
   const navItems = [
@@ -123,13 +126,7 @@ export const AppShell: React.FC<AppShellProps> = ({
           </div>
 
           {/* Offline License Status Indicator */}
-          <div className="flex items-center justify-between text-[11px] px-1 text-text-secondary">
-            <div className="flex items-center gap-1.5">
-              <ShieldCheck className="w-3.5 h-3.5 text-success" />
-              <span>Offline Authorized</span>
-            </div>
-            <span className="font-mono text-[10px] text-text-muted">6d left</span>
-          </div>
+          <LicenseStatusBadge onOpenAuthModal={onOpenAuthModal || (() => {})} />
         </div>
       </aside>
 
@@ -208,6 +205,9 @@ export const AppShell: React.FC<AppShellProps> = ({
             </Tooltip>
           </div>
         </header>
+
+        {/* Dynamic License Notification Banner */}
+        <LicenseBanner onOpenAuthModal={onOpenAuthModal || (() => {})} />
 
         {/* Content View Area */}
         <main className="flex-1 overflow-auto bg-bg-app">

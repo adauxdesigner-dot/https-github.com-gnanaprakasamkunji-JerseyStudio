@@ -4,11 +4,13 @@ import { Showcase } from '@/app/Showcase';
 import { DashboardView } from '@/features/dashboard/DashboardView';
 import { RosterWorkflowView } from '@/features/roster';
 import { EditorView } from '@/features/editor';
+import { AuthModal } from '@/features/auth';
 
 export function App() {
   const [currentTab, setCurrentTab] = React.useState<NavigationTab>('editor');
   const [saveStatus, setSaveStatus] = React.useState<SaveStatus>('saved');
   const [lastSaved, setLastSaved] = React.useState<Date | null>(new Date());
+  const [isAuthModalOpen, setIsAuthModalOpen] = React.useState<boolean>(false);
 
   const handleManualSave = () => {
     setSaveStatus('saving');
@@ -26,6 +28,7 @@ export function App() {
       saveStatus={saveStatus}
       lastSavedAt={lastSaved}
       onManualSave={handleManualSave}
+      onOpenAuthModal={() => setIsAuthModalOpen(true)}
     >
       {currentTab === 'dashboard' ? (
         <DashboardView
@@ -39,6 +42,10 @@ export function App() {
       ) : (
         <Showcase />
       )}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+      />
     </AppShell>
   );
 }

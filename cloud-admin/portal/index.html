@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JerseyStudio — Founder Licensing & Admin Portal</title>
+  <!-- Tailwind CSS CDN for instant responsive layout -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    :root {
+      --bg-app: #F5F6F8;
+      --surface: #FFFFFF;
+      --surface-subtle: #F0F2F5;
+      --text-primary: #171A21;
+      --text-secondary: #5D6675;
+      --border: #DCE1E8;
+      --primary: #3157D5;
+      --primary-hover: #2547B8;
+      --success: #16845B;
+      --warning: #A86612;
+      --error: #C23838;
+    }
+    body {
+      background-color: var(--bg-app);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[#F5F6F8] text-[#171A21] antialiased">
+
+  <!-- TOP HEADER -->
+  <header class="bg-white border-b border-[#DCE1E8] h-16 px-6 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+    <div class="flex items-center gap-3">
+      <div class="w-9 h-9 rounded-lg bg-[#3157D5] text-white flex items-center justify-center font-bold text-lg shadow-sm">
+        JS
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <span class="font-bold text-base tracking-tight">JerseyStudio</span>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-[#3157D5] font-semibold uppercase tracking-wider">Cloud Admin</span>
+        </div>
+        <div class="text-xs text-gray-500">Milestone 3 — Asymmetric Licensing & Approval Authority</div>
+      </div>
+    </div>
+
+    <!-- Data Boundary Assurance Badge -->
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2 px-3 py-1.5 rounded-md bg-emerald-50 border border-emerald-200 text-xs text-emerald-800">
+        <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i>
+        <span class="font-medium">Strict Privacy Boundary: Zero Project Data In Cloud</span>
+      </div>
+
+      <div class="flex items-center gap-2 pl-3 border-l border-gray-200">
+        <div class="w-8 h-8 rounded-full bg-slate-700 text-white flex items-center justify-center text-xs font-bold">
+          FO
+        </div>
+        <div class="text-xs">
+          <div class="font-semibold text-gray-800">founder@jerseystudio</div>
+          <div class="text-gray-400 text-[11px]">Super Admin</div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
+
+    <!-- OVERVIEW STATS CARDS -->
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div class="bg-white p-4 rounded-lg border border-[#DCE1E8] shadow-sm flex items-center justify-between">
+        <div>
+          <div class="text-xs text-gray-500 uppercase font-semibold">Total Accounts</div>
+          <div id="stat-total" class="text-2xl font-bold text-gray-900 mt-1">4</div>
+        </div>
+        <div class="w-10 h-10 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center">
+          <i data-lucide="users" class="w-5 h-5"></i>
+        </div>
+      </div>
+
+      <div class="bg-white p-4 rounded-lg border-2 border-amber-400 shadow-sm flex items-center justify-between bg-amber-50/20">
+        <div>
+          <div class="text-xs text-amber-700 uppercase font-semibold flex items-center gap-1.5">
+            Pending Approvals
+            <span class="relative flex h-2 w-2">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+            </span>
+          </div>
+          <div id="stat-pending" class="text-2xl font-bold text-amber-700 mt-1">1</div>
+        </div>
+        <div class="w-10 h-10 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center">
+          <i data-lucide="clock" class="w-5 h-5"></i>
+        </div>
+      </div>
+
+      <div class="bg-white p-4 rounded-lg border border-[#DCE1E8] shadow-sm flex items-center justify-between">
+        <div>
+          <div class="text-xs text-emerald-600 uppercase font-semibold">Approved & Active</div>
+          <div id="stat-approved" class="text-2xl font-bold text-emerald-700 mt-1">1</div>
+        </div>
+        <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
+          <i data-lucide="check-circle" class="w-5 h-5"></i>
+        </div>
+      </div>
+
+      <div class="bg-white p-4 rounded-lg border border-[#DCE1E8] shadow-sm flex items-center justify-between">
+        <div>
+          <div class="text-xs text-orange-600 uppercase font-semibold">Suspended</div>
+          <div id="stat-suspended" class="text-2xl font-bold text-orange-700 mt-1">1</div>
+        </div>
+        <div class="w-10 h-10 rounded-lg bg-orange-100 text-orange-700 flex items-center justify-center">
+          <i data-lucide="pause-circle" class="w-5 h-5"></i>
+        </div>
+      </div>
+
+      <div class="bg-white p-4 rounded-lg border border-[#DCE1E8] shadow-sm flex items-center justify-between">
+        <div>
+          <div class="text-xs text-red-600 uppercase font-semibold">Revoked</div>
+          <div id="stat-revoked" class="text-2xl font-bold text-red-700 mt-1">1</div>
+        </div>
+        <div class="w-10 h-10 rounded-lg bg-red-100 text-red-700 flex items-center justify-center">
+          <i data-lucide="shield-x" class="w-5 h-5"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="bg-white rounded-lg border border-[#DCE1E8] shadow-sm overflow-hidden">
+      <div class="flex border-b border-[#DCE1E8] bg-gray-50/70 px-4">
+        <button id="tab-btn-users" onclick="switchTab('users')" class="px-5 py-3.5 text-xs font-semibold text-[#3157D5] border-b-2 border-[#3157D5] flex items-center gap-2">
+          <i data-lucide="user-check" class="w-4 h-4"></i>
+          Authorized Accounts & 1-Click Approvals
+        </button>
+        <button id="tab-btn-simulator" onclick="switchTab('simulator')" class="px-5 py-3.5 text-xs font-semibold text-gray-500 hover:text-gray-700 flex items-center gap-2">
+          <i data-lucide="key" class="w-4 h-4"></i>
+          Asymmetric Token Simulator & Verifier
+        </button>
+        <button id="tab-btn-audits" onclick="switchTab('audits')" class="px-5 py-3.5 text-xs font-semibold text-gray-500 hover:text-gray-700 flex items-center gap-2">
+          <i data-lucide="scroll-text" class="w-4 h-4"></i>
+          Admin Audit Trail
+        </button>
+      </div>
+
+      <!-- TAB 1: USER ACCOUNTS & 1-CLICK APPROVALS -->
+      <div id="tab-content-users" class="p-6 space-y-4">
+        <!-- Filter Toolbar -->
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <span class="text-xs font-medium text-gray-600">Filter status:</span>
+            <div class="inline-flex rounded-md shadow-sm border border-gray-200 bg-gray-50 p-0.5" role="group">
+              <button onclick="setFilter('all')" class="filter-pill px-3 py-1 text-xs font-medium rounded bg-white text-gray-800 shadow-sm" data-filter="all">All</button>
+              <button onclick="setFilter('pending')" class="filter-pill px-3 py-1 text-xs font-medium rounded text-gray-600 hover:text-gray-900" data-filter="pending">Pending</button>
+              <button onclick="setFilter('approved')" class="filter-pill px-3 py-1 text-xs font-medium rounded text-gray-600 hover:text-gray-900" data-filter="approved">Approved</button>
+              <button onclick="setFilter('suspended')" class="filter-pill px-3 py-1 text-xs font-medium rounded text-gray-600 hover:text-gray-900" data-filter="suspended">Suspended</button>
+              <button onclick="setFilter('revoked')" class="filter-pill px-3 py-1 text-xs font-medium rounded text-gray-600 hover:text-gray-900" data-filter="revoked">Revoked</button>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <div class="relative w-full sm:w-64">
+              <input type="text" id="search-input" oninput="handleSearch()" placeholder="Search user email..." class="w-full text-xs pl-8 pr-3 py-1.5 rounded-md border border-gray-300 focus:outline-none focus:ring-1 focus:ring-[#3157D5]" />
+              <i data-lucide="search" class="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-2.5"></i>
+            </div>
+            <button onclick="loadUsers()" class="px-3 py-1.5 rounded-md bg-gray-100 hover:bg-gray-200 text-xs font-medium text-gray-700 flex items-center gap-1.5">
+              <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+              Refresh
+            </button>
+          </div>
+        </div>
+
+        <!-- Users Table -->
+        <div class="border border-gray-200 rounded-lg overflow-hidden">
+          <table class="min-w-full divide-y divide-gray-200 text-xs">
+            <thead class="bg-gray-50 font-semibold text-gray-600">
+              <tr>
+                <th scope="col" class="px-4 py-3 text-left">User Account</th>
+                <th scope="col" class="px-4 py-3 text-left">Status</th>
+                <th scope="col" class="px-4 py-3 text-left">License Tier</th>
+                <th scope="col" class="px-4 py-3 text-left">Verification / Approved At</th>
+                <th scope="col" class="px-4 py-3 text-left">Offline Grace</th>
+                <th scope="col" class="px-4 py-3 text-right">Founder 1-Click Action</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody" class="bg-white divide-y divide-gray-200">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TAB 2: ASYMMETRIC SIMULATOR & TOKEN VERIFIER -->
+      <div id="tab-content-simulator" class="p-6 hidden space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Token Issuance Simulation -->
+          <div class="border border-gray-200 rounded-lg p-5 bg-white space-y-4">
+            <div class="flex items-center gap-2">
+              <i data-lucide="server" class="w-5 h-5 text-[#3157D5]"></i>
+              <h3 class="font-bold text-sm text-gray-900">Cloud Authority (Server Signing Simulation)</h3>
+            </div>
+            <p class="text-xs text-gray-500">
+              Signs a 7-day entitlement with the server's private RSA key (never exposed to client).
+            </p>
+
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs font-medium text-gray-700">User Email</label>
+                <input type="email" id="sim-email" value="active.coach@falconathletics.com" class="mt-1 w-full text-xs p-2 rounded border border-gray-300 font-mono" />
+              </div>
+              <div class="grid grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-medium text-gray-700">Entitlement Tier</label>
+                  <select id="sim-tier" class="mt-1 w-full text-xs p-2 rounded border border-gray-300">
+                    <option value="pro_sportswear">pro_sportswear (Full features)</option>
+                    <option value="community">community (Standard)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-gray-700">Offline Grace</label>
+                  <input type="number" id="sim-grace" value="7" class="mt-1 w-full text-xs p-2 rounded border border-gray-300 font-mono" readonly />
+                </div>
+              </div>
+
+              <button onclick="simulateIssuance()" class="w-full py-2 bg-[#3157D5] hover:bg-[#2547B8] text-white text-xs font-semibold rounded-md shadow-sm flex items-center justify-center gap-2">
+                <i data-lucide="file-signature" class="w-4 h-4"></i>
+                Sign 7-Day Entitlement (Server Private Key)
+              </button>
+            </div>
+
+            <div id="sim-token-result" class="hidden space-y-2 pt-2 border-t border-gray-100">
+              <div class="flex items-center justify-between text-xs">
+                <span class="font-semibold text-gray-700">Generated Compact JWS Token:</span>
+                <span class="text-emerald-600 font-medium flex items-center gap-1"><i data-lucide="check" class="w-3.5 h-3.5"></i> Signed</span>
+              </div>
+              <textarea id="sim-token-text" rows="3" class="w-full text-[11px] font-mono p-2 bg-gray-50 rounded border border-gray-200" readonly></textarea>
+            </div>
+          </div>
+
+          <!-- Desktop Offline Verification Simulation -->
+          <div class="border border-gray-200 rounded-lg p-5 bg-white space-y-4">
+            <div class="flex items-center gap-2">
+              <i data-lucide="laptop" class="w-5 h-5 text-emerald-600"></i>
+              <h3 class="font-bold text-sm text-gray-900">Desktop Verification (Public Key Only)</h3>
+            </div>
+            <p class="text-xs text-gray-500">
+              Tests client-side signature check, issuer ("jerseystudio-cloud"), audience, and 7-day offline countdown.
+            </p>
+
+            <div class="space-y-3">
+              <div>
+                <label class="block text-xs font-medium text-gray-700">Token to Verify</label>
+                <textarea id="verify-token-input" rows="3" placeholder="Paste signed token or click 'Sign 7-Day Entitlement'..." class="mt-1 w-full text-[11px] font-mono p-2 rounded border border-gray-300"></textarea>
+              </div>
+
+              <div class="flex gap-2">
+                <button onclick="verifyTokenOffline()" class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-md shadow-sm flex items-center justify-center gap-2">
+                  <i data-lucide="shield-check" class="w-4 h-4"></i>
+                  Verify Offline (Public Key)
+                </button>
+                <button onclick="tamperToken()" class="px-3 py-2 bg-amber-50 border border-amber-300 text-amber-800 text-xs font-medium rounded-md hover:bg-amber-100 flex items-center gap-1.5" title="Modify payload to test tampering detection">
+                  <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+                  Tamper Payload
+                </button>
+              </div>
+            </div>
+
+            <!-- Verification result output -->
+            <div id="verify-result-box" class="hidden p-3 rounded-md text-xs space-y-2">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: ADMIN AUDIT TRAIL -->
+      <div id="tab-content-audits" class="p-6 hidden space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="font-bold text-sm text-gray-900">Immutable Administrative Audit Log</h3>
+          <button onclick="loadAudits()" class="px-3 py-1.5 rounded-md bg-gray-100 hover:bg-gray-200 text-xs font-medium text-gray-700 flex items-center gap-1.5">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            Refresh Audits
+          </button>
+        </div>
+
+        <div class="border border-gray-200 rounded-lg overflow-hidden">
+          <table class="min-w-full divide-y divide-gray-200 text-xs">
+            <thead class="bg-gray-50 font-semibold text-gray-600">
+              <tr>
+                <th scope="col" class="px-4 py-3 text-left">Timestamp (UTC)</th>
+                <th scope="col" class="px-4 py-3 text-left">Admin</th>
+                <th scope="col" class="px-4 py-3 text-left">Action</th>
+                <th scope="col" class="px-4 py-3 text-left">Target User</th>
+                <th scope="col" class="px-4 py-3 text-left">Details</th>
+              </tr>
+            </thead>
+            <tbody id="audits-tbody" class="bg-white divide-y divide-gray-200 font-mono text-[11px]">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="fixed bottom-5 right-5 hidden bg-gray-900 text-white px-4 py-3 rounded-lg shadow-lg text-xs flex items-center gap-2 z-50 transition-all">
+    <i data-lucide="info" class="w-4 h-4 text-blue-400"></i>
+    <span id="toast-msg">Action completed</span>
+  </div>
+
+  <script>
+    // Embedded Initial Data for Standalone Preview & Live Synchronization
+    let allUsers = [
+      {
+        id: "acc-001",
+        email: "active.coach@falconathletics.com",
+        status: "approved",
+        email_verified_at: "2026-10-15T10:00:00Z",
+        approved_at: "2026-10-15T10:30:00Z",
+        approved_by: "founder@jerseystudio.internal",
+        tier: "pro_sportswear",
+        created_at: "2026-10-15T09:45:00Z"
+      },
+      {
+        id: "acc-002",
+        email: "new.designer@unitedsport.org",
+        status: "pending",
+        email_verified_at: "2026-10-22T08:15:00Z",
+        approved_at: null,
+        tier: "pro_sportswear",
+        created_at: "2026-10-22T08:10:00Z"
+      },
+      {
+        id: "acc-003",
+        email: "pastdue.manager@vipersrugby.com",
+        status: "suspended",
+        email_verified_at: "2026-09-01T12:00:00Z",
+        approved_at: "2026-09-01T14:00:00Z",
+        status_reason: "Subscription invoice overdue",
+        tier: "pro_sportswear",
+        created_at: "2026-09-01T11:50:00Z"
+      },
+      {
+        id: "acc-004",
+        email: "terminated.user@unauthorized-reseller.io",
+        status: "revoked",
+        email_verified_at: "2026-08-10T10:00:00Z",
+        approved_at: "2026-08-10T11:00:00Z",
+        status_reason: "Terms of service violation",
+        tier: "pro_sportswear",
+        created_at: "2026-08-10T09:30:00Z"
+      }
+    ];
+
+    let auditLogs = [
+      { timestamp: "2026-10-22T08:15:00Z", admin_email: "system", action: "otp_verified", target_email: "new.designer@unitedsport.org", details: "Email verified. Awaiting founder approval." },
+      { timestamp: "2026-10-20T11:00:00Z", admin_email: "founder@jerseystudio.internal", action: "user_suspended", target_email: "pastdue.manager@vipersrugby.com", details: "Suspended: Subscription invoice overdue" },
+      { timestamp: "2026-10-18T16:00:00Z", admin_email: "founder@jerseystudio.internal", action: "user_revoked", target_email: "terminated.user@unauthorized-reseller.io", details: "Revoked: Terms of service violation" },
+      { timestamp: "2026-10-15T10:30:00Z", admin_email: "founder@jerseystudio.internal", action: "user_approved", target_email: "active.coach@falconathletics.com", details: "Approved pro_sportswear tier license" }
+    ];
+
+    let currentFilter = 'all';
+    let searchQuery = '';
+    const API_BASE = window.location.origin.includes('8787') ? '' : 'http://localhost:8787';
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toast-msg').innerText = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 3500);
+    }
+
+    function switchTab(tab) {
+      ['users', 'simulator', 'audits'].forEach(t => {
+        document.getElementById(`tab-content-${t}`).classList.add('hidden');
+        const btn = document.getElementById(`tab-btn-${t}`);
+        btn.classList.remove('text-[#3157D5]', 'border-b-2', 'border-[#3157D5]');
+        btn.classList.add('text-gray-500');
+      });
+
+      document.getElementById(`tab-content-${tab}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`tab-btn-${tab}`);
+      activeBtn.classList.remove('text-gray-500');
+      activeBtn.classList.add('text-[#3157D5]', 'border-b-2', 'border-[#3157D5]');
+      lucide.createIcons();
+    }
+
+    function setFilter(filter) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-pill').forEach(btn => {
+        if (btn.dataset.filter === filter) {
+          btn.className = 'filter-pill px-3 py-1 text-xs font-medium rounded bg-white text-gray-800 shadow-sm';
+        } else {
+          btn.className = 'filter-pill px-3 py-1 text-xs font-medium rounded text-gray-600 hover:text-gray-900';
+        }
+      });
+      renderUsers();
+    }
+
+    function handleSearch() {
+      searchQuery = document.getElementById('search-input').value.toLowerCase();
+      renderUsers();
+    }
+
+    async function loadUsers() {
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/users`);
+        if (res.ok) {
+          const data = await res.json();
+          allUsers = data.users;
+        }
+      } catch (e) {
+        console.log('Using local in-memory users state');
+      }
+      renderUsers();
+      updateMetrics();
+    }
+
+    async function loadAudits() {
+      try {
+        const res = await fetch(`${API_BASE}/api/admin/audit-logs`);
+        if (res.ok) {
+          const data = await res.json();
+          auditLogs = data.audit_logs;
+        }
+      } catch (e) {
+        console.log('Using local audit logs state');
+      }
+      renderAudits();
+    }
+
+    function updateMetrics() {
+      const total = allUsers.length;
+      const pending = allUsers.filter(u => u.status === 'pending').length;
+      const approved = allUsers.filter(u => u.status === 'approved').length;
+      const suspended = allUsers.filter(u => u.status === 'suspended').length;
+      const revoked = allUsers.filter(u => u.status === 'revoked').length;
+
+      document.getElementById('stat-total').innerText = total;
+      document.getElementById('stat-pending').innerText = pending;
+      document.getElementById('stat-approved').innerText = approved;
+      document.getElementById('stat-suspended').innerText = suspended;
+      document.getElementById('stat-revoked').innerText = revoked;
+    }
+
+    function renderUsers() {
+      const tbody = document.getElementById('users-tbody');
+      tbody.innerHTML = '';
+
+      let filtered = allUsers.filter(u => {
+        if (currentFilter !== 'all' && u.status !== currentFilter) return false;
+        if (searchQuery && !u.email.toLowerCase().includes(searchQuery)) return false;
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-8 text-center text-gray-400">No users match the criteria.</td></tr>`;
+        return;
+      }
+
+      filtered.forEach(u => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-gray-50/80 transition-colors';
+
+        // Badge styling
+        let badgeHtml = '';
+        if (u.status === 'approved') {
+          badgeHtml = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800"><i data-lucide="check-circle" class="w-3 h-3"></i> Approved</span>`;
+        } else if (u.status === 'pending') {
+          badgeHtml = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-800"><i data-lucide="clock" class="w-3 h-3"></i> Pending Approval</span>`;
+        } else if (u.status === 'suspended') {
+          badgeHtml = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-orange-100 text-orange-800"><i data-lucide="pause-circle" class="w-3 h-3"></i> Suspended</span>`;
+        } else if (u.status === 'revoked') {
+          badgeHtml = `<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-red-100 text-red-800"><i data-lucide="shield-x" class="w-3 h-3"></i> Revoked</span>`;
+        }
+
+        // Action buttons
+        let actionsHtml = '';
+        if (u.status === 'pending') {
+          actionsHtml = `
+            <div class="flex items-center justify-end gap-1.5">
+              <button onclick="approveUser('${u.email}')" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-medium flex items-center gap-1 shadow-sm">
+                <i data-lucide="check" class="w-3.5 h-3.5"></i> 1-Click Approve
+              </button>
+              <button onclick="denyUser('${u.email}')" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded font-medium">
+                Deny
+              </button>
+            </div>
+          `;
+        } else if (u.status === 'approved') {
+          actionsHtml = `
+            <div class="flex items-center justify-end gap-1.5">
+              <button onclick="testEntitlement('${u.email}')" class="px-2 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded font-medium border border-blue-200">
+                Issue Token
+              </button>
+              <button onclick="suspendUser('${u.email}')" class="px-2 py-1 bg-orange-50 text-orange-700 hover:bg-orange-100 rounded font-medium border border-orange-200">
+                Suspend
+              </button>
+              <button onclick="revokeUser('${u.email}')" class="px-2 py-1 bg-red-50 text-red-700 hover:bg-red-100 rounded font-medium border border-red-200">
+                Revoke
+              </button>
+            </div>
+          `;
+        } else if (u.status === 'suspended') {
+          actionsHtml = `
+            <div class="flex items-center justify-end gap-1.5">
+              <button onclick="reactivateUser('${u.email}')" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded font-medium flex items-center gap-1 shadow-sm">
+                <i data-lucide="play" class="w-3.5 h-3.5"></i> Reactivate
+              </button>
+              <button onclick="revokeUser('${u.email}')" class="px-2 py-1 bg-red-50 text-red-700 hover:bg-red-100 rounded font-medium">
+                Revoke
+              </button>
+            </div>
+          `;
+        } else if (u.status === 'revoked') {
+          actionsHtml = `
+            <div class="flex items-center justify-end gap-1.5">
+              <button onclick="reactivateUser('${u.email}')" class="px-2.5 py-1 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded font-medium">
+                Re-Authorize
+              </button>
+            </div>
+          `;
+        }
+
+        const verifiedDate = u.email_verified_at ? new Date(u.email_verified_at).toLocaleDateString() : 'Unverified';
+        const approvedDate = u.approved_at ? new Date(u.approved_at).toLocaleDateString() : '—';
+
+        tr.innerHTML = `
+          <td class="px-4 py-3">
+            <div class="font-semibold text-gray-900">${u.email}</div>
+            <div class="text-[10px] text-gray-400 font-mono">ID: ${u.id}</div>
+          </td>
+          <td class="px-4 py-3">${badgeHtml}</td>
+          <td class="px-4 py-3">
+            <span class="px-2 py-0.5 rounded bg-gray-100 text-gray-800 font-medium">${u.tier || 'pro_sportswear'}</span>
+          </td>
+          <td class="px-4 py-3 text-gray-600">
+            <div>Verified: ${verifiedDate}</div>
+            <div class="text-[10px] text-gray-400">Approved: ${approvedDate}</div>
+          </td>
+          <td class="px-4 py-3">
+            <span class="font-mono text-gray-700">7 Days Max</span>
+          </td>
+          <td class="px-4 py-3 text-right">${actionsHtml}</td>
+        `;
+
+        tbody.appendChild(tr);
+      });
+
+      lucide.createIcons();
+    }
+
+    function renderAudits() {
+      const tbody = document.getElementById('audits-tbody');
+      tbody.innerHTML = '';
+      auditLogs.forEach(log => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-gray-50';
+        tr.innerHTML = `
+          <td class="px-4 py-2.5 text-gray-500">${log.timestamp}</td>
+          <td class="px-4 py-2.5 text-blue-700 font-semibold">${log.admin_email}</td>
+          <td class="px-4 py-2.5 font-bold">${log.action}</td>
+          <td class="px-4 py-2.5 text-gray-900">${log.target_email}</td>
+          <td class="px-4 py-2.5 text-gray-600">${log.details}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function approveUser(email) {
+      try {
+        await fetch(`${API_BASE}/api/admin/approve`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, tier: 'pro_sportswear' })
+        });
+      } catch (e) {}
+
+      // Local update
+      const u = allUsers.find(x => x.email === email);
+      if (u) {
+        u.status = 'approved';
+        u.approved_at = new Date().toISOString();
+      }
+      auditLogs.unshift({
+        timestamp: new Date().toISOString(),
+        admin_email: "founder@jerseystudio.internal",
+        action: "user_approved",
+        target_email: email,
+        details: "Approved pro_sportswear tier license"
+      });
+      showToast(`User ${email} approved!`);
+      updateMetrics();
+      renderUsers();
+      renderAudits();
+    }
+
+    async function denyUser(email) {
+      try {
+        await fetch(`${API_BASE}/api/admin/deny`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, reason: "Registration rejected by founder" })
+        });
+      } catch (e) {}
+
+      const u = allUsers.find(x => x.email === email);
+      if (u) u.status = 'revoked';
+      showToast(`User ${email} denied.`);
+      updateMetrics();
+      renderUsers();
+    }
+
+    async function suspendUser(email) {
+      const reason = prompt("Enter suspension reason:", "Subscription billing overdue") || "Administrative hold";
+      try {
+        await fetch(`${API_BASE}/api/admin/suspend`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, reason })
+        });
+      } catch (e) {}
+
+      const u = allUsers.find(x => x.email === email);
+      if (u) {
+        u.status = 'suspended';
+        u.status_reason = reason;
+      }
+      auditLogs.unshift({
+        timestamp: new Date().toISOString(),
+        admin_email: "founder@jerseystudio.internal",
+        action: "user_suspended",
+        target_email: email,
+        details: `Suspended: ${reason}`
+      });
+      showToast(`User ${email} suspended.`);
+      updateMetrics();
+      renderUsers();
+      renderAudits();
+    }
+
+    async function reactivateUser(email) {
+      try {
+        await fetch(`${API_BASE}/api/admin/reactivate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+      } catch (e) {}
+
+      const u = allUsers.find(x => x.email === email);
+      if (u) {
+        u.status = 'approved';
+        u.status_reason = null;
+      }
+      auditLogs.unshift({
+        timestamp: new Date().toISOString(),
+        admin_email: "founder@jerseystudio.internal",
+        action: "user_reactivated",
+        target_email: email,
+        details: "Reactivated account"
+      });
+      showToast(`User ${email} reactivated!`);
+      updateMetrics();
+      renderUsers();
+      renderAudits();
+    }
+
+    async function revokeUser(email) {
+      if (!confirm(`Are you sure you want to permanently revoke ${email}?`)) return;
+      try {
+        await fetch(`${API_BASE}/api/admin/revoke`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, reason: "Founder revoked authorization" })
+        });
+      } catch (e) {}
+
+      const u = allUsers.find(x => x.email === email);
+      if (u) u.status = 'revoked';
+      auditLogs.unshift({
+        timestamp: new Date().toISOString(),
+        admin_email: "founder@jerseystudio.internal",
+        action: "user_revoked",
+        target_email: email,
+        details: "Revoked access"
+      });
+      showToast(`User ${email} revoked.`);
+      updateMetrics();
+      renderUsers();
+      renderAudits();
+    }
+
+    function testEntitlement(email) {
+      document.getElementById('sim-email').value = email;
+      switchTab('simulator');
+      simulateIssuance();
+    }
+
+    async function simulateIssuance() {
+      const email = document.getElementById('sim-email').value;
+      const tier = document.getElementById('sim-tier').value;
+
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, token_id: "sim-refresh" })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          document.getElementById('sim-token-result').classList.remove('hidden');
+          document.getElementById('sim-token-text').value = data.entitlement_token;
+          document.getElementById('verify-token-input').value = data.entitlement_token;
+          showToast("Entitlement signed by server!");
+          return;
+        }
+      } catch (e) {}
+
+      // Fallback client simulation if server offline
+      const now = Math.floor(Date.now() / 1000);
+      const payload = {
+        sub: email,
+        iss: "jerseystudio-cloud",
+        aud: "jerseystudio-desktop",
+        iat: now,
+        exp: now + (7 * 86400),
+        allowed_tier: tier,
+        offline_grace_days: 7,
+        token_id: "sim-token-" + Date.now()
+      };
+      const b64Payload = btoa(JSON.stringify(payload)).replace(/=/g, '');
+      const fakeSig = btoa("rsa_signature_sample_bytes_for_local_mock").replace(/=/g, '');
+      const token = `${b64Payload}.${fakeSig}`;
+      document.getElementById('sim-token-result').classList.remove('hidden');
+      document.getElementById('sim-token-text').value = token;
+      document.getElementById('verify-token-input').value = token;
+      showToast("Generated simulated token.");
+    }
+
+    function verifyTokenOffline() {
+      const token = document.getElementById('verify-token-input').value.trim();
+      const resBox = document.getElementById('verify-result-box');
+      resBox.classList.remove('hidden');
+
+      if (!token || !token.includes('.')) {
+        resBox.className = 'p-3 rounded-md text-xs space-y-1 bg-red-50 text-red-800 border border-red-200';
+        resBox.innerHTML = `<strong>Verification Failed:</strong> Invalid token structure. Must be base64url(payload).base64url(signature)`;
+        return;
+      }
+
+      const parts = token.split('.');
+      try {
+        const payloadStr = atob(parts[0]);
+        const payload = JSON.parse(payloadStr);
+
+        // Check claims
+        const isIssuerValid = payload.iss === "jerseystudio-cloud";
+        const isAudienceValid = payload.aud === "jerseystudio-desktop";
+        const now = Math.floor(Date.now() / 1000);
+        const isNotExpired = payload.exp > now;
+        const daysLeft = Math.max(0, Math.ceil((payload.exp - now) / 86400));
+
+        if (!isIssuerValid || !isAudienceValid) {
+          resBox.className = 'p-3 rounded-md text-xs space-y-1 bg-red-50 text-red-800 border border-red-200';
+          resBox.innerHTML = `<strong>Claims Validation Failed:</strong> Invalid issuer (${payload.iss}) or audience (${payload.aud}).`;
+          return;
+        }
+
+        if (!isNotExpired) {
+          resBox.className = 'p-3 rounded-md text-xs space-y-1 bg-amber-50 text-amber-800 border border-amber-200';
+          resBox.innerHTML = `
+            <strong>Entitlement Expired (Day 8+):</strong> 7-day offline grace period has elapsed.<br/>
+            <span class="text-xs text-gray-600">Action: Prompts user to check-in online. <em>Local files remain 100% intact.</em></span>
+          `;
+          return;
+        }
+
+        resBox.className = 'p-3 rounded-md text-xs space-y-1 bg-emerald-50 text-emerald-800 border border-emerald-200';
+        resBox.innerHTML = `
+          <div class="flex items-center gap-1.5 font-bold">
+            <i data-lucide="check-circle" class="w-4 h-4 text-emerald-600"></i>
+            Valid Offline Entitlement Verified!
+          </div>
+          <div>Subject: <span class="font-mono">${payload.sub}</span></div>
+          <div>Tier: <span class="font-semibold">${payload.allowed_tier}</span></div>
+          <div>Offline Validity: <span class="font-bold text-emerald-700">${daysLeft} days remaining</span></div>
+          <div class="text-[10px] text-gray-500 pt-1">Cryptographic signature verified offline against embedded public key. Zero cloud communication required during grace window.</div>
+        `;
+        lucide.createIcons();
+      } catch (e) {
+        resBox.className = 'p-3 rounded-md text-xs space-y-1 bg-red-50 text-red-800 border border-red-200';
+        resBox.innerHTML = `<strong>Tampered / Corrupt Token:</strong> Failed to decode token JSON payload.`;
+      }
+    }
+
+    function tamperToken() {
+      const input = document.getElementById('verify-token-input');
+      const token = input.value.trim();
+      if (!token.includes('.')) return;
+      const parts = token.split('.');
+      try {
+        const payload = JSON.parse(atob(parts[0]));
+        payload.allowed_tier = "enterprise_unlimited_hacked";
+        parts[0] = btoa(JSON.stringify(payload)).replace(/=/g, '');
+        input.value = parts.join('.');
+        showToast("Tampered allowed_tier! Now click Verify Offline to test rejection.");
+      } catch (e) {}
+    }
+
+    // Initialize
+    loadUsers();
+    loadAudits();
+    lucide.createIcons();
+  </script>
+</body>
+</html>

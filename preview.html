@@ -59,12 +59,16 @@
     </div>
 
     <!-- Right Offline Badge & Export Button -->
-    <div class="flex items-center gap-3">
-      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
+    <div class="flex items-center gap-2.5">
+      <a href="cloud-admin/portal/index.html" target="_blank" class="px-2.5 py-1.5 rounded-md bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 text-xs font-semibold flex items-center gap-1.5 transition">
+        <i data-lucide="shield" class="w-3.5 h-3.5"></i>
+        Admin Portal
+      </a>
+      <button onclick="openAuthModal()" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200 hover:bg-gray-200 cursor-pointer">
         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-        Offline Authorized (7 Days)
-      </span>
-      <button onclick="showExportModal()" class="px-4 py-1.5 rounded-md bg-[#3157D5] hover:bg-[#2547B8] text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition">
+        <span id="header-auth-badge">Offline Authorized (7d)</span>
+      </button>
+      <button onclick="showExportModal()" class="px-3 py-1.5 rounded-md bg-[#3157D5] hover:bg-[#2547B8] text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition">
         <i data-lucide="download" class="w-3.5 h-3.5"></i>
         Export Production Files
       </button>
@@ -424,6 +428,80 @@
     </div>
   </div>
 
+  <!-- AUTH & LICENSING MODAL -->
+  <div id="auth-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-gray-200 p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-7 h-7 rounded bg-[#3157D5] text-white flex items-center justify-center font-bold text-xs">JS</div>
+          <div>
+            <h3 class="font-bold text-sm text-gray-900">JerseyStudio Licensing & Identity</h3>
+            <p class="text-[10px] text-gray-500">7-Day Offline Cryptographic Entitlement</p>
+          </div>
+        </div>
+        <button onclick="closeAuthModal()" class="text-gray-400 hover:text-gray-600">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Local privacy notice -->
+      <div class="p-2.5 rounded-lg bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-start gap-2">
+        <i data-lucide="shield-check" class="w-4 h-4 text-emerald-600 shrink-0 mt-0.5"></i>
+        <div class="text-[11px] leading-tight">
+          <strong>100% Local Project Privacy:</strong> Only email ownership and license validity are checked. All jersey designs, templates, and player rosters remain strictly on your Mac.
+        </div>
+      </div>
+
+      <!-- Step 1: Email Form -->
+      <div id="auth-step-email" class="space-y-3">
+        <div>
+          <label class="text-xs font-semibold text-gray-700 block mb-1">Enter Work / Team Email</label>
+          <input type="email" id="modal-email-input" value="coach@falconathletics.com" placeholder="name@team.com" class="w-full text-xs px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3157D5]" />
+        </div>
+        <button onclick="simulateSendOtp()" class="w-full py-2 bg-[#3157D5] hover:bg-[#2547B8] text-white text-xs font-bold rounded-lg shadow transition">
+          Send Verification Code (OTP)
+        </button>
+      </div>
+
+      <!-- Step 2: OTP Verification -->
+      <div id="auth-step-otp" class="hidden space-y-3">
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="text-xs font-semibold text-gray-700">Enter 6-Digit Verification Code</label>
+            <span class="text-[11px] text-blue-600 font-mono">Dev code: 789123</span>
+          </div>
+          <input type="text" id="modal-otp-input" value="789123" maxlength="6" class="w-full text-center tracking-widest font-mono text-base py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#3157D5]" />
+        </div>
+        <div class="flex gap-2">
+          <button onclick="showAuthEmailStep()" class="flex-1 py-2 border border-gray-300 text-xs font-semibold rounded-lg hover:bg-gray-50">Back</button>
+          <button onclick="simulateVerifyOtp()" class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg shadow transition">Verify & Authorize</button>
+        </div>
+      </div>
+
+      <!-- Step 3: Status / Active Details -->
+      <div id="auth-step-active" class="hidden space-y-3">
+        <div class="p-3 bg-emerald-50 border border-emerald-200 rounded-xl space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-xs text-emerald-800 flex items-center gap-1.5"><i data-lucide="shield-check" class="w-4 h-4 text-emerald-600"></i> License Active</span>
+            <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-200 text-emerald-900 font-bold uppercase">Pro Sportswear</span>
+          </div>
+          <div class="text-xs text-gray-700">Account: <span id="auth-user-email-display" class="font-mono font-semibold">coach@falconathletics.com</span></div>
+          <div class="text-xs text-gray-600">Offline Validity: <strong class="text-emerald-700 font-bold">7 Days Remaining</strong></div>
+          <div class="text-[10px] text-gray-400">Cryptographically signed by JerseyStudio cloud authority. Operates 100% offline.</div>
+        </div>
+
+        <div class="flex items-center justify-between pt-2 border-t border-gray-100">
+          <a href="cloud-admin/portal/index.html" target="_blank" class="text-xs text-purple-700 hover:underline font-semibold flex items-center gap-1">
+            Open Cloud Admin Portal <i data-lucide="external-link" class="w-3 h-3"></i>
+          </a>
+          <button onclick="closeAuthModal()" class="px-4 py-1.5 rounded-lg bg-[#3157D5] text-white text-xs font-bold shadow">
+            Done
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- LOGIC SCRIPT -->
   <script>
     lucide.createIcons();
@@ -581,6 +659,40 @@
 
     function startBatchGeneration() {
       alert(`Batch Generation Started!\n\nProcessing ${activeRoster.length} jerseys locally on your Mac at 300 DPI.\nFiles will be bundled into a production ZIP with manifest.csv.`);
+    }
+
+    function openAuthModal() {
+      document.getElementById('auth-modal').classList.remove('hidden');
+      document.getElementById('auth-modal').classList.add('flex');
+      lucide.createIcons();
+    }
+
+    function closeAuthModal() {
+      document.getElementById('auth-modal').classList.add('hidden');
+      document.getElementById('auth-modal').classList.remove('flex');
+    }
+
+    function showAuthEmailStep() {
+      document.getElementById('auth-step-email').classList.remove('hidden');
+      document.getElementById('auth-step-otp').classList.add('hidden');
+      document.getElementById('auth-step-active').classList.add('hidden');
+    }
+
+    function simulateSendOtp() {
+      const email = document.getElementById('modal-email-input').value;
+      if (!email) return;
+      document.getElementById('auth-step-email').classList.add('hidden');
+      document.getElementById('auth-step-otp').classList.remove('hidden');
+      lucide.createIcons();
+    }
+
+    function simulateVerifyOtp() {
+      const email = document.getElementById('modal-email-input').value;
+      document.getElementById('auth-user-email-display').innerText = email;
+      document.getElementById('auth-step-otp').classList.add('hidden');
+      document.getElementById('auth-step-active').classList.remove('hidden');
+      document.getElementById('header-auth-badge').innerText = "Offline Authorized (7d)";
+      lucide.createIcons();
     }
 
     // Initialize initial table
