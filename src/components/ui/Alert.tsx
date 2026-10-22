@@ -39,6 +39,7 @@ export interface AlertProps
   extends React.HTMLAttributes<HTMLDivElement>,
     VariantProps<typeof alertVariants> {
   title?: string;
+  description?: React.ReactNode;
   onDismiss?: () => void;
 }
 
@@ -46,6 +47,7 @@ export const Alert: React.FC<AlertProps> = ({
   className,
   variant = 'info',
   title,
+  description,
   children,
   onDismiss,
   ...props
@@ -66,7 +68,7 @@ export const Alert: React.FC<AlertProps> = ({
           </h5>
         )}
         <div className="text-xs text-text-secondary leading-relaxed">
-          {children}
+          {description || children}
         </div>
       </div>
       {onDismiss && (

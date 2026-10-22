@@ -540,7 +540,7 @@ export const FontManagerModal: React.FC<FontManagerModalProps> = ({
                   <Upload className="w-5 h-5" />
                 </div>
                 <div className="text-xs font-bold text-text-primary">
-                  Click to Browse or Drag & Drop Custom Font Files
+                  {isUploading ? 'Loading fonts into local memory...' : 'Click to Browse or Drag & Drop Custom Font Files'}
                 </div>
                 <div className="text-[11px] text-text-muted mt-1">
                   Supports .TTF, .OTF, .WOFF, and .WOFF2 • Loaded 100% locally into memory

@@ -5,7 +5,6 @@ import {
   Shirt,
   Settings,
   HardDrive,
-  ShieldCheck,
   Save,
   CheckCircle,
   Clock,

@@ -11,7 +11,7 @@
  */
 
 import { verifyEntitlementOffline } from './cryptoVerifier';
-import { AuthState, DesktopLicenseStatus, EntitlementPayload, StoredLicenseRecord, VerificationResult } from './types';
+import { AuthState, StoredLicenseRecord, VerificationResult } from './types';
 
 const STORAGE_KEY = 'jerseystudio_license_cache';
 const API_BASE_URL = typeof window !== 'undefined' && (window as any).__JERSEYSTUDIO_CLOUD_API__
@@ -277,7 +277,7 @@ class EntitlementService {
   /**
    * Online check-in: Refreshes 7-day entitlement or enforces remote revocation upon reconnection.
    */
-  public async refreshOnline(email?: string, currentToken?: string): Promise<AuthState> {
+  public async refreshOnline(email?: string, _currentToken?: string): Promise<AuthState> {
     const targetEmail = email || this.currentAuthState.email;
     if (!targetEmail) {
       return this.getState();

@@ -9,6 +9,8 @@ export const badgeVariants = cva(
       variant: {
         default:
           'bg-surface-subtle text-text-secondary border border-border',
+        secondary:
+          'bg-surface-subtle text-text-secondary border border-border',
         primary:
           'bg-primary-subtle text-primary border border-primary/20',
         success:

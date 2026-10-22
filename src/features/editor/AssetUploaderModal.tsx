@@ -272,7 +272,7 @@ export const AssetUploaderModal: React.FC<AssetUploaderModalProps> = ({
             </div>
             <div>
               <div className="text-xs font-bold text-text-primary group-hover:text-primary">
-                Click to browse or drop Sponsor Logos & Crests
+                {isProcessing ? 'Processing local images...' : 'Click to browse or drop Sponsor Logos & Crests'}
               </div>
               <div className="text-[11px] text-text-muted">
                 Accepts PNG (transparent), SVG (vector), and JPG • Processed 100% locally

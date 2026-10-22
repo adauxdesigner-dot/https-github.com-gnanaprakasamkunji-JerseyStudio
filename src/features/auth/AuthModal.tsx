@@ -5,12 +5,10 @@ import {
   Clock,
   Mail,
   KeyRound,
-  CheckCircle,
   AlertTriangle,
   RefreshCw,
   X,
   HardDrive,
-  ExternalLink,
 } from 'lucide-react';
 import { useAuth } from './useAuth';
 import { Button } from '@/components/ui/Button';
@@ -30,7 +28,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
     hoursRemaining,
     isOnline,
     lastVerifiedOnline,
-    isVerifying,
     errorMessage,
     requestOtp,
     verifyOtp,

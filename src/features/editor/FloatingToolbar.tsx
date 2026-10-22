@@ -8,8 +8,8 @@ import {
   AlignCenterVertical,
   AlignLeft,
   AlignRight,
-  AlignTop,
-  AlignBottom,
+  AlignVerticalJustifyStart,
+  AlignVerticalJustifyEnd,
   Sparkles,
   Maximize,
   ChevronDown,
@@ -46,8 +46,8 @@ const QUICK_COLORS = [
 export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
   element,
   canvasScale,
-  zoom,
-  pan,
+  zoom: _zoom,
+  pan: _pan,
   onUpdateElement,
   onDuplicateElement,
   onDeleteElement,
@@ -195,7 +195,7 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
               }}
               className="flex items-center gap-2 px-2 py-1.5 rounded text-left hover:bg-surface-subtle text-xs text-text-primary"
             >
-              <AlignTop className="w-3.5 h-3.5 text-text-secondary" />
+              <AlignVerticalJustifyStart className="w-3.5 h-3.5 text-text-secondary" />
               Align Top
             </button>
             <button
@@ -206,7 +206,7 @@ export const FloatingToolbar: React.FC<FloatingToolbarProps> = ({
               }}
               className="flex items-center gap-2 px-2 py-1.5 rounded text-left hover:bg-surface-subtle text-xs text-text-primary"
             >
-              <AlignBottom className="w-3.5 h-3.5 text-text-secondary" />
+              <AlignVerticalJustifyEnd className="w-3.5 h-3.5 text-text-secondary" />
               Align Bottom
             </button>
           </div>

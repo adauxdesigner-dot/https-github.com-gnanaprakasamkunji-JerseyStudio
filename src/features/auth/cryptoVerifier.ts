@@ -5,8 +5,8 @@
  * Embedded with ONLY the public key.
  */
 
-import { CLOUD_AUDIENCE, CLOUD_ISSUER, OFFLINE_GRACE_DAYS, SERVER_PUBLIC_KEY_SPKI_B64 } from './publicKey';
-import { DesktopLicenseStatus, EntitlementPayload, VerificationResult } from './types';
+import { CLOUD_AUDIENCE, CLOUD_ISSUER, SERVER_PUBLIC_KEY_SPKI_B64 } from './publicKey';
+import { EntitlementPayload, VerificationResult } from './types';
 
 // Convert base64 / base64url string to Uint8Array / ArrayBuffer
 export function base64UrlToUint8Array(base64UrlStr: string): Uint8Array {
