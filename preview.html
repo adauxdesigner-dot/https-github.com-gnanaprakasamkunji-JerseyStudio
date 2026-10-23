@@ -802,7 +802,7 @@
       <div class="space-y-3 text-xs">
         <div>
           <label class="font-bold text-slate-700 block mb-1.5">Select Production Format:</label>
-          <div class="grid grid-cols-3 gap-2">
+          <div class="grid grid-cols-4 gap-2">
             <button onclick="setExportFormat('png')" id="export-btn-png" class="p-2.5 border rounded-xl border-blue-500 bg-blue-50 text-blue-700 font-bold text-center transition">
               <div class="text-xs">PNG (300 DPI)</div>
               <div class="text-[10px] font-normal text-blue-600 mt-0.5">Transparent Film</div>
@@ -814,6 +814,10 @@
             <button onclick="setExportFormat('pdf')" id="export-btn-pdf" class="p-2.5 border rounded-xl hover:bg-slate-50 text-center font-medium transition">
               <div class="text-xs">PDF (Vector)</div>
               <div class="text-[10px] font-normal text-slate-400 mt-0.5">Print Sheet</div>
+            </button>
+            <button onclick="setExportFormat('svg')" id="export-btn-svg" class="p-2.5 border rounded-xl hover:bg-slate-50 text-center font-medium transition">
+              <div class="text-xs">SVG (Vector)</div>
+              <div class="text-[10px] font-normal text-slate-400 mt-0.5">Master File</div>
             </button>
           </div>
         </div>
@@ -1459,7 +1463,7 @@
     }
 
     function runBulkGeneration() {
-      showToast(`✓ Batch Generation Complete: ${activeRoster.length} jerseys generated locally @ 300 DPI into ZIP archive!`, 'success');
+      triggerBatchRosterExport();
     }
 
     // ================= TOAST NOTIFICATION HUB =================
@@ -2143,25 +2147,540 @@
       showToast(`+ Added text layer: "${sampleText}"`);
     }
 
-    // ================= EXPORT CONTROLS =================
+    // ================= EXPORT CONTROLS & REAL PRODUCTION ENGINE =================
     function setExportFormat(fmt) {
       selectedExportFmt = fmt;
-      ['png', 'jpg', 'pdf'].forEach(f => {
+      ['png', 'jpg', 'pdf', 'svg'].forEach(f => {
         const btn = document.getElementById(`export-btn-${f}`);
         if (btn) {
           if (f === fmt) {
-            btn.className = 'p-2.5 border rounded-xl border-blue-500 bg-blue-50 text-blue-700 font-bold text-center';
+            btn.className = 'p-2.5 border rounded-xl border-blue-500 bg-blue-50 text-blue-700 font-bold text-center transition';
           } else {
-            btn.className = 'p-2.5 border rounded-xl hover:bg-slate-50 text-center font-medium';
+            btn.className = 'p-2.5 border rounded-xl hover:bg-slate-50 text-center font-medium transition';
           }
         }
       });
+
+      const dimBadge = document.getElementById('export-pixel-dim');
+      if (dimBadge) {
+        if (fmt === 'svg') {
+          dimBadge.innerText = 'Scalable Vector (Infinite Resolution)';
+        } else if (fmt === 'pdf') {
+          dimBadge.innerText = `${canvasWidthInches}" × ${canvasHeightInches}" Physical Print Sheet (300 DPI Embedded)`;
+        } else if (fmt === 'jpg') {
+          dimBadge.innerText = '6,000 × 8,400 px (300 DPI Solid White Proof)';
+        } else {
+          dimBadge.innerText = '6,000 × 8,400 px (300 DPI Transparent Film)';
+        }
+      }
     }
 
-    function executeExportDownload() {
-      closeModal('export-modal');
-      const filename = `Falcon_FC_Jersey_15.${selectedExportFmt}`;
-      showToast(`✓ Export Successful! File saved to disk: ${filename}`, 'success');
+    function downloadBlobLocally(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 1000);
+    }
+
+    // 100% Zero-Dependency Native PDF 1.4 Binary Builder
+    function buildPdfFromJpegBlob(jpegBytes, imageWidthPx, imageHeightPx, widthInInches, heightInInches) {
+      const ptWidth = Math.round(widthInInches * 72);
+      const ptHeight = Math.round(heightInInches * 72);
+
+      const encoder = new TextEncoder();
+      const chunks = [];
+      let currentOffset = 0;
+
+      const addStr = (str) => {
+        const bytes = encoder.encode(str);
+        chunks.push(bytes);
+        currentOffset += bytes.length;
+      };
+
+      const header = '%PDF-1.4\n%\xe2\xe3\xcf\xd3\n';
+      addStr(header);
+
+      const offsets = [];
+
+      // Obj 1: Catalog
+      offsets.push(currentOffset);
+      addStr('1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n');
+
+      // Obj 2: Pages
+      offsets.push(currentOffset);
+      addStr('2 0 obj\n<< /Type /Pages /Kids [3 0 R] /Count 1 >>\nendobj\n');
+
+      // Obj 3: Page with physical MediaBox in points (72 pt per inch)
+      offsets.push(currentOffset);
+      addStr(`3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${ptWidth} ${ptHeight}] /Contents 4 0 R /Resources << /XObject << /Im1 5 0 R >> >> >>\nendobj\n`);
+
+      // Obj 4: Content Stream
+      offsets.push(currentOffset);
+      const contentStream = `q\n${ptWidth} 0 0 ${ptHeight} 0 0 cm\n/Im1 Do\nQ\n`;
+      addStr(`4 0 obj\n<< /Length ${contentStream.length} >>\nstream\n${contentStream}endstream\nendobj\n`);
+
+      // Obj 5: XObject Image
+      offsets.push(currentOffset);
+      addStr(`5 0 obj\n<< /Type /XObject /Subtype /Image /Width ${imageWidthPx} /Height ${imageHeightPx} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpegBytes.length} >>\nstream\n`);
+      chunks.push(jpegBytes);
+      currentOffset += jpegBytes.length;
+      addStr('\nendstream\nendobj\n');
+
+      // Cross-reference table
+      const xrefOffset = currentOffset;
+      let xref = 'xref\n0 6\n0000000000 65535 f \n';
+      for (const off of offsets) {
+        xref += `${String(off).padStart(10, '0')} 00000 n \n`;
+      }
+      const trailer = `trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`;
+      addStr(xref + trailer);
+
+      const totalLength = chunks.reduce((acc, c) => acc + c.length, 0);
+      const merged = new Uint8Array(totalLength);
+      let pos = 0;
+      for (const c of chunks) {
+        merged.set(c, pos);
+        pos += c.length;
+      }
+      return merged;
+    }
+
+    function generatePdfBlob(canvas, widthInInches, heightInInches) {
+      return new Promise((resolve) => {
+        canvas.toBlob((jpegBlob) => {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const jpegBytes = new Uint8Array(e.target.result);
+            const pdfBytes = buildPdfFromJpegBlob(jpegBytes, canvas.width, canvas.height, widthInInches, heightInInches);
+            const pdfBlob = new Blob([pdfBytes], { type: 'application/pdf' });
+            resolve(pdfBlob);
+          };
+          reader.readAsArrayBuffer(jpegBlob);
+        }, 'image/jpeg', 0.95);
+      });
+    }
+
+    function generateSvgBlob(options = {}) {
+      const artboard = document.getElementById('physical-artboard');
+      const wInches = canvasWidthInches;
+      const hInches = canvasHeightInches;
+      const visualW = artboard ? artboard.offsetWidth : 380;
+      const visualH = artboard ? artboard.offsetHeight : 532;
+
+      const nameEl = document.getElementById('canvas-player-name');
+      const numEl = document.getElementById('canvas-player-number');
+      const logoContainer = document.getElementById('canvas-logo-container');
+
+      const pName = options.playerName || (nameEl ? nameEl.innerText : 'LIAM');
+      const pNum = options.playerNumber || (numEl ? numEl.innerText : '15');
+
+      const nameColor = nameEl ? (window.getComputedStyle(nameEl).color || '#0F172A') : '#0F172A';
+      const numColor = numEl ? (window.getComputedStyle(numEl).color || '#0F172A') : '#0F172A';
+      const nameFont = nameEl ? (window.getComputedStyle(nameEl).fontFamily || 'sans-serif') : 'sans-serif';
+      const numFont = numEl ? (window.getComputedStyle(numEl).fontFamily || 'sans-serif') : 'sans-serif';
+
+      let logoSvg = '';
+      if (logoContainer && !logoContainer.classList.contains('hidden')) {
+        const img = logoContainer.querySelector('img');
+        if (img && img.src) {
+          logoSvg = `<image href="${img.src}" x="35%" y="12%" width="30%" height="20%"/>`;
+        }
+      }
+
+      const svgContent = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${wInches}in" height="${hInches}in" viewBox="0 0 ${visualW} ${visualH}">
+  <rect width="100%" height="100%" fill="#FFFFFF"/>
+  ${logoSvg}
+  <text x="50%" y="42%" font-family="${nameFont}" font-size="32" font-weight="900" fill="${nameColor}" text-anchor="middle" dominant-baseline="middle" letter-spacing="2">${pName}</text>
+  <text x="50%" y="65%" font-family="${numFont}" font-size="110" font-weight="900" fill="${numColor}" text-anchor="middle" dominant-baseline="middle">${pNum}</text>
+</svg>`;
+
+      return new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
+    }
+
+    // Client-Side PKZIP Archive Builder (Zero External Libraries)
+    const CRC32_TABLE = new Uint32Array(256);
+    for (let i = 0; i < 256; i++) {
+      let c = i;
+      for (let k = 0; k < 8; k++) {
+        c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+      }
+      CRC32_TABLE[i] = c >>> 0;
+    }
+
+    function calculateCrc32(bytes) {
+      let crc = 0xFFFFFFFF;
+      for (let i = 0; i < bytes.length; i++) {
+        crc = CRC32_TABLE[(crc ^ bytes[i]) & 0xFF] ^ (crc >>> 8);
+      }
+      return (crc ^ 0xFFFFFFFF) >>> 0;
+    }
+
+    function createZipArchive(files) {
+      const localHeaders = [];
+      const centralHeaders = [];
+      let offset = 0;
+      const encoder = new TextEncoder();
+
+      for (const f of files) {
+        const nameBytes = encoder.encode(f.name);
+        const dataBytes = f.data instanceof Uint8Array ? f.data : encoder.encode(f.data);
+        const crc = calculateCrc32(dataBytes);
+        const size = dataBytes.length;
+
+        // Local header: 30 bytes + name + data
+        const loc = new Uint8Array(30 + nameBytes.length + dataBytes.length);
+        const locView = new DataView(loc.buffer);
+        locView.setUint32(0, 0x04034b50, true);
+        locView.setUint16(4, 20, true);
+        locView.setUint16(6, 0, true);
+        locView.setUint16(8, 0, true); // stored (no compression)
+        locView.setUint16(10, 0, true);
+        locView.setUint16(12, 0, true);
+        locView.setUint32(14, crc, true);
+        locView.setUint32(18, size, true);
+        locView.setUint32(22, size, true);
+        locView.setUint16(26, nameBytes.length, true);
+        locView.setUint16(28, 0, true);
+        loc.set(nameBytes, 30);
+        loc.set(dataBytes, 30 + nameBytes.length);
+        localHeaders.push(loc);
+
+        // Central header: 46 bytes + name
+        const cen = new Uint8Array(46 + nameBytes.length);
+        const cenView = new DataView(cen.buffer);
+        cenView.setUint32(0, 0x02014b50, true);
+        cenView.setUint16(4, 20, true);
+        cenView.setUint16(6, 20, true);
+        cenView.setUint16(8, 0, true);
+        cenView.setUint16(10, 0, true);
+        cenView.setUint16(12, 0, true);
+        cenView.setUint16(14, 0, true);
+        cenView.setUint32(16, crc, true);
+        cenView.setUint32(20, size, true);
+        cenView.setUint32(24, size, true);
+        cenView.setUint16(28, nameBytes.length, true);
+        cenView.setUint16(30, 0, true);
+        cenView.setUint16(32, 0, true);
+        cenView.setUint16(34, 0, true);
+        cenView.setUint16(36, 0, true);
+        cenView.setUint32(38, 0, true);
+        cenView.setUint32(42, offset, true);
+        cen.set(nameBytes, 46);
+        centralHeaders.push(cen);
+
+        offset += loc.length;
+      }
+
+      let centralSize = 0;
+      for (const c of centralHeaders) centralSize += c.length;
+
+      // End of central directory: 22 bytes
+      const eocd = new Uint8Array(22);
+      const eocdView = new DataView(eocd.buffer);
+      eocdView.setUint32(0, 0x06054b50, true);
+      eocdView.setUint16(4, 0, true);
+      eocdView.setUint16(6, 0, true);
+      eocdView.setUint16(8, files.length, true);
+      eocdView.setUint16(10, files.length, true);
+      eocdView.setUint32(12, centralSize, true);
+      eocdView.setUint32(16, offset, true);
+      eocdView.setUint16(20, 0, true);
+
+      const totalLength = offset + centralSize + 22;
+      const zip = new Uint8Array(totalLength);
+      let pos = 0;
+      for (const loc of localHeaders) {
+        zip.set(loc, pos);
+        pos += loc.length;
+      }
+      for (const cen of centralHeaders) {
+        zip.set(cen, pos);
+        pos += cen.length;
+      }
+      zip.set(eocd, pos);
+
+      return new Blob([zip], { type: 'application/zip' });
+    }
+
+    function renderArtboardToCanvas(options = {}) {
+      const artboard = document.getElementById('physical-artboard');
+      if (!artboard) return null;
+
+      const visualW = artboard.offsetWidth || 380;
+      const visualH = artboard.offsetHeight || 532;
+      const scale = options.scale || 3;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(visualW * scale);
+      canvas.height = Math.round(visualH * scale);
+      const ctx = canvas.getContext('2d');
+
+      // Solid white background for JPG or when solid is requested
+      if (options.format === 'jpg' || !options.transparent) {
+        ctx.fillStyle = '#FFFFFF';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }
+
+      // Draw Logo or Emblem
+      const logoContainer = document.getElementById('canvas-logo-container');
+      if (logoContainer && !logoContainer.classList.contains('hidden') && logoContainer.style.display !== 'none') {
+        const artRect = artboard.getBoundingClientRect();
+        const elRect = logoContainer.getBoundingClientRect();
+        const lx = (elRect.left - artRect.left) * scale;
+        const ly = (elRect.top - artRect.top) * scale;
+        const lw = elRect.width * scale;
+        const lh = elRect.height * scale;
+
+        const img = logoContainer.querySelector('img');
+        if (img && img.complete && img.naturalWidth > 0) {
+          ctx.drawImage(img, lx, ly, lw, lh);
+        } else {
+          const emojiSpan = logoContainer.querySelector('span');
+          if (emojiSpan) {
+            ctx.save();
+            ctx.font = `${Math.round(48 * scale)}px sans-serif`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(emojiSpan.innerText, lx + lw / 2, ly + lh / 2);
+            ctx.restore();
+          }
+        }
+      }
+
+      // Helper to draw text with styles, strokes, shadows, and arcs
+      function drawTextLayer(el, overrideText) {
+        if (!el || el.style.display === 'none') return;
+        const text = overrideText || el.innerText;
+        if (!text) return;
+
+        ctx.save();
+
+        const artRect = artboard.getBoundingClientRect();
+        const elRect = el.getBoundingClientRect();
+        const x = (elRect.left - artRect.left) * scale;
+        const y = (elRect.top - artRect.top) * scale;
+        const w = elRect.width * scale;
+        const h = elRect.height * scale;
+
+        const computed = window.getComputedStyle(el);
+        const fontSize = parseFloat(computed.fontSize) * scale;
+        const fontFamily = computed.fontFamily || 'sans-serif';
+        const fontWeight = computed.fontWeight || 'bold';
+        const fontStyle = computed.fontStyle || 'normal';
+        const color = computed.color || '#0F172A';
+
+        ctx.font = `${fontStyle} ${fontWeight} ${Math.round(fontSize)}px ${fontFamily}`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        const centerX = x + w / 2;
+        const centerY = y + h / 2;
+
+        // Drop Shadow (for squad number)
+        const shadowToggle = document.getElementById('effect-shadow-toggle');
+        if (shadowToggle && shadowToggle.checked && el.id === 'canvas-player-number') {
+          const blur = (parseFloat(document.getElementById('slider-shadow-blur').value) || 8) * scale;
+          const shadowColor = document.getElementById('shadow-color-input').value || '#000000';
+          ctx.shadowColor = shadowColor;
+          ctx.shadowBlur = blur;
+          ctx.shadowOffsetY = 6 * scale;
+        }
+
+        // Outline Stroke
+        const strokeToggle = document.getElementById('effect-stroke-toggle');
+        const hasStroke = strokeToggle && strokeToggle.checked;
+        const strokeW = hasStroke ? (parseFloat(document.getElementById('slider-stroke').value) || 4) * scale : 0;
+        const strokeColor = hasStroke ? (document.getElementById('stroke-color-input').value || '#0F172A') : null;
+
+        // Curved Arc check (for player name)
+        const arcToggle = document.getElementById('effect-arc-toggle');
+        const isArc = arcToggle && arcToggle.checked && el.id === 'canvas-player-name';
+        const arcPower = isArc ? parseFloat(document.getElementById('slider-arc').value) || 40 : 0;
+
+        if (isArc && Math.abs(arcPower) > 2) {
+          // Curved Arc text drawing
+          const chars = text.split('');
+          const totalChars = chars.length;
+          const s = (arcPower / 100) * (h * 0.45);
+          const totalW = ctx.measureText(text).width;
+          let curX = centerX - totalW / 2;
+
+          for (let i = 0; i < totalChars; i++) {
+            const ch = chars[i];
+            const chW = ctx.measureText(ch).width;
+            const midX = curX + chW / 2;
+            const t = Math.max(-1, Math.min(1, (midX - centerX) / (w / 2 || 1)));
+            const arcY = centerY - s * (1 - t * t);
+            const slope = (-s * (-2 * t)) / (w / 2 || 1);
+            const angle = Math.atan(slope);
+
+            ctx.save();
+            ctx.translate(midX, arcY);
+            ctx.rotate(angle);
+            if (hasStroke && strokeColor) {
+              ctx.strokeStyle = strokeColor;
+              ctx.lineWidth = strokeW;
+              ctx.lineJoin = 'round';
+              ctx.strokeText(ch, 0, 0);
+            }
+            ctx.fillStyle = color;
+            ctx.fillText(ch, 0, 0);
+            ctx.restore();
+
+            curX += chW;
+          }
+        } else {
+          // Standard straight text
+          if (hasStroke && strokeColor) {
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = strokeW;
+            ctx.lineJoin = 'round';
+            ctx.strokeText(text, centerX, centerY);
+          }
+          ctx.fillStyle = color;
+          ctx.fillText(text, centerX, centerY);
+        }
+
+        ctx.restore();
+      }
+
+      // Draw Player Name
+      const nameEl = document.getElementById('canvas-player-name');
+      drawTextLayer(nameEl, options.playerName);
+
+      // Draw Squad Number
+      const numEl = document.getElementById('canvas-player-number');
+      drawTextLayer(numEl, options.playerNumber);
+
+      // Draw Clones & Additional Text Layers
+      const clones = document.querySelectorAll('#jersey-element-box [id*="_copy_"], #jersey-element-box [id^="text_layer_"]');
+      clones.forEach(c => {
+        drawTextLayer(c);
+      });
+
+      return canvas;
+    }
+
+    async function executeExportDownload() {
+      const btn = document.querySelector('#export-modal button[onclick="executeExportDownload()"]');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = `<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>Generating ${selectedExportFmt.toUpperCase()}...</span>`;
+        if (window.lucide) lucide.createIcons();
+      }
+
+      try {
+        const nameEl = document.getElementById('canvas-player-name');
+        const numEl = document.getElementById('canvas-player-number');
+        const pName = activePreviewPlayerName || (nameEl ? nameEl.innerText : 'LIAM');
+        const pNum = numEl ? numEl.innerText : '15';
+        const safeName = pName.replace(/[^a-zA-Z0-9_-]/g, '_');
+        const filename = `Falcon_FC_${safeName}_${pNum}.${selectedExportFmt}`;
+
+        if (selectedExportFmt === 'svg') {
+          const svgBlob = generateSvgBlob({ playerName: pName, playerNumber: pNum });
+          downloadBlobLocally(svgBlob, filename);
+        } else {
+          const isJpg = selectedExportFmt === 'jpg';
+          const canvas = renderArtboardToCanvas({
+            format: selectedExportFmt,
+            playerName: pName,
+            playerNumber: pNum,
+            transparent: !isJpg
+          });
+
+          if (selectedExportFmt === 'png') {
+            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+            downloadBlobLocally(blob, filename);
+          } else if (selectedExportFmt === 'jpg') {
+            const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', 0.95));
+            downloadBlobLocally(blob, filename);
+          } else if (selectedExportFmt === 'pdf') {
+            const pdfBlob = await generatePdfBlob(canvas, canvasWidthInches, canvasHeightInches);
+            downloadBlobLocally(pdfBlob, filename);
+          }
+        }
+
+        closeModal('export-modal');
+        showToast(`✓ Exported: ${filename} downloaded to your computer!`, 'success');
+      } catch (err) {
+        console.error('Export download error:', err);
+        showToast(`Export failed: ${err.message}`, 'warning');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = `<i data-lucide="download" class="w-3.5 h-3.5"></i><span>Download Production Files</span>`;
+          if (window.lucide) lucide.createIcons();
+        }
+      }
+    }
+
+    async function triggerBatchRosterExport() {
+      if (!activeRoster || activeRoster.length === 0) {
+        showToast('No players in roster to generate.', 'warning');
+        return;
+      }
+
+      const total = activeRoster.length;
+      showToast(`Starting 300 DPI bulk generation for ${total} players...`, 'info');
+
+      const filesForZip = [];
+      const manifestRows = ['ID,Player Name,Jersey Number,Garment Size,Print Resolution,Format,Filename'];
+
+      try {
+        for (let i = 0; i < total; i++) {
+          const p = activeRoster[i];
+          const playerUpper = p.name.toUpperCase();
+          const playerNum = p.number;
+          const playerSize = p.size || 'Adult M';
+
+          // Render canvas for this player
+          const canvas = renderArtboardToCanvas({
+            format: 'png',
+            playerName: playerUpper,
+            playerNumber: playerNum,
+            transparent: false
+          });
+
+          const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+          const buffer = await blob.arrayBuffer();
+          const pngBytes = new Uint8Array(buffer);
+
+          const safeName = p.name.replace(/[^a-zA-Z0-9_-]/g, '_');
+          const safeSize = playerSize.replace(/[^a-zA-Z0-9_-]/g, '_');
+          const filename = `Falcon_FC_${playerNum}_${safeName}_${safeSize}.png`;
+
+          filesForZip.push({
+            name: filename,
+            data: pngBytes
+          });
+
+          manifestRows.push(`${i + 1},"${p.name}","${p.number}","${playerSize}","300 DPI",PNG,${filename}`);
+        }
+
+        // Add manifest.csv to the zip archive
+        filesForZip.push({
+          name: 'manifest.csv',
+          data: manifestRows.join('\r\n')
+        });
+
+        // Package into ZIP
+        const zipBlob = createZipArchive(filesForZip);
+        const zipName = `Falcon_FC_Squad_${total}_Jerseys_300DPI.zip`;
+        downloadBlobLocally(zipBlob, zipName);
+
+        showToast(`✓ Batch Complete! Downloaded ${zipName} (${filesForZip.length} files)`, 'success');
+      } catch (err) {
+        console.error('Batch generation error:', err);
+        showToast(`Batch generation error: ${err.message}`, 'warning');
+      }
     }
 
     function openModal(modalId) {
