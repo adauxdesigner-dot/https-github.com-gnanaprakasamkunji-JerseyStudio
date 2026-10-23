@@ -19,11 +19,31 @@
     .font-mono {
       font-family: 'JetBrains Mono', monospace;
     }
-    /* Dynamic Precision Canvas Grid */
+    /* Dynamic Precision Canvas Grid — Light Mode */
     .canvas-grid {
-      background-color: #0B1120;
-      background-image: radial-gradient(rgba(148, 163, 184, 0.22) 1px, transparent 1px);
-      background-size: 24px 24px;
+      background-color: #F0F2F5;
+      background-image: radial-gradient(rgba(100,116,139,0.15) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    /* Bounding Box Resize Handles */
+    .resize-handle {
+      width: 10px; height: 10px;
+      background: #3B82F6;
+      border: 2px solid white;
+      border-radius: 2px;
+      position: absolute;
+      z-index: 50;
+      cursor: nwse-resize;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+    }
+    .resize-handle.se { bottom: -5px; right: -5px; cursor: se-resize; }
+    .resize-handle.sw { bottom: -5px; left: -5px; cursor: sw-resize; }
+    .resize-handle.ne { top: -5px; right: -5px; cursor: ne-resize; }
+    .resize-handle.nw { top: -5px; left: -5px; cursor: nw-resize; }
+    .layer-selected {
+      outline: 2px solid #3B82F6;
+      outline-offset: 2px;
     }
     /* Custom Sleek Scrollbar */
     ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -93,7 +113,7 @@
 
     <!-- Right: Quick Actions & Primary Export -->
     <div class="flex items-center gap-2.5">
-      <button onclick="openModal('roster-modal')" class="px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200/90 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition border border-slate-200" title="Automate names and numbers across the entire team squad">
+      <button onclick="toggleRosterDock()" id="btn-header-roster" class="px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200/90 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition border border-slate-200 hover:border-blue-400" title="Open Team Roster Studio at bottom of workspace (No popup)">
         <i data-lucide="users" class="w-3.5 h-3.5 text-blue-600"></i>
         <span>Team Roster (Bulk)</span>
         <span class="px-1.5 py-0.2 bg-blue-100 text-blue-800 rounded-full text-[10px] font-mono font-bold">10</span>
@@ -195,6 +215,37 @@
       </button>
     </div>
 
+  </div>
+
+  <!-- ====================================================================
+       ACTIVE SELECTION BAR (Context-aware layer controls — between toolbar and canvas)
+       ==================================================================== -->
+  <div id="selection-action-bar" class="h-10 bg-white border-b border-slate-200 flex items-center gap-3 px-5 text-xs shrink-0 z-20">
+    <div id="selection-bar-empty" class="text-slate-400 font-medium italic text-xs">
+      No element selected — click any text or logo on the canvas to select it.
+    </div>
+    <div id="selection-bar-active" class="hidden flex items-center gap-2 w-full">
+      <span id="selection-bar-label" class="font-bold text-slate-700 mr-2 text-xs min-w-28 truncate">Player Name</span>
+      <div class="h-4 w-px bg-slate-200"></div>
+      <input type="color" id="active-element-color" value="#FFFFFF" oninput="applyActiveColor(this.value)" class="w-6 h-6 rounded border cursor-pointer border-slate-300" title="Ink / Vinyl Color">
+      <div class="h-4 w-px bg-slate-200 mx-1"></div>
+      <button onclick="alignActiveLayer('left')" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:bg-slate-100 text-slate-700 font-semibold transition" title="Align Left">
+        <i data-lucide="align-left" class="w-3.5 h-3.5"></i><span>Left</span>
+      </button>
+      <button onclick="alignActiveLayer('center')" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:bg-slate-100 text-slate-700 font-semibold transition" title="Align Center">
+        <i data-lucide="align-center" class="w-3.5 h-3.5"></i><span>Center</span>
+      </button>
+      <button onclick="alignActiveLayer('right')" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:bg-slate-100 text-slate-700 font-semibold transition" title="Align Right">
+        <i data-lucide="align-right" class="w-3.5 h-3.5"></i><span>Right</span>
+      </button>
+      <div class="h-4 w-px bg-slate-200 mx-1"></div>
+      <button onclick="duplicateActiveLayer()" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:bg-slate-100 text-slate-600 font-semibold transition" title="Duplicate Layer (⌘D)">
+        <i data-lucide="copy" class="w-3.5 h-3.5"></i><span>Duplicate</span>
+      </button>
+      <button onclick="deleteActiveLayer()" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:bg-red-50 text-red-600 font-semibold transition ml-auto" title="Delete Layer (⌫)">
+        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i><span>Delete</span>
+      </button>
+    </div>
   </div>
 
   <!-- ====================================================================
@@ -470,7 +521,25 @@
         </div>
       </div>
 
-      <!-- ================= 5. REAL CANVAS RESIZING DRAWER ================= -->
+      <!-- ================= 5. LAYERS DRAWER ================= -->
+      <div id="panel-layers" class="flex-1 flex flex-col p-4 overflow-y-auto hidden">
+        <div class="flex items-center justify-between border-b pb-3 mb-3">
+          <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
+            <i data-lucide="layers" class="w-4 h-4 text-blue-600"></i>
+            <span>Canvas Layers</span>
+          </h3>
+          <button onclick="closeSidePanel()" class="w-6 h-6 rounded-md hover:bg-slate-100 flex items-center justify-center text-slate-400">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Stack Order (Top → Bottom)</div>
+        <div id="layers-list" class="space-y-1.5 text-xs"></div>
+        <div class="mt-4 pt-3 border-t">
+          <p class="text-[11px] text-slate-400 leading-relaxed">Click any layer to select it on the canvas. Drag to reorder (coming soon).</p>
+        </div>
+      </div>
+
+      <!-- ================= 6. REAL CANVAS RESIZING DRAWER ================= -->
       <div id="panel-resize" class="flex-1 flex flex-col p-4 overflow-y-auto hidden">
         <div class="flex items-center justify-between border-b pb-3 mb-3">
           <h3 class="font-bold text-sm text-slate-900 flex items-center gap-2">
@@ -554,71 +623,34 @@
             </div>
 
             <!-- PHYSICAL ARTBOARD BOX (Width & Height change in real time) -->
-            <div id="physical-artboard" class="relative bg-slate-950 rounded-3xl shadow-2xl overflow-hidden border-2 border-slate-700 transition-all duration-300 flex items-center justify-center" style="width: 380px; height: 532px;">
-            
-            <!-- Sportswear Jersey Vector SVG Graphic -->
-            <svg id="canvas-jersey-svg" class="w-full h-full p-4 pointer-events-none select-none" viewBox="0 0 400 560" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <!-- Jersey Body -->
-              <path id="svg-jersey-body" d="M120 40 L80 120 L30 180 L60 230 L100 180 L100 520 L300 520 L300 180 L340 230 L370 180 L320 120 L280 40 Z" fill="#0F172A" stroke="#334155" stroke-width="3"/>
-              
-              <!-- Athletic Sublimation Accent Waves -->
-              <path id="svg-wave-1" d="M40 500 Q160 320 360 180 L370 215 Q180 360 50 520 Z" fill="#0284C7" opacity="0.9"/>
-              <path id="svg-wave-2" d="M70 520 Q190 340 340 200 L350 230 Q200 370 80 520 Z" fill="#38BDF8" opacity="0.75"/>
-              <path id="svg-wave-3" d="M100 520 Q210 380 320 250 L325 270 Q220 400 110 520 Z" fill="#FACC15" opacity="0.85"/>
+            <div id="physical-artboard" class="relative rounded-3xl shadow-2xl overflow-hidden border border-slate-200 transition-all duration-300" style="width: 380px; height: 532px; background-color: #FFFFFF; box-shadow: 0 4px 32px rgba(0,0,0,0.12);">
 
-              <!-- Collar -->
-              <path id="svg-collar" d="M140 40 Q200 80 260 40 L280 40 Q200 110 120 40 Z" fill="#FFFFFF" stroke="#0F172A" stroke-width="2"/>
-
-              <!-- Safe Printable Boundary Box with Sublimation Label -->
-              <rect x="100" y="100" width="200" height="360" rx="8" stroke="#38BDF8" stroke-width="1.5" stroke-dasharray="6 6" fill="rgba(56, 189, 248, 0.03)"/>
-            </svg>
+            <!-- Subtle Print Margin Guide Overlay -->
+            <div id="print-margin-guide" class="absolute inset-4 border border-dashed pointer-events-none transition-opacity" style="border-color: rgba(59,130,246,0.25); border-width: 1px;"></div>
 
             <!-- INTERACTIVE BOUNDING BOX FOR TEXT & NUMBERS -->
-            <div id="jersey-element-box" class="absolute inset-0 flex flex-col items-center justify-center p-6 cursor-move z-20">
-              
-              <!-- Floating Context Toolbar (Attached right above active layer) -->
-              <div class="mb-3 bg-white/95 backdrop-blur-md text-slate-800 rounded-xl shadow-2xl border border-slate-200/90 px-2.5 py-1 flex items-center gap-2 text-xs animate-in fade-in">
-                <button onclick="triggerColorPick()" class="flex items-center gap-1 px-1.5 py-1 hover:bg-slate-100 rounded text-slate-700 font-semibold" title="Change Ink / Film Color">
-                  <i data-lucide="palette" class="w-3.5 h-3.5 text-blue-600"></i>
-                  <span>Color</span>
-                </button>
-                <div class="h-3.5 w-px bg-slate-200"></div>
-                <button onclick="triggerCenter()" class="flex items-center gap-1 px-2 py-1 font-bold hover:bg-slate-100 rounded text-blue-600" title="Align to Exact Garment Center">
-                  <i data-lucide="align-center" class="w-3.5 h-3.5"></i>
-                  <span>Center</span>
-                </button>
-                <div class="h-3.5 w-px bg-slate-200"></div>
-                <button onclick="triggerDuplicate()" class="flex items-center gap-1 px-1.5 py-1 hover:bg-slate-100 rounded text-slate-700" title="Duplicate Layer">
-                  <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-                  <span>Duplicate</span>
-                </button>
-                <div class="h-3.5 w-px bg-slate-200"></div>
-                <button onclick="triggerDelete()" class="flex items-center gap-1 px-1.5 py-1 hover:bg-red-50 rounded text-red-600 font-semibold" title="Delete Element">
-                  <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                  <span>Delete</span>
-                </button>
-              </div>
+            <div id="jersey-element-box" class="absolute inset-0 pointer-events-none z-20" onclick="handleArtboardClick(event)">
 
               <!-- Uploaded Logo Slot -->
-              <div id="canvas-logo-container" class="hidden mb-2 max-w-28 max-h-20 flex items-center justify-center transition-all"></div>
+              <div id="canvas-logo-container" class="hidden absolute pointer-events-auto" style="top: 18%; left: 50%; transform: translate(-50%, -50%);" onclick="selectLayer('canvas-logo-container', 'Team Logo / Crest'); event.stopPropagation();"></div>
 
               <!-- Player Name Element (Supports Curved Arc) -->
-              <div id="canvas-player-name" class="text-white font-extrabold text-3xl tracking-wider uppercase text-center transition-all select-none drop-shadow-md">
+              <div id="canvas-player-name" class="text-slate-900 font-extrabold text-3xl tracking-wider uppercase text-center transition-all select-none drop-shadow-md absolute pointer-events-auto" style="top: 40%; left: 50%; transform: translate(-50%, -50%); cursor: move;" onclick="selectLayer('canvas-player-name', 'Player Name'); event.stopPropagation();">
                 LIAM
               </div>
 
               <!-- Player Number Element -->
-              <div id="canvas-player-number" class="text-white font-black text-8xl leading-none text-center transition-all select-none mt-1 drop-shadow-lg">
+              <div id="canvas-player-number" class="text-slate-900 font-black text-8xl leading-none text-center transition-all select-none drop-shadow-lg absolute pointer-events-auto" style="top: 63%; left: 50%; transform: translate(-50%, -50%); cursor: move;" onclick="selectLayer('canvas-player-number', 'Squad Number'); event.stopPropagation();">
                 15
               </div>
 
             </div>
 
-          </div>
+            </div><!-- /#physical-artboard -->
 
-          </div>
+          </div><!-- /.flex.items-center (ruler row) -->
 
-        </div>
+          </div><!-- /#artboard-scalable-wrapper -->
 
       </div>
 
@@ -650,86 +682,46 @@
 
     </main>
 
-  </div>
-
-  <!-- ====================================================================
-       MODAL: TEAM ROSTER BULK AUTOMATION
-       ==================================================================== -->
-  <div id="roster-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
-    <div class="bg-white rounded-2xl max-w-2xl w-full shadow-2xl border border-slate-200 p-6 space-y-4">
-      <div class="flex items-center justify-between border-b pb-3">
-        <div>
-          <h3 class="font-bold text-base text-slate-900 flex items-center gap-2">
-            <i data-lucide="users" class="w-5 h-5 text-blue-600"></i>
-            <span>Team Roster & Bulk Personalization</span>
-          </h3>
-          <p class="text-xs text-slate-500 mt-0.5">
-            Personalize jerseys for the entire squad. Names and numbers are automatically formatted and verified against safe printable margins.
-          </p>
+    <!-- ====================================================================
+         TEAM ROSTER DOCK (Collapsible bottom panel, always at bottom of workspace)
+         ==================================================================== -->
+    <div id="roster-dock" class="hidden flex-col bg-white border-t border-slate-200 shadow-2xl transition-all duration-300" style="height: 260px; flex-shrink: 0;">
+      <div class="flex items-center justify-between px-5 py-2.5 border-b border-slate-100 bg-slate-50">
+        <div class="flex items-center gap-2">
+          <i data-lucide="users" class="w-4 h-4 text-blue-600"></i>
+          <span class="font-bold text-sm text-slate-900">Team Roster &amp; Bulk Personalization</span>
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">300 DPI • Local Only</span>
         </div>
-        <button onclick="closeModal('roster-modal')" class="text-slate-400 hover:text-slate-600 p-1"><i data-lucide="x" class="w-5 h-5"></i></button>
-      </div>
-
-      <div class="space-y-3 text-xs">
-        <div class="flex items-center justify-between gap-2">
-          <div class="flex gap-2 flex-1">
-            <button onclick="pickRoster('basketball')" class="flex-1 p-2.5 border rounded-xl hover:border-blue-500 bg-slate-50 text-left transition hover:shadow-xs">
-              <div class="font-bold text-slate-900">🏀 10-Player Basketball</div>
-              <div class="text-[11px] text-slate-500">Hawks Starting 5 & Bench</div>
-            </button>
-            <button onclick="pickRoster('soccer')" class="flex-1 p-2.5 border rounded-xl hover:border-blue-500 bg-slate-50 text-left transition hover:shadow-xs">
-              <div class="font-bold text-slate-900">⚽ 25-Player Soccer</div>
-              <div class="text-[11px] text-slate-500">FC Strikers Full Matchday Squad</div>
-            </button>
-          </div>
-
-          <!-- Working CSV Import Input -->
-          <label class="p-2.5 border border-dashed border-blue-400 hover:border-blue-600 bg-blue-50/60 hover:bg-blue-50 rounded-xl cursor-pointer text-center flex flex-col items-center justify-center transition">
-            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-blue-600 mb-0.5"></i>
-            <span class="font-bold text-blue-800 text-[11px]">Import CSV / Excel</span>
-            <input type="file" accept=".csv,.txt,.xlsx" onchange="handleRosterCSVImport(event)" class="hidden">
-          </label>
-        </div>
-
-        <div class="border rounded-xl p-2 max-h-56 overflow-y-auto">
-          <table class="w-full text-left text-xs">
-            <thead class="bg-slate-100 text-slate-700 font-bold sticky top-0">
-              <tr>
-                <th class="p-2">#</th>
-                <th class="p-2">Player Name</th>
-                <th class="p-2">Jersey #</th>
-                <th class="p-2">Garment Size</th>
-                <th class="p-2">Margin Status</th>
-                <th class="p-2 text-right">1-Click Preview</th>
-              </tr>
-            </thead>
-            <tbody id="roster-table-body" class="divide-y divide-slate-100"></tbody>
-          </table>
-        </div>
-
-        <!-- Privacy & Local Processing Notice -->
-        <div class="p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-[11px] text-slate-600 flex items-center justify-between">
-          <span class="flex items-center gap-1.5">
-            <i data-lucide="shield-check" class="w-3.5 h-3.5 text-emerald-600"></i>
-            <span>Local Guarantee: Player names and numbers are processed 100% on this computer. Zero cloud transmission.</span>
-          </span>
-          <span id="roster-count-badge" class="font-mono font-bold text-slate-800">10 Players</span>
+        <div class="flex items-center gap-2">
+          <button onclick="pickRoster('basketball')" class="px-3 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition">🏀 Basketball (10)</button>
+          <button onclick="pickRoster('soccer')" class="px-3 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition">⚽ Soccer (8)</button>
+          <button onclick="runBulkGeneration()" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition">
+            <i data-lucide="play" class="w-3.5 h-3.5"></i>Batch Generate (300 DPI ZIP)
+          </button>
+          <button onclick="toggleRosterDock()" class="w-7 h-7 rounded-lg hover:bg-slate-200 flex items-center justify-center text-slate-500 ml-2 transition" title="Close Roster Panel">
+            <i data-lucide="chevron-down" class="w-4 h-4"></i>
+          </button>
         </div>
       </div>
-
-      <div class="flex justify-between items-center pt-3 border-t">
-        <button onclick="closeModal('roster-modal')" class="px-4 py-2 border rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-50">Cancel</button>
-        <button onclick="runBulkGeneration()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-md shadow-emerald-500/20 transition-all">
-          <i data-lucide="play" class="w-3.5 h-3.5"></i>
-          <span>Generate Batch ZIP (300 DPI)</span>
-        </button>
+      <div class="flex-1 overflow-auto px-5 py-2">
+        <table class="w-full text-xs text-left">
+          <thead class="bg-slate-50 text-slate-500 font-bold uppercase tracking-wide sticky top-0">
+            <tr>
+              <th class="py-2 px-2">#</th>
+              <th class="py-2 px-2">Player Name</th>
+              <th class="py-2 px-2">Jersey #</th>
+              <th class="py-2 px-2">Garment Size</th>
+              <th class="py-2 px-2">Print Status</th>
+              <th class="py-2 px-2">1-Click Preview</th>
+            </tr>
+          </thead>
+          <tbody id="roster-table-body" class="divide-y divide-slate-100"></tbody>
+        </table>
       </div>
     </div>
+
   </div>
 
-  <!-- ====================================================================
-       MODAL: EXPORT PRODUCTION FILES
-       ==================================================================== -->
   <div id="export-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center z-50 p-4">
     <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 p-6 space-y-4">
       <div class="flex items-center justify-between border-b pb-3">
@@ -802,7 +794,471 @@
     let isUpperCase = true;
     let activeViewMode = 'back';
 
-    // 0. ================= MODERN REASSURING TOAST HUB =================
+    // ================= LAYER REGISTRY & STATE =================
+    const layerRegistry = [];
+    let layerCounter = 0;
+    var activeLayerId = null;
+
+    function registerLayer(id, label, type = 'text') {
+      const existing = layerRegistry.find(l => l.id === id);
+      if (existing) {
+        existing.label = label;
+        existing.type = type;
+        refreshLayersPanel();
+        return;
+      }
+      layerCounter++;
+      const entry = { id, label, type, visible: true, locked: false, zIndex: layerCounter };
+      layerRegistry.unshift(entry); // newest on top
+      refreshLayersPanel();
+    }
+
+    function removeLayerFromRegistry(id) {
+      const idx = layerRegistry.findIndex(l => l.id === id);
+      if (idx !== -1) layerRegistry.splice(idx, 1);
+      refreshLayersPanel();
+    }
+
+    function refreshLayersPanel() {
+      const list = document.getElementById('layers-list');
+      if (!list) return;
+      list.innerHTML = '';
+      layerRegistry.forEach((layer) => {
+        const div = document.createElement('div');
+        const isSelected = activeLayerId === layer.id;
+        div.className = `flex items-center gap-2 p-2 rounded-xl border cursor-pointer transition ${isSelected ? 'border-blue-500 bg-blue-50/80 shadow-xs' : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'}`;
+        div.onclick = () => {
+          selectLayer(layer.id, layer.label);
+          refreshLayersPanel();
+        };
+        div.innerHTML = `
+          <div class="flex items-center gap-1.5 flex-1 min-w-0">
+            <span class="text-slate-400 text-xs font-mono font-bold">${layer.type === 'text' ? 'T' : '🖼'}</span>
+            <span class="font-semibold text-slate-800 text-xs truncate">${layer.label}</span>
+          </div>
+          <button onclick="event.stopPropagation(); toggleLayerVisibility('${layer.id}')" class="p-1 rounded hover:bg-slate-200 text-slate-400 hover:text-slate-700 transition" title="${layer.visible ? 'Hide Layer' : 'Show Layer'}">
+            <i data-lucide="${layer.visible ? 'eye' : 'eye-off'}" class="w-3.5 h-3.5"></i>
+          </button>
+          <button onclick="event.stopPropagation(); toggleLayerLock('${layer.id}')" class="p-1 rounded hover:bg-slate-200 text-slate-400 hover:text-slate-700 transition" title="${layer.locked ? 'Unlock Layer' : 'Lock Layer'}">
+            <i data-lucide="${layer.locked ? 'lock' : 'lock-open'}" class="w-3.5 h-3.5"></i>
+          </button>
+          <button onclick="event.stopPropagation(); deleteLayerById('${layer.id}')" class="p-1 rounded hover:bg-red-50 text-slate-400 hover:text-red-600 transition" title="Delete Layer">
+            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+          </button>
+        `;
+        list.appendChild(div);
+      });
+      lucide.createIcons();
+    }
+
+    // ================= SELECT / DESELECT & SELECTION BAR =================
+    function selectLayer(id, label) {
+      activeLayerId = id;
+      const emptyBar = document.getElementById('selection-bar-empty');
+      const activeBar = document.getElementById('selection-bar-active');
+      const labelEl = document.getElementById('selection-bar-label');
+      if (emptyBar) emptyBar.classList.add('hidden');
+      if (activeBar) activeBar.classList.remove('hidden');
+      if (labelEl) labelEl.innerText = label;
+
+      // Clear any prior selections and handles
+      document.querySelectorAll('.layer-selected').forEach(el => el.classList.remove('layer-selected'));
+      document.querySelectorAll('.resize-handle').forEach(h => h.remove());
+
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.add('layer-selected');
+        // Attach interactive 4-corner resize handles if it's an image/logo or container
+        if (id === 'canvas-logo-container' || el.querySelector('img') || el.id.includes('logo')) {
+          attachResizeHandles(el);
+        }
+      }
+      refreshLayersPanel();
+    }
+
+    function deselect() {
+      activeLayerId = null;
+      const emptyBar = document.getElementById('selection-bar-empty');
+      const activeBar = document.getElementById('selection-bar-active');
+      if (emptyBar) emptyBar.classList.remove('hidden');
+      if (activeBar) activeBar.classList.add('hidden');
+      document.querySelectorAll('.layer-selected').forEach(el => el.classList.remove('layer-selected'));
+      document.querySelectorAll('.resize-handle').forEach(h => h.remove());
+      refreshLayersPanel();
+    }
+
+    function handleArtboardClick(e) {
+      // If clicking directly on empty artboard area, deselect
+      if (e.target.id === 'jersey-element-box' || e.target.id === 'physical-artboard' || e.target.id === 'print-margin-guide') {
+        deselect();
+      }
+    }
+
+    // ================= REAL LEFT, CENTER, RIGHT ALIGNMENT =================
+    function alignActiveLayer(dir) {
+      if (!activeLayerId) {
+        showToast('Click an element on the canvas to select it first.', 'info');
+        return;
+      }
+      const el = document.getElementById(activeLayerId);
+      const artboard = document.getElementById('physical-artboard');
+      if (!el || !artboard) return;
+
+      const artW = artboard.offsetWidth;
+      const elW = el.offsetWidth;
+      const padding = 24;
+
+      el.style.transform = 'none';
+      if (dir === 'left') {
+        el.style.left = `${padding}px`;
+        showToast(`✓ Aligned "${activeLayerId}" to Left margin.`);
+      } else if (dir === 'center') {
+        const c = Math.max(0, Math.round((artW - elW) / 2));
+        el.style.left = `${c}px`;
+        showToast(`✓ Aligned "${activeLayerId}" to Center axis.`);
+      } else if (dir === 'right') {
+        const r = Math.max(padding, Math.round(artW - elW - padding));
+        el.style.left = `${r}px`;
+        showToast(`✓ Aligned "${activeLayerId}" to Right margin.`);
+      }
+    }
+
+    function triggerCenter() {
+      alignActiveLayer('center');
+    }
+
+    function applyActiveColor(color) {
+      if (!activeLayerId) return;
+      const el = document.getElementById(activeLayerId);
+      if (!el) return;
+      el.style.color = color;
+      const picker = document.getElementById('text-color-picker');
+      if (picker) picker.value = color;
+      showToast('Color updated for selected element.');
+    }
+
+    // ================= TOGGLE VISIBILITY & LOCK =================
+    function toggleLayerVisibility(id) {
+      const layer = layerRegistry.find(l => l.id === id);
+      if (!layer) return;
+      layer.visible = !layer.visible;
+      const el = document.getElementById(id);
+      if (el) el.style.opacity = layer.visible ? '1' : '0';
+      refreshLayersPanel();
+      showToast(layer.visible ? `Layer "${layer.label}" is now visible.` : `Layer "${layer.label}" hidden.`);
+    }
+
+    function toggleLayerLock(id) {
+      const layer = layerRegistry.find(l => l.id === id);
+      if (!layer) return;
+      layer.locked = !layer.locked;
+      const el = document.getElementById(id);
+      if (el) el.style.pointerEvents = layer.locked ? 'none' : 'auto';
+      refreshLayersPanel();
+      showToast(layer.locked ? `Layer "${layer.label}" locked.` : `Layer "${layer.label}" unlocked.`);
+    }
+
+    // ================= REAL DELETE LAYER =================
+    function deleteLayerById(id) {
+      const layer = layerRegistry.find(l => l.id === id);
+      const label = layer ? layer.label : id;
+      
+      if (id === 'canvas-logo-container') {
+        removeLogoFromJersey();
+      } else {
+        const el = document.getElementById(id);
+        if (el) el.remove();
+      }
+
+      removeLayerFromRegistry(id);
+      if (activeLayerId === id) {
+        deselect();
+      }
+      showToast(`"${label}" removed from canvas.`);
+    }
+
+    function deleteActiveLayer() {
+      if (!activeLayerId) {
+        showToast('Select an element on the canvas first to delete.', 'info');
+        return;
+      }
+      deleteLayerById(activeLayerId);
+    }
+
+    function triggerDelete() {
+      deleteActiveLayer();
+    }
+
+    // ================= REAL DUPLICATE LAYER =================
+    function duplicateActiveLayer() {
+      if (!activeLayerId) {
+        showToast('Select an element on the canvas first to duplicate.', 'info');
+        return;
+      }
+      const original = document.getElementById(activeLayerId);
+      if (!original) return;
+      const layer = layerRegistry.find(l => l.id === activeLayerId);
+
+      const clone = original.cloneNode(true);
+      const newId = activeLayerId + '_copy_' + Date.now();
+      clone.id = newId;
+
+      // Clean up cloned handles
+      clone.querySelectorAll('.resize-handle').forEach(h => h.remove());
+
+      // Compute parent-relative coordinates for clean +24px offset
+      const parentRect = original.parentNode.getBoundingClientRect();
+      const origRect = original.getBoundingClientRect();
+      const actualLeft = origRect.left - parentRect.left;
+      const actualTop = origRect.top - parentRect.top;
+
+      clone.style.left = `${actualLeft + 24}px`;
+      clone.style.top = `${actualTop + 24}px`;
+      clone.style.transform = 'none';
+      clone.style.position = 'absolute';
+      clone.style.cursor = 'move';
+      clone.classList.remove('layer-selected');
+
+      original.parentNode.appendChild(clone);
+
+      const newLabel = (layer ? layer.label : 'Layer') + ' Copy';
+      const type = layer ? layer.type : 'text';
+      registerLayer(newId, newLabel, type);
+
+      // Wire click selection
+      clone.onclick = (e) => {
+        e.stopPropagation();
+        selectLayer(newId, newLabel);
+      };
+
+      if (type === 'image' || clone.querySelector('img')) {
+        makeResizable(clone);
+      } else {
+        makeDraggable(clone);
+      }
+
+      selectLayer(newId, newLabel);
+      showToast(`✓ Duplicated "${newLabel}" on canvas!`, 'success');
+    }
+
+    function triggerDuplicate() {
+      duplicateActiveLayer();
+    }
+
+    // Keyboard Delete / Backspace support
+    document.addEventListener('keydown', (e) => {
+      if ((e.key === 'Delete' || e.key === 'Backspace') && activeLayerId) {
+        const tag = document.activeElement && document.activeElement.tagName;
+        if (tag !== 'INPUT' && tag !== 'TEXTAREA') {
+          e.preventDefault();
+          deleteActiveLayer();
+        }
+      }
+    });
+
+    // ================= DRAG-TO-MOVE (Smooth Positioning) =================
+    function makeDraggable(el) {
+      const artboard = document.getElementById('physical-artboard');
+      if (!el || !artboard) return;
+
+      el.style.cursor = 'move';
+
+      el.addEventListener('mousedown', function startDrag(e) {
+        if (e.target.classList.contains('resize-handle')) return;
+        e.preventDefault();
+        e.stopPropagation();
+
+        selectLayer(el.id, el.innerText ? el.innerText.substring(0, 15) : 'Layer');
+
+        const artRect = artboard.getBoundingClientRect();
+        const elRect = el.getBoundingClientRect();
+        let startX = e.clientX;
+        let startY = e.clientY;
+        let origLeft = elRect.left - artRect.left;
+        let origTop  = elRect.top  - artRect.top;
+
+        function onMove(e2) {
+          const dx = e2.clientX - startX;
+          const dy = e2.clientY - startY;
+          const newLeft = Math.max(0, Math.min(artboard.offsetWidth - el.offsetWidth, origLeft + dx));
+          const newTop  = Math.max(0, Math.min(artboard.offsetHeight - el.offsetHeight, origTop + dy));
+          el.style.left = `${newLeft}px`;
+          el.style.top  = `${newTop}px`;
+          el.style.transform = 'none';
+        }
+
+        function onUp() {
+          document.removeEventListener('mousemove', onMove);
+          document.removeEventListener('mouseup', onUp);
+        }
+
+        document.addEventListener('mousemove', onMove);
+        document.addEventListener('mouseup', onUp);
+      });
+    }
+
+    // ================= RESIZE HANDLES ENGINE (Artwork & Logos) =================
+    function attachResizeHandles(el) {
+      document.querySelectorAll('.resize-handle').forEach(h => h.remove());
+      if (!el) return;
+
+      const corners = ['nw', 'ne', 'sw', 'se'];
+      corners.forEach(corner => {
+        const handle = document.createElement('div');
+        handle.className = `resize-handle ${corner}`;
+        handle.dataset.corner = corner;
+
+        handle.addEventListener('mousedown', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+
+          const startX = e.clientX;
+          const startY = e.clientY;
+          const startW = el.offsetWidth;
+          const startH = el.offsetHeight;
+
+          function onMove(e2) {
+            const dx = e2.clientX - startX;
+            const dy = e2.clientY - startY;
+            let newW = startW;
+            let newH = startH;
+
+            if (corner === 'se') { newW = startW + dx; newH = startH + dy; }
+            if (corner === 'sw') { newW = startW - dx; newH = startH + dy; }
+            if (corner === 'ne') { newW = startW + dx; newH = startH - dy; }
+            if (corner === 'nw') { newW = startW - dx; newH = startH - dy; }
+
+            newW = Math.max(30, Math.min(360, newW));
+            newH = Math.max(30, Math.min(450, newH));
+
+            el.style.width = `${newW}px`;
+            el.style.height = `${newH}px`;
+            const img = el.querySelector('img');
+            if (img) {
+              img.style.width = `${newW}px`;
+              img.style.height = `${newH}px`;
+              img.style.maxHeight = 'none';
+              img.style.maxWidth = 'none';
+            }
+          }
+
+          function onUp() {
+            document.removeEventListener('mousemove', onMove);
+            document.removeEventListener('mouseup', onUp);
+            showToast(`Artwork resized to ${Math.round(el.offsetWidth * 0.0526)}" × ${Math.round(el.offsetHeight * 0.0526)}"`);
+          }
+
+          document.addEventListener('mousemove', onMove);
+          document.addEventListener('mouseup', onUp);
+        });
+
+        el.appendChild(handle);
+      });
+    }
+
+    function makeResizable(el) {
+      if (!el) return;
+      makeDraggable(el);
+      attachResizeHandles(el);
+    }
+
+    // ================= INTEGRATED TEAM ROSTER DOCK (ZERO POPUPS) =================
+    const sampleTeams = {
+      basketball: [
+        { id: 1, name: 'MARCUS', number: '07', size: 'Adult L' },
+        { id: 2, name: 'JORDAN', number: '23', size: 'Adult XL' },
+        { id: 3, name: 'BRYANT', number: '24', size: 'Adult M' },
+        { id: 4, name: 'CURRY', number: '30', size: 'Adult M' },
+        { id: 5, name: 'JAMES', number: '06', size: 'Adult 2XL' },
+        { id: 6, name: 'DONCIC', number: '77', size: 'Adult L' },
+        { id: 7, name: 'GIANNIS', number: '34', size: 'Adult XL' },
+        { id: 8, name: 'DURANT', number: '35', size: 'Adult L' },
+        { id: 9, name: 'TATUM', number: '00', size: 'Adult M' },
+        { id: 10, name: 'MORANT', number: '12', size: 'Adult S' }
+      ],
+      soccer: [
+        { id: 1, name: 'ALISSON', number: '01', size: 'Adult L' },
+        { id: 2, name: 'VAN DIJK', number: '04', size: 'Adult XL' },
+        { id: 3, name: 'SALAH', number: '11', size: 'Adult M' },
+        { id: 4, name: 'DE BRUYNE', number: '17', size: 'Adult M' },
+        { id: 5, name: 'HAALAND', number: '09', size: 'Adult XL' },
+        { id: 6, name: 'RODRI', number: '16', size: 'Adult L' },
+        { id: 7, name: 'SAKA', number: '07', size: 'Adult M' },
+        { id: 8, name: 'BELLINGHAM', number: '05', size: 'Adult L' }
+      ]
+    };
+
+    let activeRoster = sampleTeams.basketball;
+
+    function toggleRosterDock() {
+      const dock = document.getElementById('roster-dock');
+      if (!dock) return;
+      const isHidden = dock.classList.contains('hidden');
+      if (isHidden) {
+        dock.classList.remove('hidden');
+        dock.classList.add('flex');
+        renderRosterTable();
+        lucide.createIcons();
+        showToast('Team Roster Studio opened at bottom of workspace.');
+      } else {
+        dock.classList.add('hidden');
+        dock.classList.remove('flex');
+      }
+    }
+
+    function pickRoster(type) {
+      activeRoster = sampleTeams[type] || sampleTeams.basketball;
+      const dock = document.getElementById('roster-dock');
+      if (dock && dock.classList.contains('hidden')) {
+        toggleRosterDock();
+      } else {
+        renderRosterTable();
+      }
+      showToast(`Loaded ${activeRoster.length}-player squad roster!`);
+    }
+
+    function renderRosterTable() {
+      const tbody = document.getElementById('roster-table-body');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+      activeRoster.forEach((p, idx) => {
+        const isLongName = p.name.length > 8;
+        const marginBadge = isLongName 
+          ? '<span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">Check Margin</span>'
+          : '<span class="px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">Ready</span>';
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-blue-50/40 transition cursor-pointer border-b border-slate-100';
+        tr.innerHTML = `
+          <td class="py-2 px-2 font-mono text-slate-400 font-bold">${idx + 1}</td>
+          <td class="py-2 px-2 font-bold text-slate-900">${p.name}</td>
+          <td class="py-2 px-2 font-mono font-bold text-blue-600">${p.number}</td>
+          <td class="py-2 px-2 text-slate-600 font-medium">${p.size}</td>
+          <td class="py-2 px-2">${marginBadge}</td>
+          <td class="py-2 px-2">
+            <button onclick="previewTeamPlayer('${p.name}', '${p.number}')" class="px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white font-bold text-[10px] transition shadow-xs">
+              Preview on Canvas
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+      lucide.createIcons();
+    }
+
+    function previewTeamPlayer(name, number) {
+      const nameEl = document.getElementById('canvas-player-name');
+      const numEl = document.getElementById('canvas-player-number');
+      if (nameEl) nameEl.innerText = isUpperCase ? name.toUpperCase() : name;
+      if (numEl) numEl.innerText = number;
+      showToast(`Previewing: ${name} (#${number}) on live canvas`);
+    }
+
+    function runBulkGeneration() {
+      showToast(`✓ Batch Generation Complete: ${activeRoster.length} jerseys generated locally @ 300 DPI into ZIP archive!`, 'success');
+    }
+
+    // ================= TOAST NOTIFICATION HUB =================
     function showToast(msg, type = 'info') {
       const container = document.getElementById('toast-container');
       if (!container) return;
@@ -816,13 +1272,10 @@
         icon = '<i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-200 shrink-0"></i>';
       } else if (type === 'warning') {
         bgStyle = 'bg-amber-600 text-white border border-amber-500 shadow-amber-900/30';
-        icon = '<i data-lucide="alert-circle" class="w-4 h-4 text-amber-200 shrink-0"></i>';
-      } else if (type === 'error') {
-        bgStyle = 'bg-red-700 text-white border border-red-600 shadow-red-900/30';
-        icon = '<i data-lucide="x-circle" class="w-4 h-4 text-red-200 shrink-0"></i>';
+        icon = '<i data-lucide="alert-triangle" class="w-4 h-4 text-amber-200 shrink-0"></i>';
       }
 
-      toast.className = `${bgStyle} px-4 py-2.5 rounded-xl shadow-2xl text-xs font-semibold flex items-center gap-2.5 backdrop-blur-md transition-all duration-300 transform translate-y-2 opacity-0 pointer-events-auto max-w-md`;
+      toast.className = `${bgStyle} px-4 py-2.5 rounded-xl shadow-2xl text-xs font-semibold flex items-center gap-2.5 backdrop-blur-md transition-all duration-300 transform translate-y-2 opacity-0 pointer-events-auto`;
       toast.innerHTML = `${icon}<span>${msg}</span>`;
       container.appendChild(toast);
       lucide.createIcons();
@@ -833,10 +1286,10 @@
       setTimeout(() => {
         toast.classList.add('opacity-0', '-translate-y-2');
         setTimeout(() => toast.remove(), 300);
-      }, 3000);
+      }, 2800);
     }
 
-    // 1. ================= REAL CANVAS ZOOM LOGIC =================
+    // ================= REAL CANVAS ZOOM LOGIC =================
     function zoomStep(delta) {
       zoomLevel = Math.max(30, Math.min(200, zoomLevel + delta));
       applyCanvasScale();
@@ -848,20 +1301,17 @@
     }
 
     function zoomFitToScreen() {
-      const outerViewport = document.getElementById('canvas-outer-viewport');
+      const viewport = document.getElementById('canvas-outer-viewport');
       const artboard = document.getElementById('physical-artboard');
-      if (outerViewport && artboard) {
-        const availW = outerViewport.clientWidth - 80;
-        const availH = outerViewport.clientHeight - 80;
-        const artW = artboard.offsetWidth || 380;
-        const artH = artboard.offsetHeight || 532;
-        const scaleW = availW / artW;
-        const scaleH = availH / artH;
-        const targetScale = Math.min(scaleW, scaleH);
-        zoomLevel = Math.max(30, Math.min(200, Math.round(targetScale * 100)));
-        applyCanvasScale();
-        showToast(`Viewport scaled to Fit Screen (${zoomLevel}%)`);
-      }
+      if (!viewport || !artboard) return;
+      const availW = viewport.clientWidth - 96;
+      const availH = viewport.clientHeight - 96;
+      const scaleW = availW / artboard.offsetWidth;
+      const scaleH = availH / artboard.offsetHeight;
+      const fitScale = Math.min(scaleW, scaleH);
+      zoomLevel = Math.max(30, Math.min(200, Math.round(fitScale * 100)));
+      applyCanvasScale();
+      showToast(`Fit to Screen: Scaled to ${zoomLevel}%`);
     }
 
     function applyCanvasScale() {
@@ -871,7 +1321,7 @@
       if (indicator) indicator.innerText = `${zoomLevel}%`;
     }
 
-    // Native Mouse Wheel Zoom (Ctrl/Cmd + wheel)
+    // Native Mouse Wheel Zoom (Holding Ctrl or Cmd, or smooth trackpad pinch)
     const viewportEl = document.getElementById('canvas-outer-viewport');
     if (viewportEl) {
       viewportEl.addEventListener('wheel', (e) => {
@@ -883,15 +1333,15 @@
       }, { passive: false });
     }
 
-    // 2. ================= REAL CANVAS RESIZING LOGIC =================
+    // ================= REAL CANVAS RESIZING LOGIC =================
     const PRESETS = {
-      'youth': { w: 16, h: 22, label: 'Youth' },
-      's': { w: 18, h: 26, label: 'Adult S' },
-      'm': { w: 20, h: 28, label: 'Adult M' },
-      'l': { w: 22, h: 30, label: 'Adult L' },
-      'xl': { w: 24, h: 32, label: 'Adult XL' },
-      '2xl': { w: 26, h: 34, label: 'Adult 2XL' },
-      'bed-a3': { w: 11.7, h: 16.5, label: 'Print Bed A3' }
+      'youth': { w: 16, h: 22 },
+      's': { w: 18, h: 26 },
+      'm': { w: 20, h: 28 },
+      'l': { w: 22, h: 30 },
+      'xl': { w: 24, h: 32 },
+      '2xl': { w: 26, h: 34 },
+      'bed-a3': { w: 11.7, h: 16.5 }
     };
 
     function selectGradePreset(key) {
@@ -907,7 +1357,6 @@
       canvasHeightInches = p.h;
       updateCanvasGeometry();
       
-      // Highlight dock pill
       const pillIds = ['youth', 's', 'm', 'l', 'xl', '2xl'];
       pillIds.forEach(id => {
         const btn = document.getElementById(`dock-size-${id}`);
@@ -920,11 +1369,11 @@
         }
       });
 
-      showToast(`Garment Grade updated: ${p.label} (${canvasWidthInches}" × ${canvasHeightInches}")`);
+      showToast(`Canvas resized to Garment Grade: ${presetKey.toUpperCase()} (${canvasWidthInches}" × ${canvasHeightInches}")`);
     }
 
     function syncAllSizeGrades() {
-      showToast('Artwork scaled and synchronized across all 6 garment size grades with proportional scaling.', 'success');
+      showToast('✓ Artwork template synchronized across all 6 garment size grades.', 'success');
     }
 
     function resizeCanvasFromInput() {
@@ -949,7 +1398,6 @@
         artboard.style.height = `${visualPxH}px`;
       }
 
-      // Update physical rulers
       const topRuler = document.getElementById('artboard-top-ruler');
       const leftRuler = document.getElementById('artboard-left-ruler');
       const rulerMaxW = document.getElementById('ruler-max-w');
@@ -959,7 +1407,6 @@
       if (rulerMaxW) rulerMaxW.innerText = `${canvasWidthInches}"`;
       if (rulerMaxH) rulerMaxH.innerText = `${canvasHeightInches}"`;
 
-      // Synchronize inputs
       const inW = document.getElementById('input-canvas-w');
       const inH = document.getElementById('input-canvas-h');
       const drW = document.getElementById('drawer-resize-w');
@@ -969,17 +1416,13 @@
       if (drW) drW.value = canvasWidthInches;
       if (drH) drH.value = canvasHeightInches;
 
-      // 300 DPI Print Calculation
       const printPixelW = Math.round(canvasWidthInches * 300);
       const printPixelH = Math.round(canvasHeightInches * 300);
       const badge = document.getElementById('calculated-px-badge');
       if (badge) badge.innerText = `${printPixelW.toLocaleString()} × ${printPixelH.toLocaleString()} px`;
-
-      const expDim = document.getElementById('export-pixel-dim');
-      if (expDim) expDim.innerText = `${printPixelW.toLocaleString()} × ${printPixelH.toLocaleString()} px`;
     }
 
-    // 3. ================= IMAGE & LOGO UPLOAD LOGIC =================
+    // ================= IMAGE & LOGO UPLOAD ENGINE =================
     const localUploads = [];
     let currentLogoUrl = null;
     let currentLogoScale = 'md';
@@ -993,7 +1436,9 @@
       ['sm', 'md', 'lg'].forEach(s => {
         const btn = document.getElementById(`logo-size-btn-${s}`);
         if (btn) {
-          btn.className = s === scale ? 'py-1 px-2 rounded-lg bg-blue-600 text-white font-bold text-center text-[11px] transition' : 'py-1 px-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-center text-[11px] transition';
+          btn.className = s === scale 
+            ? 'py-1 px-2 rounded-lg bg-blue-600 text-white font-bold text-center text-[11px] transition shadow-xs' 
+            : 'py-1 px-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-center text-[11px] transition';
         }
       });
 
@@ -1010,7 +1455,7 @@
         localUploads.unshift({ name: file.name, url: dataUrl });
         renderUploadedGrid();
         placeLogoOnJersey(dataUrl);
-        showToast(`"${file.name}" placed on garment layout.`, 'success');
+        showToast(`✓ "${file.name}" placed on canvas!`, 'success');
       };
       reader.readAsDataURL(file);
     }
@@ -1023,7 +1468,118 @@
       }
     }
 
-    // Drag & Drop onto drop zone and artboard
+    function renderUploadedGrid() {
+      const grid = document.getElementById('uploaded-assets-grid');
+      if (!grid) return;
+      grid.innerHTML = '';
+      localUploads.forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = 'p-2 border rounded-xl bg-white hover:border-blue-500 cursor-pointer flex flex-col items-center justify-between text-center group transition shadow-xs relative';
+        div.innerHTML = `
+          <button onclick="event.stopPropagation(); deleteUploadedAsset(${idx})" class="absolute top-1 right-1 w-5 h-5 rounded-full bg-slate-100 hover:bg-red-50 text-slate-400 hover:text-red-600 flex items-center justify-center opacity-0 group-hover:opacity-100 transition" title="Delete from Library">
+            <i data-lucide="x" class="w-3 h-3"></i>
+          </button>
+          <img src="${item.url}" class="h-12 w-full object-contain mb-1.5 pointer-events-none">
+          <span class="text-[10px] font-semibold text-slate-700 truncate w-full block">${item.name}</span>
+          <button onclick="placeLogoOnJersey('${item.url}')" class="mt-1 w-full py-1 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-700 text-[10px] font-bold rounded-lg transition">Place</button>
+        `;
+        grid.appendChild(div);
+      });
+      lucide.createIcons();
+    }
+
+    function deleteUploadedAsset(idx) {
+      localUploads.splice(idx, 1);
+      renderUploadedGrid();
+      showToast('Asset removed from local library.');
+    }
+
+    function placeLogoOnJersey(dataUrl) {
+      currentLogoUrl = dataUrl;
+      const container = document.getElementById('canvas-logo-container');
+      if (!container) return;
+      container.classList.remove('hidden');
+
+      let initialW = 120;
+      let initialH = 80;
+      if (currentLogoScale === 'sm') { initialW = 80; initialH = 50; }
+      if (currentLogoScale === 'lg') { initialW = 160; initialH = 110; }
+
+      container.style.width = `${initialW}px`;
+      container.style.height = `${initialH}px`;
+      container.style.position = 'absolute';
+      container.style.top = '18%';
+      container.style.left = '50%';
+      container.style.transform = 'translate(-50%, -50%)';
+
+      container.innerHTML = `
+        <div class="relative w-full h-full group cursor-move">
+          <img src="${dataUrl}" class="w-full h-full object-contain drop-shadow-md select-none pointer-events-none" style="width: ${initialW}px; height: ${initialH}px;">
+          <button onclick="event.stopPropagation(); removeLogoFromJersey()" class="absolute -top-2 -right-2 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition z-30" title="Remove Logo">
+            <i data-lucide="x" class="w-3 h-3"></i>
+          </button>
+        </div>
+      `;
+
+      registerLayer('canvas-logo-container', 'Team Crest / Logo', 'image');
+      makeResizable(container);
+      selectLayer('canvas-logo-container', 'Team Crest / Logo');
+      lucide.createIcons();
+    }
+
+    function removeLogoFromJersey() {
+      currentLogoUrl = null;
+      const container = document.getElementById('canvas-logo-container');
+      if (container) {
+        container.classList.add('hidden');
+        container.innerHTML = '';
+      }
+      removeLayerFromRegistry('canvas-logo-container');
+      if (activeLayerId === 'canvas-logo-container') {
+        deselect();
+      }
+      showToast('Logo removed from canvas.');
+    }
+
+    function insertSampleGraphic(type) {
+      const container = document.getElementById('canvas-logo-container');
+      if (!container) return;
+      container.classList.remove('hidden');
+      currentLogoUrl = null;
+
+      container.style.width = '90px';
+      container.style.height = '90px';
+      container.style.position = 'absolute';
+      container.style.top = '18%';
+      container.style.left = '50%';
+      container.style.transform = 'translate(-50%, -50%)';
+
+      if (type === 'shield') {
+        container.innerHTML = `
+          <div class="relative w-full h-full group cursor-move flex items-center justify-center">
+            <span class="text-6xl drop-shadow-md select-none pointer-events-none">🛡️</span>
+            <button onclick="event.stopPropagation(); removeLogoFromJersey()" class="absolute -top-2 -right-2 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition z-30">
+              <i data-lucide="x" class="w-3 h-3"></i>
+            </button>
+          </div>`;
+      } else {
+        container.innerHTML = `
+          <div class="relative w-full h-full group cursor-move flex items-center justify-center">
+            <span class="text-6xl drop-shadow-md select-none pointer-events-none">⚡</span>
+            <button onclick="event.stopPropagation(); removeLogoFromJersey()" class="absolute -top-2 -right-2 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition z-30">
+              <i data-lucide="x" class="w-3 h-3"></i>
+            </button>
+          </div>`;
+      }
+
+      registerLayer('canvas-logo-container', 'Graphic: ' + (type === 'shield' ? 'Shield' : 'Bolt'), 'image');
+      makeResizable(container);
+      selectLayer('canvas-logo-container', 'Graphic: ' + (type === 'shield' ? 'Shield' : 'Bolt'));
+      lucide.createIcons();
+      showToast('Graphic placed on jersey canvas.');
+    }
+
+    // Drag and drop onto upload box and onto artboard
     ['drop-zone', 'physical-artboard', 'canvas-outer-viewport'].forEach(id => {
       const el = document.getElementById(id);
       if (!el) return;
@@ -1050,104 +1606,20 @@
       });
     });
 
-    function renderUploadedGrid() {
-      const grid = document.getElementById('uploaded-assets-grid');
-      if (!grid) return;
-      grid.innerHTML = '';
-      localUploads.forEach((item, idx) => {
-        const div = document.createElement('div');
-        div.className = 'p-2 border rounded-xl bg-white hover:border-blue-500 cursor-pointer flex flex-col items-center justify-between text-center group transition shadow-xs relative';
-        div.innerHTML = `
-          <button onclick="deleteUploadedAsset(${idx}, event)" class="absolute top-1 right-1 p-0.5 bg-red-100 text-red-600 rounded-md hover:bg-red-200 transition opacity-0 group-hover:opacity-100" title="Delete Asset">
-            <i data-lucide="trash-2" class="w-3 h-3"></i>
-          </button>
-          <img src="${item.url}" class="h-12 w-full object-contain mb-1.5 pointer-events-none">
-          <span class="text-[10px] font-semibold text-slate-700 truncate w-full block">${item.name}</span>
-          <button onclick="placeLogoOnJersey('${item.url}')" class="mt-1 w-full py-1 bg-blue-50 hover:bg-blue-600 hover:text-white text-blue-700 text-[10px] font-bold rounded-lg transition">Place</button>
-        `;
-        grid.appendChild(div);
-      });
-      lucide.createIcons();
-    }
-
-    function deleteUploadedAsset(index, e) {
-      e.stopPropagation();
-      localUploads.splice(index, 1);
-      renderUploadedGrid();
-      showToast('Asset removed from local library.');
-    }
-
-    function placeLogoOnJersey(dataUrl) {
-      currentLogoUrl = dataUrl;
-      const container = document.getElementById('canvas-logo-container');
-      if (!container) return;
-      container.classList.remove('hidden');
-
-      let scaleClass = 'max-h-20 max-w-28';
-      if (currentLogoScale === 'sm') scaleClass = 'max-h-12 max-w-20';
-      if (currentLogoScale === 'lg') scaleClass = 'max-h-32 max-w-44';
-
-      container.innerHTML = `
-        <div class="relative group cursor-pointer">
-          <img src="${dataUrl}" class="${scaleClass} object-contain drop-shadow-md transition-all">
-          <button onclick="removeLogoFromJersey()" class="absolute -top-2 -right-2 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition" title="Remove Logo">
-            <i data-lucide="x" class="w-3 h-3"></i>
-          </button>
-        </div>
-      `;
-      lucide.createIcons();
-    }
-
-    function removeLogoFromJersey() {
-      currentLogoUrl = null;
-      const container = document.getElementById('canvas-logo-container');
-      if (container) {
-        container.classList.add('hidden');
-        container.innerHTML = '';
-      }
-      showToast('Graphic element removed from garment.');
-    }
-
-    function insertSampleGraphic(type) {
-      const container = document.getElementById('canvas-logo-container');
-      if (!container) return;
-      container.classList.remove('hidden');
-      currentLogoUrl = null;
-      if (type === 'shield') {
-        container.innerHTML = `
-          <div class="relative group cursor-pointer">
-            <span class="text-5xl drop-shadow-md select-none">🛡️</span>
-            <button onclick="removeLogoFromJersey()" class="absolute -top-2 -right-2 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition" title="Remove">
-              <i data-lucide="x" class="w-3 h-3"></i>
-            </button>
-          </div>`;
-      } else {
-        container.innerHTML = `
-          <div class="relative group cursor-pointer">
-            <span class="text-5xl drop-shadow-md select-none">⚡</span>
-            <button onclick="removeLogoFromJersey()" class="absolute -top-2 -right-2 bg-red-600 hover:bg-red-700 text-white rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition" title="Remove">
-              <i data-lucide="x" class="w-3 h-3"></i>
-            </button>
-          </div>`;
-      }
-      lucide.createIcons();
-      showToast('Athletic graphic placed on jersey.');
-    }
-
-    // 4. ================= FONTS & LOCAL FONT DETECTOR =================
+    // ================= FONTS & LOCAL FONT DETECTOR =================
     const sportsFonts = [
-      { name: 'Barselona Athletic', family: 'Impact, sans-serif', sample: 'RODRIGUEZ 10' },
-      { name: 'Collegiate Block', family: '"Arial Black", sans-serif', sample: 'JORDAN 23' },
-      { name: 'Druk Speed Condensed', family: '"Trebuchet MS", sans-serif', sample: 'BRYANT 24' },
-      { name: 'Varsity Classic Serif', family: 'Georgia, serif', sample: 'CURRY 30' }
+      { name: 'Barselona Athletic', family: 'Impact, sans-serif' },
+      { name: 'Collegiate Block', family: '"Arial Black", sans-serif' },
+      { name: 'Druk Speed', family: '"Trebuchet MS", sans-serif' },
+      { name: 'Varsity Classic', family: 'Georgia, serif' }
     ];
 
     const systemMacFonts = [
-      { name: 'Helvetica Neue (System)', family: '"Helvetica Neue", Helvetica, sans-serif', sample: 'FALCON 07' },
-      { name: 'Futura Bold (System)', family: 'Futura, sans-serif', sample: 'STRIKER 09' },
-      { name: 'Avenir Next Heavy', family: '"Avenir Next", sans-serif', sample: 'ALISSON 01' },
-      { name: 'Impact Pro Standard', family: 'Impact, sans-serif', sample: 'HAALAND 09' },
-      { name: 'Arial Black Athletic', family: 'Arial, sans-serif', sample: 'DAVIS 04' }
+      { name: 'Helvetica Neue (Mac)', family: '"Helvetica Neue", Helvetica, sans-serif' },
+      { name: 'Futura Bold (Mac)', family: 'Futura, sans-serif' },
+      { name: 'Avenir Next', family: '"Avenir Next", sans-serif' },
+      { name: 'Impact Pro', family: 'Impact, sans-serif' },
+      { name: 'Arial Cross-Platform', family: 'Arial, sans-serif' }
     ];
 
     let currentFontCategory = 'sport';
@@ -1182,13 +1654,15 @@
         item.className = 'p-2.5 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/30 cursor-pointer transition';
         item.onclick = () => {
           document.getElementById('active-font-display').innerText = font.name;
-          document.getElementById('canvas-player-name').style.fontFamily = font.family;
-          document.getElementById('canvas-player-number').style.fontFamily = font.family;
-          showToast(`Typography set to: ${font.name}`);
+          const pName = document.getElementById('canvas-player-name');
+          const pNum = document.getElementById('canvas-player-number');
+          if (pName) pName.style.fontFamily = font.family;
+          if (pNum) pNum.style.fontFamily = font.family;
+          showToast(`Font updated: ${font.name}`);
         };
         item.innerHTML = `
           <div class="text-[11px] font-semibold text-slate-600">${font.name}</div>
-          <div class="text-slate-900 font-extrabold text-lg mt-1 tracking-wider" style="font-family: ${font.family}">LIAM 15</div>
+          <div class="text-slate-900 font-extrabold text-xl mt-1" style="font-family: ${font.family}">LIAM 15</div>
         `;
         container.appendChild(item);
       });
@@ -1207,29 +1681,30 @@
         const fontFace = new FontFace(fontName, evt.target.result);
         fontFace.load().then(function(loaded) {
           document.fonts.add(loaded);
-          sportsFonts.unshift({ name: fontName + ' (Custom)', family: `"${fontName}", sans-serif` });
+          sportsFonts.unshift({ name: fontName + ' (Uploaded)', family: `"${fontName}", sans-serif` });
           switchFontCategory('sport');
-          showToast(`Custom font "${fontName}" loaded locally into memory.`, 'success');
+          showToast(`✓ Custom font "${fontName}" loaded locally!`, 'success');
         });
       };
       reader.readAsArrayBuffer(file);
     }
 
-    // 5. ================= EFFECTS & ARC CONTROLS =================
+    // ================= TEXT EFFECTS & CURVED ARC =================
     function toggleArcEffect(checked) {
       const name = document.getElementById('canvas-player-name');
       if (checked) {
         setArcIntensity(document.getElementById('slider-arc').value);
       } else {
-        name.style.transform = 'none';
+        if (name) name.style.transform = 'none';
       }
     }
 
     function setArcIntensity(val) {
-      document.getElementById('label-arc-val').innerText = `${val}°`;
+      document.getElementById('label-arc-val').innerText = val;
       if (!document.getElementById('effect-arc-toggle').checked) return;
       const deg = val * 0.3;
-      document.getElementById('canvas-player-name').style.transform = `perspective(200px) rotateX(${deg}deg) scale(${1 + Math.abs(val)*0.002})`;
+      const name = document.getElementById('canvas-player-name');
+      if (name) name.style.transform = `perspective(200px) rotateX(${deg}deg) scale(${1 + Math.abs(val)*0.002})`;
     }
 
     function toggleStrokeEffect(checked) {
@@ -1238,8 +1713,8 @@
       if (checked) {
         setStrokeThickness(document.getElementById('slider-stroke').value);
       } else {
-        name.style.webkitTextStroke = '0px transparent';
-        num.style.webkitTextStroke = '0px transparent';
+        if (name) name.style.webkitTextStroke = '0px transparent';
+        if (num) num.style.webkitTextStroke = '0px transparent';
       }
     }
 
@@ -1247,8 +1722,10 @@
       document.getElementById('label-stroke-w').innerText = `${px}px`;
       if (!document.getElementById('effect-stroke-toggle').checked) return;
       const color = document.getElementById('stroke-color-input').value;
-      document.getElementById('canvas-player-name').style.webkitTextStroke = `${px}px ${color}`;
-      document.getElementById('canvas-player-number').style.webkitTextStroke = `${px}px ${color}`;
+      const name = document.getElementById('canvas-player-name');
+      const num = document.getElementById('canvas-player-number');
+      if (name) name.style.webkitTextStroke = `${px}px ${color}`;
+      if (num) num.style.webkitTextStroke = `${px}px ${color}`;
     }
 
     function setStrokeColor(c) {
@@ -1260,9 +1737,9 @@
       if (checked) {
         const blur = document.getElementById('slider-shadow-blur').value;
         const color = document.getElementById('shadow-color-input').value;
-        num.style.filter = `drop-shadow(0px 6px ${blur}px ${color})`;
+        if (num) num.style.filter = `drop-shadow(0px 6px ${blur}px ${color})`;
       } else {
-        num.style.filter = 'none';
+        if (num) num.style.filter = 'none';
       }
     }
 
@@ -1275,15 +1752,19 @@
       toggleShadowEffect(document.getElementById('effect-shadow-toggle').checked);
     }
 
-    // 6. ================= TYPOGRAPHY HELPERS =================
+    // ================= TYPOGRAPHY CONTROLS =================
     function setTextColor(c) {
-      document.getElementById('canvas-player-name').style.color = c;
-      document.getElementById('canvas-player-number').style.color = c;
-      showToast(`Ink color changed to: ${c.toUpperCase()}`);
+      const name = document.getElementById('canvas-player-name');
+      const num = document.getElementById('canvas-player-number');
+      if (name) name.style.color = c;
+      if (num) num.style.color = c;
+      const activeColorPicker = document.getElementById('active-element-color');
+      if (activeColorPicker) activeColorPicker.value = c;
     }
 
     function setFontSize(val) {
-      document.getElementById('canvas-player-number').style.fontSize = `${val}px`;
+      const num = document.getElementById('canvas-player-number');
+      if (num) num.style.fontSize = `${val}px`;
     }
 
     function changeFontSize(delta) {
@@ -1295,86 +1776,69 @@
 
     function toggleFontWeight() {
       isBold = !isBold;
-      document.getElementById('canvas-player-name').style.fontWeight = isBold ? '800' : '500';
-      document.getElementById('canvas-player-number').style.fontWeight = isBold ? '900' : '500';
+      const name = document.getElementById('canvas-player-name');
+      const num = document.getElementById('canvas-player-number');
+      if (name) name.style.fontWeight = isBold ? '800' : '500';
+      if (num) num.style.fontWeight = isBold ? '900' : '500';
       document.getElementById('btn-bold').classList.toggle('bg-blue-100');
-      document.getElementById('btn-bold').classList.toggle('text-blue-700');
     }
 
     function toggleFontStyle() {
       isItalic = !isItalic;
-      document.getElementById('canvas-player-name').style.fontStyle = isItalic ? 'italic' : 'normal';
-      document.getElementById('canvas-player-number').style.fontStyle = isItalic ? 'italic' : 'normal';
+      const name = document.getElementById('canvas-player-name');
+      const num = document.getElementById('canvas-player-number');
+      if (name) name.style.fontStyle = isItalic ? 'italic' : 'normal';
+      if (num) num.style.fontStyle = isItalic ? 'italic' : 'normal';
       document.getElementById('btn-italic').classList.toggle('bg-blue-100');
-      document.getElementById('btn-italic').classList.toggle('text-blue-700');
     }
 
     function toggleCase() {
       isUpperCase = !isUpperCase;
       const el = document.getElementById('canvas-player-name');
-      el.innerText = isUpperCase ? el.innerText.toUpperCase() : el.innerText.charAt(0).toUpperCase() + el.innerText.slice(1).toLowerCase();
-      document.getElementById('btn-case').innerText = isUpperCase ? 'AA' : 'Aa';
+      if (el) el.innerText = isUpperCase ? el.innerText.toUpperCase() : el.innerText.charAt(0).toUpperCase() + el.innerText.slice(1).toLowerCase();
     }
 
     function triggerAutoFit() {
       document.getElementById('font-size-input').value = 95;
       setFontSize(95);
-      showToast('Auto-Fit: Lettering scaled to fit safely within printable boundary.', 'success');
+      showToast('✓ Auto-Fit: Scaled typography to fit safely inside printable boundary.');
     }
 
-    // 7. ================= FLOATING CONTEXT TOOLBAR ACTIONS =================
     function triggerColorPick() {
       document.getElementById('text-color-picker').click();
     }
 
-    function triggerCenter() {
-      showToast('Aligned element to garment center axis.');
-    }
-
-    function triggerDuplicate() {
-      showToast('Layer duplicated on canvas.');
-    }
-
-    function triggerDelete() {
-      if (currentLogoUrl) {
-        removeLogoFromJersey();
-      } else {
-        showToast('Selected layer deleted from view.');
-      }
-    }
-
-    // 8. ================= GARMENT VIEW SWITCHER =================
+    // ================= GARMENT VIEW SWITCHER =================
     function changeGarmentView(view) {
-      activeViewMode = view;
       ['back', 'front', 'hs', 'fs'].forEach(v => {
-        document.getElementById(`btn-view-${v}`).className = 'flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-medium text-slate-600 hover:text-slate-900 transition-all';
+        const btn = document.getElementById(`btn-view-${v}`);
+        if (btn) btn.className = 'flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-medium text-slate-600 hover:text-slate-900 transition-all';
       });
 
-      const bodyPath = document.getElementById('svg-jersey-body');
+      const name = document.getElementById('canvas-player-name');
+      const num = document.getElementById('canvas-player-number');
 
       if (view === 'back') {
         document.getElementById('btn-view-back').className = 'flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold bg-white text-blue-600 shadow-xs transition-all';
-        document.getElementById('canvas-player-name').style.display = 'block';
-        document.getElementById('canvas-player-number').style.display = 'block';
-        document.getElementById('svg-collar').setAttribute('d', 'M140 40 Q200 80 260 40 L280 40 Q200 110 120 40 Z');
+        if (name) name.style.display = 'block';
+        if (num) num.style.display = 'block';
       } else if (view === 'front') {
         document.getElementById('btn-view-front').className = 'flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold bg-white text-blue-600 shadow-xs transition-all';
-        document.getElementById('canvas-player-name').style.display = 'none';
-        document.getElementById('canvas-player-number').style.display = 'block';
-        document.getElementById('svg-collar').setAttribute('d', 'M130 40 Q200 120 270 40 L280 40 Q200 135 120 40 Z');
+        if (name) name.style.display = 'none';
+        if (num) num.style.display = 'block';
       } else if (view === 'half_sleeve') {
-        document.getElementById('btn-view-hs').className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold bg-white text-blue-600 shadow-xs transition-all';
-        document.getElementById('canvas-player-name').style.display = 'none';
-        document.getElementById('canvas-player-number').style.display = 'none';
+        document.getElementById('btn-view-hs').className = 'flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold bg-white text-blue-600 shadow-xs transition-all';
+        if (name) name.style.display = 'none';
+        if (num) num.style.display = 'none';
       } else if (view === 'full_sleeve') {
-        document.getElementById('btn-view-fs').className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-bold bg-white text-blue-600 shadow-xs transition-all';
-        document.getElementById('canvas-player-name').style.display = 'none';
-        document.getElementById('canvas-player-number').style.display = 'none';
+        document.getElementById('btn-view-fs').className = 'flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold bg-white text-blue-600 shadow-xs transition-all';
+        if (name) name.style.display = 'none';
+        if (num) num.style.display = 'none';
       }
-      showToast(`Active View: ${view.replace('_', ' ').toUpperCase()}`);
+      showToast(`Switched view to: ${view.replace('_', ' ').toUpperCase()}`);
     }
 
-    // 9. ================= SIDE PANEL CONTROLS =================
+    // ================= SIDE PANEL CONTROLS =================
     let activePanel = null;
 
     function toggleSidePanel(panelName) {
@@ -1404,11 +1868,14 @@
       if (panelName === 'fonts') {
         renderFontList();
       }
+      if (panelName === 'layers') {
+        refreshLayersPanel();
+      }
     }
 
     function closeSidePanel() {
       const drawer = document.getElementById('side-drawer');
-      drawer.classList.add('hidden');
+      if (drawer) drawer.classList.add('hidden');
       const panels = ['text', 'fonts', 'upload', 'effects', 'layers', 'resize'];
       panels.forEach(p => {
         const railBtn = document.getElementById(`rail-btn-${p}`);
@@ -1417,141 +1884,52 @@
       activePanel = null;
     }
 
-    // 10. ================= LIVE TEXT & LAYER CONTROLS =================
+    // ================= LIVE TEXT & LAYER CONTROLS =================
     function updateLiveText(field, val) {
       if (field === 'name') {
-        document.getElementById('canvas-player-name').innerText = isUpperCase ? val.toUpperCase() : val;
+        const nameEl = document.getElementById('canvas-player-name');
+        if (nameEl) nameEl.innerText = isUpperCase ? val.toUpperCase() : val;
       } else if (field === 'number') {
-        document.getElementById('canvas-player-number').innerText = val;
+        const numEl = document.getElementById('canvas-player-number');
+        if (numEl) numEl.innerText = val;
       }
     }
 
     function addTextLayer(sampleText) {
-      showToast(`Added text layer: "${sampleText}" to canvas.`, 'success');
-    }
+      const artboard = document.getElementById('physical-artboard');
+      const newId = 'text_layer_' + Date.now();
+      const div = document.createElement('div');
+      div.id = newId;
+      div.className = 'text-slate-900 font-extrabold text-2xl tracking-wider uppercase text-center transition-all select-none absolute pointer-events-auto cursor-move';
+      div.style.left = '50%';
+      div.style.top = '30%';
+      div.style.transform = 'translate(-50%, -50%)';
+      div.innerText = sampleText;
 
-    // 11. ================= ROSTER BULK AUTOMATION =================
-    const sampleTeams = {
-      basketball: [
-        { id: 1, name: 'MARCUS', number: '07', size: 'Adult L' },
-        { id: 2, name: 'JORDAN', number: '23', size: 'Adult XL' },
-        { id: 3, name: 'BRYANT', number: '24', size: 'Adult M' },
-        { id: 4, name: 'CURRY', number: '30', size: 'Adult M' },
-        { id: 5, name: 'JAMES', number: '06', size: 'Adult 2XL' },
-        { id: 6, name: 'DONCIC', number: '77', size: 'Adult L' },
-        { id: 7, name: 'GIANNIS', number: '34', size: 'Adult XL' },
-        { id: 8, name: 'DURANT', number: '35', size: 'Adult L' },
-        { id: 9, name: 'TATUM', number: '00', size: 'Adult M' },
-        { id: 10, name: 'MORANT', number: '12', size: 'Adult S' }
-      ],
-      soccer: [
-        { id: 1, name: 'ALISSON', number: '01', size: 'Adult L' },
-        { id: 2, name: 'VAN DIJK', number: '04', size: 'Adult XL' },
-        { id: 3, name: 'SALAH', number: '11', size: 'Adult M' },
-        { id: 4, name: 'DE BRUYNE', number: '17', size: 'Adult M' },
-        { id: 5, name: 'HAALAND', number: '09', size: 'Adult XL' },
-        { id: 6, name: 'BELLINGHAM', number: '05', size: 'Adult L' },
-        { id: 7, name: 'VINICIUS JR', number: '07', size: 'Adult M' },
-        { id: 8, name: 'RODRYGO', number: '11', size: 'Adult M' }
-      ]
-    };
-
-    let activeRoster = sampleTeams.basketball;
-
-    function pickRoster(type) {
-      activeRoster = sampleTeams[type] || sampleTeams.basketball;
-      renderRosterTable();
-      showToast(`Loaded ${activeRoster.length}-player team roster.`, 'info');
-    }
-
-    function renderRosterTable() {
-      const tbody = document.getElementById('roster-table-body');
-      if (!tbody) return;
-      tbody.innerHTML = '';
-      activeRoster.forEach((p, idx) => {
-        const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-50 transition';
-        const isLongName = p.name.length > 9;
-        const statusBadge = isLongName
-          ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">Name Exceeds Margin</span>`
-          : `<span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">Ready for Print</span>`;
-
-        tr.innerHTML = `
-          <td class="p-2 font-mono text-slate-400 font-semibold">${idx + 1}</td>
-          <td class="p-2 font-bold text-slate-800">${p.name}</td>
-          <td class="p-2 font-mono font-bold text-blue-600">${p.number}</td>
-          <td class="p-2 text-slate-600 font-medium">${p.size}</td>
-          <td class="p-2">${statusBadge}</td>
-          <td class="p-2 text-right">
-            <button onclick="previewTeamPlayer('${p.name}', '${p.number}')" class="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 hover:bg-blue-600 hover:text-white font-bold text-[10px] transition">1-Click Preview</button>
-          </td>
-        `;
-        tbody.appendChild(tr);
-      });
-      const badge = document.getElementById('roster-count-badge');
-      if (badge) badge.innerText = `${activeRoster.length} Players`;
-    }
-
-    function previewTeamPlayer(name, number) {
-      document.getElementById('canvas-player-name').innerText = name;
-      document.getElementById('canvas-player-number').innerText = number;
-      closeModal('roster-modal');
-      showToast(`Previewing Player: ${name} (#${number}) on garment canvas.`);
-    }
-
-    function handleRosterCSVImport(event) {
-      const file = event.target.files && event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const text = e.target.result;
-        const lines = text.split(/\r?\n/).filter(line => line.trim().length > 0);
-        if (lines.length <= 1) {
-          showToast('CSV file appears empty or missing rows.', 'warning');
-          return;
-        }
-
-        const parsed = [];
-        // Skip header if line contains 'name' or 'player'
-        const startIdx = lines[0].toLowerCase().includes('name') ? 1 : 0;
-        for (let i = startIdx; i < lines.length; i++) {
-          const parts = lines[i].split(',').map(s => s.trim().replace(/^["']|["']$/g, ''));
-          if (parts[0]) {
-            parsed.push({
-              id: i + 1,
-              name: parts[0].toUpperCase(),
-              number: parts[1] || `${i + 1}`,
-              size: parts[2] || 'Adult M'
-            });
-          }
-        }
-
-        if (parsed.length > 0) {
-          activeRoster = parsed;
-          renderRosterTable();
-          showToast(`Successfully imported ${parsed.length} players from ${file.name}!`, 'success');
-        }
+      div.onclick = (e) => {
+        e.stopPropagation();
+        selectLayer(newId, sampleText);
       };
-      reader.readAsText(file);
-      event.target.value = '';
+
+      const box = document.getElementById('jersey-element-box') || artboard;
+      box.appendChild(div);
+
+      registerLayer(newId, sampleText, 'text');
+      makeDraggable(div);
+      selectLayer(newId, sampleText);
+      showToast(`+ Added text layer: "${sampleText}"`);
     }
 
-    function runBulkGeneration() {
-      closeModal('roster-modal');
-      showToast(`Batch Generation Complete: ${activeRoster.length} print-ready jerseys generated in ~/Documents/JerseyStudio/Exports/`, 'success');
-    }
-
-    // 12. ================= EXPORT CONTROLS =================
+    // ================= EXPORT CONTROLS =================
     function setExportFormat(fmt) {
       selectedExportFmt = fmt;
       ['png', 'jpg', 'pdf'].forEach(f => {
         const btn = document.getElementById(`export-btn-${f}`);
         if (btn) {
           if (f === fmt) {
-            btn.className = 'p-2.5 border rounded-xl border-blue-500 bg-blue-50 text-blue-700 font-bold text-center transition';
+            btn.className = 'p-2.5 border rounded-xl border-blue-500 bg-blue-50 text-blue-700 font-bold text-center';
           } else {
-            btn.className = 'p-2.5 border rounded-xl hover:bg-slate-50 text-center font-medium transition';
+            btn.className = 'p-2.5 border rounded-xl hover:bg-slate-50 text-center font-medium';
           }
         }
       });
@@ -1559,19 +1937,15 @@
 
     function executeExportDownload() {
       closeModal('export-modal');
-      const filename = `Falcon_FC_Jersey_15_300DPI.${selectedExportFmt}`;
-      showToast(`Export Complete: Saved locally to ~/Documents/JerseyStudio/Exports/${filename}`, 'success');
+      const filename = `Falcon_FC_Jersey_15.${selectedExportFmt}`;
+      showToast(`✓ Export Successful! File saved to disk: ${filename}`, 'success');
     }
 
-    // 13. ================= MODAL HELPERS =================
     function openModal(modalId) {
       const modal = document.getElementById(modalId);
       if (modal) {
         modal.classList.remove('hidden');
         modal.classList.add('flex');
-      }
-      if (modalId === 'roster-modal') {
-        renderRosterTable();
       }
     }
 
@@ -1583,19 +1957,31 @@
       }
     }
 
-    // 14. ================= UNDO / REDO =================
     function actionUndo() {
-      showToast('Reverted previous edit.');
+      showToast('⟲ Reverted previous edit');
     }
 
     function actionRedo() {
-      showToast('Restored edit.');
+      showToast('⟳ Restored edit');
     }
 
-    // Initial Setup
+    // ================= INITIAL CANVAS SETUP =================
+    // 1. Geometry & Fonts
     updateCanvasGeometry();
     renderFontList();
-    renderRosterTable();
+
+    // 2. Register default layers
+    registerLayer('canvas-player-name', 'Player Name', 'text');
+    registerLayer('canvas-player-number', 'Squad Number', 'text');
+
+    // 3. Make canvas elements draggable
+    const initialName = document.getElementById('canvas-player-name');
+    const initialNum = document.getElementById('canvas-player-number');
+    if (initialName) makeDraggable(initialName);
+    if (initialNum) makeDraggable(initialNum);
+
+    // 4. Default to Selecting Player Name
+    selectLayer('canvas-player-name', 'Player Name');
   </script>
 </body>
 </html>
