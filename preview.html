@@ -697,7 +697,7 @@
             <i data-lucide="minus" class="w-3 h-3"></i>
           </button>
           
-          <span id="canvas-zoom-indicator" class="font-mono font-bold px-1.5 text-blue-600 select-none text-[11px] min-w-9 text-center">100%</span>
+          <button onclick="zoomReset()" id="canvas-zoom-indicator" class="font-mono font-bold px-1.5 text-blue-600 hover:text-blue-800 hover:bg-slate-200 rounded select-none text-[11px] min-w-9 text-center transition" title="Reset Zoom to 100%">100%</button>
           
           <button onclick="zoomStep(10)" class="w-6 h-6 flex items-center justify-center rounded hover:bg-white text-slate-600 hover:text-slate-900 transition" title="Zoom In (+)">
             <i data-lucide="plus" class="w-3 h-3"></i>
