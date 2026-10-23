@@ -135,8 +135,8 @@
     <div class="flex items-center gap-2">
       <!-- Undo / Redo with Clear Tooltips -->
       <div class="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-0.5">
-        <button onclick="actionUndo()" class="p-1.5 rounded hover:bg-white text-slate-600 hover:text-slate-900 transition" title="Undo previous edit (⌘Z)"><i data-lucide="undo-2" class="w-3.5 h-3.5"></i></button>
-        <button onclick="actionRedo()" class="p-1.5 rounded hover:bg-white text-slate-600 hover:text-slate-900 transition" title="Redo edit (⇧⌘Z)"><i data-lucide="redo-2" class="w-3.5 h-3.5"></i></button>
+        <button onclick="actionUndo()" id="btn-toolbar-undo" class="p-1.5 rounded text-slate-300 transition cursor-not-allowed" title="Nothing to undo (⌘Z)"><i data-lucide="undo-2" class="w-3.5 h-3.5"></i></button>
+        <button onclick="actionRedo()" id="btn-toolbar-redo" class="p-1.5 rounded text-slate-300 transition cursor-not-allowed" title="Nothing to redo (⇧⌘Z)"><i data-lucide="redo-2" class="w-3.5 h-3.5"></i></button>
       </div>
 
       <!-- Font Selector -->
@@ -150,13 +150,13 @@
       <!-- Font Size with Stepper -->
       <div class="flex items-center border border-slate-200 rounded-lg overflow-hidden bg-slate-50" title="Lettering Size in Points">
         <button onclick="changeFontSize(-5)" class="px-2 py-1 hover:bg-slate-200 text-slate-600 font-bold" title="Decrease Size">-</button>
-        <input type="number" id="font-size-input" value="110" oninput="setFontSize(this.value)" class="w-12 text-center bg-white font-mono font-bold text-xs py-1 border-x border-slate-200 outline-none">
+        <input type="number" id="font-size-input" value="110" onfocus="recordHistoryState('Change Font Size')" oninput="setFontSize(this.value)" class="w-12 text-center bg-white font-mono font-bold text-xs py-1 border-x border-slate-200 outline-none">
         <button onclick="changeFontSize(5)" class="px-2 py-1 hover:bg-slate-200 text-slate-600 font-bold" title="Increase Size">+</button>
       </div>
 
       <!-- Ink / Vinyl Color Swatch -->
       <div class="flex items-center gap-1.5 pl-1 border-l border-slate-200" title="Print Ink / Film Color">
-        <input type="color" id="text-color-picker" value="#FFFFFF" oninput="setTextColor(this.value)" class="w-7 h-7 rounded-lg border border-slate-300 cursor-pointer p-0 shadow-xs" title="Select Ink Color">
+        <input type="color" id="text-color-picker" value="#FFFFFF" oninput="setTextColor(this.value)" onchange="colorChangeInProgress = false;" class="w-7 h-7 rounded-lg border border-slate-300 cursor-pointer p-0 shadow-xs" title="Select Ink Color">
       </div>
 
       <!-- Text Styles: Bold, Italic, Casing -->
@@ -236,7 +236,7 @@
       <!-- Ink Color -->
       <div class="flex items-center gap-1.5 bg-white px-2 py-1 rounded-lg border border-slate-200 shadow-2xs">
         <span class="text-[11px] font-semibold text-slate-500">Color:</span>
-        <input type="color" id="active-element-color" value="#0F172A" oninput="applyActiveColor(this.value)" class="w-5 h-5 rounded border cursor-pointer border-slate-300" title="Change Layer Color">
+        <input type="color" id="active-element-color" value="#0F172A" oninput="applyActiveColor(this.value)" onchange="activeColorChangeInProgress = false;" class="w-5 h-5 rounded border cursor-pointer border-slate-300" title="Change Layer Color">
       </div>
 
       <div class="h-4 w-px bg-slate-200 mx-1"></div>
@@ -494,7 +494,7 @@
                 <span>Arch Angle</span>
                 <span id="label-arc-val" class="font-mono font-bold text-blue-600">40°</span>
               </div>
-              <input type="range" id="slider-arc" min="-80" max="80" value="40" oninput="setArcIntensity(this.value)" class="w-full accent-blue-600 cursor-pointer">
+              <input type="range" id="slider-arc" min="-80" max="80" value="40" onmousedown="recordHistoryState('Adjust Arch Curvature')" oninput="setArcIntensity(this.value)" class="w-full accent-blue-600 cursor-pointer">
               <div class="flex justify-between text-[10px] text-slate-400">
                 <span>-80° (Inverted)</span>
                 <span>0° (Flat)</span>
@@ -512,14 +512,14 @@
             <div class="space-y-2">
               <div class="flex items-center justify-between">
                 <span class="text-slate-600">Stroke Ink Color</span>
-                <input type="color" id="stroke-color-input" value="#0F172A" oninput="setStrokeColor(this.value)" class="w-6 h-6 rounded border cursor-pointer">
+                <input type="color" id="stroke-color-input" value="#0F172A" onmousedown="recordHistoryState('Stroke Color')" oninput="setStrokeColor(this.value)" class="w-6 h-6 rounded border cursor-pointer">
               </div>
               <div>
                 <div class="flex justify-between text-slate-500 text-[11px] mb-1">
                   <span>Border Thickness</span>
                   <span id="label-stroke-w" class="font-mono font-bold">4px</span>
                 </div>
-                <input type="range" id="slider-stroke" min="1" max="20" value="4" oninput="setStrokeThickness(this.value)" class="w-full accent-blue-600 cursor-pointer">
+                <input type="range" id="slider-stroke" min="1" max="20" value="4" onmousedown="recordHistoryState('Adjust Stroke Thickness')" oninput="setStrokeThickness(this.value)" class="w-full accent-blue-600 cursor-pointer">
               </div>
             </div>
           </div>
@@ -533,14 +533,14 @@
             <div class="space-y-2">
               <div class="flex items-center justify-between">
                 <span class="text-slate-600">Shadow Tint</span>
-                <input type="color" id="shadow-color-input" value="#000000" oninput="setShadowColor(this.value)" class="w-6 h-6 rounded border cursor-pointer">
+                <input type="color" id="shadow-color-input" value="#000000" onmousedown="recordHistoryState('Shadow Tint')" oninput="setShadowColor(this.value)" class="w-6 h-6 rounded border cursor-pointer">
               </div>
               <div>
                 <div class="flex justify-between text-slate-500 text-[11px] mb-1">
                   <span>Softness Blur</span>
                   <span id="label-shadow-b" class="font-mono font-bold">8px</span>
                 </div>
-                <input type="range" id="slider-shadow-blur" min="0" max="30" value="8" oninput="setShadowBlur(this.value)" class="w-full accent-blue-600 cursor-pointer">
+                <input type="range" id="slider-shadow-blur" min="0" max="30" value="8" onmousedown="recordHistoryState('Adjust Shadow Blur')" oninput="setShadowBlur(this.value)" class="w-full accent-blue-600 cursor-pointer">
               </div>
             </div>
           </div>
@@ -963,6 +963,8 @@
 
     // ================= REAL LEFT, CENTER, RIGHT ALIGNMENT =================
     function alignActiveLayer(dir) {
+      if (!activeLayerId) return;
+      recordHistoryState(`Align ${dir.toUpperCase()}`);
       if (!activeLayerId) {
         showToast('Click an element on the canvas to select it first.', 'info');
         return;
@@ -994,8 +996,13 @@
       alignActiveLayer('center');
     }
 
+    let activeColorChangeInProgress = false;
     function applyActiveColor(color) {
       if (!activeLayerId) return;
+      if (!activeColorChangeInProgress) {
+        recordHistoryState("Change Color");
+        activeColorChangeInProgress = true;
+      }
       const el = document.getElementById(activeLayerId);
       if (!el) return;
       el.style.color = color;
@@ -1006,6 +1013,7 @@
 
     // ================= TOGGLE VISIBILITY & LOCK =================
     function toggleLayerVisibility(id) {
+      recordHistoryState("Toggle Visibility");
       const layer = layerRegistry.find(l => l.id === id);
       if (!layer) return;
       layer.visible = !layer.visible;
@@ -1016,6 +1024,7 @@
     }
 
     function toggleLayerLock(id) {
+      recordHistoryState("Toggle Lock");
       const layer = layerRegistry.find(l => l.id === id);
       if (!layer) return;
       layer.locked = !layer.locked;
@@ -1027,11 +1036,15 @@
 
     // ================= REAL DELETE LAYER =================
     function deleteLayerById(id) {
+      recordHistoryState("Delete Layer");
       const layer = layerRegistry.find(l => l.id === id);
       const label = layer ? layer.label : id;
       
       if (id === 'canvas-logo-container') {
         removeLogoFromJersey();
+      } else if (id === 'canvas-player-name' || id === 'canvas-player-number') {
+        const el = document.getElementById(id);
+        if (el) el.style.display = 'none';
       } else {
         const el = document.getElementById(id);
         if (el) el.remove();
@@ -1058,6 +1071,8 @@
 
     // ================= REAL DUPLICATE LAYER =================
     function duplicateActiveLayer() {
+      if (!activeLayerId) return;
+      recordHistoryState("Duplicate Layer");
       if (!activeLayerId) {
         showToast('Select an element on the canvas first to duplicate.', 'info');
         return;
@@ -1137,16 +1152,21 @@
 
         selectLayer(el.id, el.innerText ? el.innerText.substring(0, 15) : 'Layer');
 
+        const snapBeforeDrag = captureCurrentSnapshot('Move Element');
         const artRect = artboard.getBoundingClientRect();
         const elRect = el.getBoundingClientRect();
         let startX = e.clientX;
         let startY = e.clientY;
         let origLeft = elRect.left - artRect.left;
         let origTop  = elRect.top  - artRect.top;
+        let hasMoved = false;
 
         function onMove(e2) {
           const dx = e2.clientX - startX;
           const dy = e2.clientY - startY;
+          if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+            hasMoved = true;
+          }
           const newLeft = Math.max(0, Math.min(artboard.offsetWidth - el.offsetWidth, origLeft + dx));
           const newTop  = Math.max(0, Math.min(artboard.offsetHeight - el.offsetHeight, origTop + dy));
           el.style.left = `${newLeft}px`;
@@ -1157,6 +1177,12 @@
         function onUp() {
           document.removeEventListener('mousemove', onMove);
           document.removeEventListener('mouseup', onUp);
+          if (hasMoved) {
+            undoStack.push(snapBeforeDrag);
+            if (undoStack.length > MAX_HISTORY) undoStack.shift();
+            redoStack.length = 0;
+            updateUndoRedoUI();
+          }
         }
 
         document.addEventListener('mousemove', onMove);
@@ -1179,6 +1205,7 @@
           e.preventDefault();
           e.stopPropagation();
 
+          const snapBeforeResize = captureCurrentSnapshot('Resize Artwork');
           const startX = e.clientX;
           const startY = e.clientY;
           const startW = el.offsetWidth;
@@ -1187,10 +1214,14 @@
           const elRect = el.getBoundingClientRect();
           const startLeft = elRect.left - parentRect.left;
           const startTop = elRect.top - parentRect.top;
+          let hasResized = false;
 
           function onMove(e2) {
             const dx = e2.clientX - startX;
             const dy = e2.clientY - startY;
+            if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+              hasResized = true;
+            }
             let newW = startW;
             let newH = startH;
             let newLeft = startLeft;
@@ -1232,6 +1263,12 @@
           function onUp() {
             document.removeEventListener('mousemove', onMove);
             document.removeEventListener('mouseup', onUp);
+            if (hasResized) {
+              undoStack.push(snapBeforeResize);
+              if (undoStack.length > MAX_HISTORY) undoStack.shift();
+              redoStack.length = 0;
+              updateUndoRedoUI();
+            }
             showToast(`Artwork resized to ${Math.round(el.offsetWidth * 0.0526)}" × ${Math.round(el.offsetHeight * 0.0526)}"`);
           }
 
@@ -1411,6 +1448,7 @@
     }
 
     function previewTeamPlayer(name, number) {
+      recordHistoryState(`Player: ${name}`);
       activePreviewPlayerName = name;
       const nameEl = document.getElementById('canvas-player-name');
       const numEl = document.getElementById('canvas-player-number');
@@ -1517,6 +1555,7 @@
     }
 
     function applyPresetSize(presetKey) {
+      recordHistoryState(`Size: ${presetKey.toUpperCase()}`);
       const p = PRESETS[presetKey];
       if (!p) return;
       canvasWidthInches = p.w;
@@ -1661,6 +1700,7 @@
     }
 
     function placeLogoOnJersey(dataUrl) {
+      recordHistoryState("Place Logo");
       currentLogoUrl = dataUrl;
       const container = document.getElementById('canvas-logo-container');
       if (!container) return;
@@ -1694,6 +1734,7 @@
     }
 
     function removeLogoFromJersey() {
+      recordHistoryState("Remove Logo");
       currentLogoUrl = null;
       const container = document.getElementById('canvas-logo-container');
       if (container) {
@@ -1708,6 +1749,7 @@
     }
 
     function insertSampleGraphic(type) {
+      recordHistoryState(`Add Graphic: ${type}`);
       const container = document.getElementById('canvas-logo-container');
       if (!container) return;
       container.classList.remove('hidden');
@@ -1819,6 +1861,7 @@
         const item = document.createElement('div');
         item.className = 'p-2.5 rounded-xl border border-slate-200 hover:border-blue-500 hover:bg-blue-50/30 cursor-pointer transition';
         item.onclick = () => {
+          recordHistoryState(`Font: ${font.name}`);
           document.getElementById('active-font-display').innerText = font.name;
           const pName = document.getElementById('canvas-player-name');
           const pNum = document.getElementById('canvas-player-number');
@@ -1841,7 +1884,7 @@
     function uploadCustomFontFile(e) {
       const file = e.target.files[0];
       if (!file) return;
-      const fontName = file.name.replace(/\.[^/.]+$/, "");
+      const fontName = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
       const reader = new FileReader();
       reader.onload = function(evt) {
         const fontFace = new FontFace(fontName, evt.target.result);
@@ -1857,6 +1900,7 @@
 
     // ================= TEXT EFFECTS & CURVED ARC =================
     function toggleArcEffect(checked) {
+      recordHistoryState("Toggle Arch Effect");
       const name = document.getElementById('canvas-player-name');
       if (checked) {
         setArcIntensity(document.getElementById('slider-arc').value);
@@ -1874,6 +1918,7 @@
     }
 
     function toggleStrokeEffect(checked) {
+      recordHistoryState("Toggle Outline Stroke");
       const name = document.getElementById('canvas-player-name');
       const num = document.getElementById('canvas-player-number');
       if (checked) {
@@ -1899,6 +1944,7 @@
     }
 
     function toggleShadowEffect(checked) {
+      recordHistoryState("Toggle Drop Shadow");
       const num = document.getElementById('canvas-player-number');
       if (checked) {
         const blur = document.getElementById('slider-shadow-blur').value;
@@ -1919,7 +1965,12 @@
     }
 
     // ================= TYPOGRAPHY CONTROLS =================
+    let colorChangeInProgress = false;
     function setTextColor(c) {
+      if (!colorChangeInProgress) {
+        recordHistoryState("Change Text Color");
+        colorChangeInProgress = true;
+      }
       const name = document.getElementById('canvas-player-name');
       const num = document.getElementById('canvas-player-number');
       if (name) name.style.color = c;
@@ -1934,6 +1985,7 @@
     }
 
     function changeFontSize(delta) {
+      recordHistoryState("Change Font Size");
       const input = document.getElementById('font-size-input');
       const next = Math.max(20, Math.min(200, parseInt(input.value) + delta));
       input.value = next;
@@ -1941,6 +1993,7 @@
     }
 
     function toggleFontWeight() {
+      recordHistoryState("Toggle Bold");
       isBold = !isBold;
       const name = document.getElementById('canvas-player-name');
       const num = document.getElementById('canvas-player-number');
@@ -1950,6 +2003,7 @@
     }
 
     function toggleFontStyle() {
+      recordHistoryState("Toggle Italic");
       isItalic = !isItalic;
       const name = document.getElementById('canvas-player-name');
       const num = document.getElementById('canvas-player-number');
@@ -1959,12 +2013,14 @@
     }
 
     function toggleCase() {
+      recordHistoryState("Toggle Case");
       isUpperCase = !isUpperCase;
       const el = document.getElementById('canvas-player-name');
       if (el) el.innerText = isUpperCase ? el.innerText.toUpperCase() : el.innerText.charAt(0).toUpperCase() + el.innerText.slice(1).toLowerCase();
     }
 
     function triggerAutoFit() {
+      recordHistoryState("Auto-Fit");
       document.getElementById('font-size-input').value = 95;
       setFontSize(95);
       showToast('✓ Auto-Fit: Scaled typography to fit safely inside printable boundary.');
@@ -2062,6 +2118,7 @@
     }
 
     function addTextLayer(sampleText) {
+      recordHistoryState(`+ ${sampleText}`);
       const artboard = document.getElementById('physical-artboard');
       const newId = 'text_layer_' + Date.now();
       const div = document.createElement('div');
@@ -2123,13 +2180,376 @@
       }
     }
 
+    // ================= REAL CANVAS HISTORY STACK ENGINE (UNDO / REDO) =================
+    const undoStack = [];
+    const redoStack = [];
+    const MAX_HISTORY = 40;
+    let isApplyingHistory = false;
+
+    function getClonesHtml() {
+      const box = document.getElementById('jersey-element-box');
+      if (!box) return [];
+      const clones = box.querySelectorAll('[id*="_copy_"], [id^="text_layer_"]');
+      const arr = [];
+      clones.forEach(c => {
+        const cleanNode = c.cloneNode(true);
+        cleanNode.querySelectorAll('.resize-handle').forEach(h => h.remove());
+        cleanNode.classList.remove('layer-selected');
+        arr.push({
+          id: c.id,
+          html: cleanNode.outerHTML,
+          left: c.style.left,
+          top: c.style.top,
+          width: c.style.width,
+          height: c.style.height,
+        });
+      });
+      return arr;
+    }
+
+    function restoreClonesHtml(clonesArr) {
+      const box = document.getElementById('jersey-element-box');
+      if (!box) return;
+      box.querySelectorAll('[id*="_copy_"], [id^="text_layer_"]').forEach(c => c.remove());
+      if (!clonesArr) return;
+
+      clonesArr.forEach(item => {
+        const temp = document.createElement('div');
+        temp.innerHTML = item.html;
+        const el = temp.firstElementChild;
+        if (el) {
+          el.style.left = item.left;
+          el.style.top = item.top;
+          if (item.width) el.style.width = item.width;
+          if (item.height) el.style.height = item.height;
+          el.onclick = (e) => {
+            e.stopPropagation();
+            selectLayer(el.id, el.innerText || 'Layer Copy');
+          };
+          box.appendChild(el);
+          makeDraggable(el);
+          if (el.querySelector('img')) {
+            makeResizable(el);
+          }
+        }
+      });
+    }
+
+    function captureCurrentSnapshot(actionName = 'Edit') {
+      const nameEl = document.getElementById('canvas-player-name');
+      const numEl = document.getElementById('canvas-player-number');
+      const logoEl = document.getElementById('canvas-logo-container');
+
+      let cleanLogoHtml = '';
+      if (logoEl) {
+        const clone = logoEl.cloneNode(true);
+        clone.querySelectorAll('.resize-handle').forEach(h => h.remove());
+        clone.classList.remove('layer-selected');
+        cleanLogoHtml = clone.innerHTML;
+      }
+
+      const activeFontDisplay = document.getElementById('active-font-display');
+      const fontSizeInput = document.getElementById('font-size-input');
+      const colorPicker = document.getElementById('text-color-picker');
+      const arcToggle = document.getElementById('effect-arc-toggle');
+      const arcSlider = document.getElementById('slider-arc');
+      const strokeToggle = document.getElementById('effect-stroke-toggle');
+      const strokeSlider = document.getElementById('slider-stroke');
+      const strokeColor = document.getElementById('stroke-color-input');
+      const shadowToggle = document.getElementById('effect-shadow-toggle');
+      const shadowSlider = document.getElementById('slider-shadow-blur');
+      const shadowColor = document.getElementById('shadow-color-input');
+
+      return {
+        actionName: actionName,
+        playerName: nameEl ? nameEl.innerText : '',
+        playerNumber: numEl ? numEl.innerText : '',
+        nameStyle: nameEl ? {
+          left: nameEl.style.left,
+          top: nameEl.style.top,
+          color: nameEl.style.color,
+          fontFamily: nameEl.style.fontFamily,
+          fontWeight: nameEl.style.fontWeight,
+          fontStyle: nameEl.style.fontStyle,
+          fontSize: nameEl.style.fontSize,
+          transform: nameEl.style.transform,
+          webkitTextStroke: nameEl.style.webkitTextStroke,
+          display: nameEl.style.display,
+        } : null,
+        numberStyle: numEl ? {
+          left: numEl.style.left,
+          top: numEl.style.top,
+          color: numEl.style.color,
+          fontFamily: numEl.style.fontFamily,
+          fontSize: numEl.style.fontSize,
+          fontWeight: numEl.style.fontWeight,
+          fontStyle: numEl.style.fontStyle,
+          transform: numEl.style.transform,
+          filter: numEl.style.filter,
+          webkitTextStroke: numEl.style.webkitTextStroke,
+          display: numEl.style.display,
+        } : null,
+        logoHtml: cleanLogoHtml,
+        logoHidden: logoEl ? logoEl.classList.contains('hidden') : true,
+        logoStyle: logoEl ? {
+          left: logoEl.style.left,
+          top: logoEl.style.top,
+          width: logoEl.style.width,
+          height: logoEl.style.height,
+          transform: logoEl.style.transform,
+        } : null,
+        canvasW: canvasWidthInches,
+        canvasH: canvasHeightInches,
+        layers: JSON.parse(JSON.stringify(layerRegistry)),
+        activeLayerId: activeLayerId,
+        clonesHtml: getClonesHtml(),
+        // App typography & effects state
+        isBold: isBold,
+        isItalic: isItalic,
+        isUpperCase: isUpperCase,
+        activeFontName: activeFontDisplay ? activeFontDisplay.innerText : 'Barselona Athletic',
+        fontSizeVal: fontSizeInput ? fontSizeInput.value : '110',
+        textColorVal: colorPicker ? colorPicker.value : '#FFFFFF',
+        effectArcChecked: arcToggle ? arcToggle.checked : false,
+        effectArcVal: arcSlider ? arcSlider.value : '40',
+        effectStrokeChecked: strokeToggle ? strokeToggle.checked : true,
+        effectStrokeVal: strokeSlider ? strokeSlider.value : '4',
+        effectStrokeColor: strokeColor ? strokeColor.value : '#0F172A',
+        effectShadowChecked: shadowToggle ? shadowToggle.checked : true,
+        effectShadowVal: shadowSlider ? shadowSlider.value : '12',
+        effectShadowColor: shadowColor ? shadowColor.value : '#000000',
+      };
+    }
+
+    function recordHistoryState(actionName = 'Edit') {
+      if (isApplyingHistory) return;
+      const snap = captureCurrentSnapshot(actionName);
+      undoStack.push(snap);
+      if (undoStack.length > MAX_HISTORY) undoStack.shift();
+      redoStack.length = 0; // Clear redo on fresh action
+      updateUndoRedoUI();
+    }
+
+    function restoreSnapshot(snapshot) {
+      if (!snapshot) return;
+      isApplyingHistory = true;
+
+      // 1. Restore typography flags & button UI
+      isBold = !!snapshot.isBold;
+      isItalic = !!snapshot.isItalic;
+      isUpperCase = !!snapshot.isUpperCase;
+      const btnB = document.getElementById('btn-bold');
+      const btnI = document.getElementById('btn-italic');
+      if (btnB) {
+        if (isBold) {
+          btnB.classList.add('bg-blue-100', 'text-blue-700');
+        } else {
+          btnB.classList.remove('bg-blue-100', 'text-blue-700');
+        }
+      }
+      if (btnI) {
+        if (isItalic) {
+          btnI.classList.add('bg-blue-100');
+        } else {
+          btnI.classList.remove('bg-blue-100');
+        }
+      }
+
+      // 2. Restore inputs and toolbar labels
+      const activeFontDisplay = document.getElementById('active-font-display');
+      if (activeFontDisplay && snapshot.activeFontName) {
+        activeFontDisplay.innerText = snapshot.activeFontName;
+      }
+      const fontSizeInput = document.getElementById('font-size-input');
+      if (fontSizeInput && snapshot.fontSizeVal) {
+        fontSizeInput.value = snapshot.fontSizeVal;
+      }
+      const colorPicker = document.getElementById('text-color-picker');
+      const activeColorPicker = document.getElementById('active-element-color');
+      if (snapshot.textColorVal) {
+        if (colorPicker) colorPicker.value = snapshot.textColorVal;
+        if (activeColorPicker) activeColorPicker.value = snapshot.textColorVal;
+      }
+
+      // 3. Restore effects drawer controls
+      const arcToggle = document.getElementById('effect-arc-toggle');
+      const arcSlider = document.getElementById('slider-arc');
+      const labelArc = document.getElementById('label-arc-val');
+      if (arcToggle) arcToggle.checked = !!snapshot.effectArcChecked;
+      if (arcSlider && snapshot.effectArcVal) arcSlider.value = snapshot.effectArcVal;
+      if (labelArc && snapshot.effectArcVal) labelArc.innerText = `${snapshot.effectArcVal}°`;
+
+      const strokeToggle = document.getElementById('effect-stroke-toggle');
+      const strokeSlider = document.getElementById('slider-stroke');
+      const strokeColor = document.getElementById('stroke-color-input');
+      const labelStroke = document.getElementById('label-stroke-w');
+      if (strokeToggle) strokeToggle.checked = !!snapshot.effectStrokeChecked;
+      if (strokeSlider && snapshot.effectStrokeVal) strokeSlider.value = snapshot.effectStrokeVal;
+      if (strokeColor && snapshot.effectStrokeColor) strokeColor.value = snapshot.effectStrokeColor;
+      if (labelStroke && snapshot.effectStrokeVal) labelStroke.innerText = `${snapshot.effectStrokeVal}px`;
+
+      const shadowToggle = document.getElementById('effect-shadow-toggle');
+      const shadowSlider = document.getElementById('slider-shadow-blur');
+      const shadowColor = document.getElementById('shadow-color-input');
+      const labelShadow = document.getElementById('label-shadow-b');
+      if (shadowToggle) shadowToggle.checked = !!snapshot.effectShadowChecked;
+      if (shadowSlider && snapshot.effectShadowVal) shadowSlider.value = snapshot.effectShadowVal;
+      if (shadowColor && snapshot.effectShadowColor) shadowColor.value = snapshot.effectShadowColor;
+      if (labelShadow && snapshot.effectShadowVal) labelShadow.innerText = `${snapshot.effectShadowVal}px`;
+
+      // 4. Restore Player Name
+      let nameEl = document.getElementById('canvas-player-name');
+      const box = document.getElementById('jersey-element-box');
+      if (!nameEl && box) {
+        nameEl = document.createElement('div');
+        nameEl.id = 'canvas-player-name';
+        nameEl.className = 'text-slate-900 font-extrabold text-3xl tracking-wider uppercase text-center transition-all select-none drop-shadow-md absolute pointer-events-auto';
+        nameEl.onclick = (e) => { e.stopPropagation(); selectLayer('canvas-player-name', 'Player Name'); };
+        box.appendChild(nameEl);
+        makeDraggable(nameEl);
+      }
+      if (nameEl && snapshot.nameStyle) {
+        nameEl.innerText = snapshot.playerName;
+        Object.assign(nameEl.style, snapshot.nameStyle);
+        if (snapshot.nameStyle.display === 'none') {
+          nameEl.style.display = 'none';
+        } else {
+          nameEl.style.display = 'block';
+        }
+      }
+
+      // 5. Restore Player Number
+      let numEl = document.getElementById('canvas-player-number');
+      if (!numEl && box) {
+        numEl = document.createElement('div');
+        numEl.id = 'canvas-player-number';
+        numEl.className = 'text-slate-900 font-black text-8xl leading-none text-center transition-all select-none drop-shadow-lg absolute pointer-events-auto';
+        numEl.onclick = (e) => { e.stopPropagation(); selectLayer('canvas-player-number', 'Squad Number'); };
+        box.appendChild(numEl);
+        makeDraggable(numEl);
+      }
+      if (numEl && snapshot.numberStyle) {
+        numEl.innerText = snapshot.playerNumber;
+        Object.assign(numEl.style, snapshot.numberStyle);
+        if (snapshot.numberStyle.display === 'none') {
+          numEl.style.display = 'none';
+        } else {
+          numEl.style.display = 'block';
+        }
+      }
+
+      // 6. Restore Logo
+      const logoContainer = document.getElementById('canvas-logo-container');
+      if (logoContainer) {
+        logoContainer.innerHTML = snapshot.logoHtml;
+        if (snapshot.logoHidden) {
+          logoContainer.classList.add('hidden');
+        } else {
+          logoContainer.classList.remove('hidden');
+        }
+        if (snapshot.logoStyle) {
+          Object.assign(logoContainer.style, snapshot.logoStyle);
+        }
+        if (!snapshot.logoHidden && logoContainer.querySelector('img')) {
+          makeResizable(logoContainer);
+        }
+      }
+
+      // 7. Restore Clones
+      restoreClonesHtml(snapshot.clonesHtml);
+
+      // 8. Restore Canvas Dimensions
+      canvasWidthInches = snapshot.canvasW;
+      canvasHeightInches = snapshot.canvasH;
+      updateCanvasGeometry();
+
+      // 9. Restore Layers Panel
+      layerRegistry.length = 0;
+      snapshot.layers.forEach(l => layerRegistry.push(l));
+      refreshLayersPanel();
+
+      // 10. Restore Layer Selection
+      if (snapshot.activeLayerId && document.getElementById(snapshot.activeLayerId)) {
+        const layer = layerRegistry.find(l => l.id === snapshot.activeLayerId);
+        selectLayer(snapshot.activeLayerId, layer ? layer.label : 'Layer');
+      } else {
+        deselect();
+      }
+
+      isApplyingHistory = false;
+      lucide.createIcons();
+    }
+
     function actionUndo() {
-      showToast('⟲ Reverted previous edit');
+      if (undoStack.length === 0) {
+        showToast('Nothing to undo.', 'info');
+        return;
+      }
+      const prev = undoStack.pop();
+      const current = captureCurrentSnapshot(prev.actionName);
+      redoStack.push(current);
+
+      restoreSnapshot(prev);
+      updateUndoRedoUI();
+      showToast(`⟲ Undo: Reverted ${prev.actionName}`);
     }
 
     function actionRedo() {
-      showToast('⟳ Restored edit');
+      if (redoStack.length === 0) {
+        showToast('Nothing to redo.', 'info');
+        return;
+      }
+      const next = redoStack.pop();
+      const current = captureCurrentSnapshot(next.actionName);
+      undoStack.push(current);
+
+      restoreSnapshot(next);
+      updateUndoRedoUI();
+      showToast(`⟳ Redo: Restored ${next.actionName}`);
     }
+
+    function updateUndoRedoUI() {
+      const btnUndo = document.getElementById('btn-toolbar-undo');
+      const btnRedo = document.getElementById('btn-toolbar-redo');
+      if (btnUndo) {
+        if (undoStack.length > 0) {
+          btnUndo.className = 'p-1.5 rounded hover:bg-white text-slate-800 transition cursor-pointer font-bold';
+          btnUndo.title = `Undo: ${undoStack[undoStack.length - 1].actionName} (⌘Z)`;
+        } else {
+          btnUndo.className = 'p-1.5 rounded text-slate-300 transition cursor-not-allowed';
+          btnUndo.title = 'Nothing to undo (⌘Z)';
+        }
+      }
+      if (btnRedo) {
+        if (redoStack.length > 0) {
+          btnRedo.className = 'p-1.5 rounded hover:bg-white text-slate-800 transition cursor-pointer font-bold';
+          btnRedo.title = `Redo: ${redoStack[redoStack.length - 1].actionName} (⇧⌘Z)`;
+        } else {
+          btnRedo.className = 'p-1.5 rounded text-slate-300 transition cursor-not-allowed';
+          btnRedo.title = 'Nothing to redo (⇧⌘Z)';
+        }
+      }
+    }
+
+    // Keyboard Shortcuts for Undo (⌘Z / Ctrl+Z) and Redo (⇧⌘Z / Ctrl+Y)
+    document.addEventListener('keydown', (e) => {
+      const isInput = e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA');
+      if (isInput) return;
+
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'z') {
+        if (e.shiftKey) {
+          e.preventDefault();
+          actionRedo();
+        } else {
+          e.preventDefault();
+          actionUndo();
+        }
+      } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'y') {
+        e.preventDefault();
+        actionRedo();
+      }
+    });
+
 
     // ================= INITIAL CANVAS SETUP =================
     // 1. Geometry & Fonts
@@ -2148,6 +2568,9 @@
 
     // 4. Default to Selecting Player Name
     selectLayer('canvas-player-name', 'Player Name');
+
+    // 5. Initialize Undo / Redo UI
+    updateUndoRedoUI();
   </script>
 </body>
 </html>
